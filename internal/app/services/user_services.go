@@ -46,7 +46,7 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 }
 
 // Login authenticates a user
-func (s *UserService) Login(email string, password string) error {
+func (s *UserService) Login(username string, password string) error {
 	// Placeholder implementation
 	return nil
 }
@@ -63,12 +63,29 @@ func (s *UserService) UpdateProgress(userId string, progressData interface{}) er
 	return nil
 }
 
-func (s *UserService) CountActiveUserInLast24Hours() (int, error) {
-	count, err := s.userRepo.CountActiveUserInLast24Hours()
+func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
+	count, err := s.userRepo.CountActiveUsersInLast24Hours()
 	if err != nil {
 		return count, err
 	}
 	return count, nil
+}
+
+func (s *UserService) Logout() {
+	// update lastseen of user
+	// logout the user
+}
+
+func (us *UserService) IsEmailUnique(email string) (bool, error) {
+	return us.userRepo.FindUserByEmail(email)
+}
+
+func (us *UserService) IsUsernameUnique(username string) (bool, error) {
+	return us.userRepo.FindUserByUsername(username)
+}
+
+func (us *UserService) IsLeetCodeIDUnique(leetcodeID string) (bool, error) {
+	return us.userRepo.FindUserByLeetcodeID(leetcodeID)
 }
 
 //func (s *UserService) WaitForCompletion() {

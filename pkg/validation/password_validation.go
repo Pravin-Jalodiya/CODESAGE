@@ -6,7 +6,7 @@ import (
 
 const minPasswordLength = 8
 
-func ValidatePass(password string) bool {
+func ValidatePassword(password string) bool {
 	if len(password) < minPasswordLength {
 		return false
 	}

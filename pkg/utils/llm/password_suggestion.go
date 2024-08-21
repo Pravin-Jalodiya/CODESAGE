@@ -1,4 +1,4 @@
-package LLM
+package llm
 
 import (
 	"cli-project/internal/config"

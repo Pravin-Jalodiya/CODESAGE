@@ -7,5 +7,8 @@ type UserRepository interface {
 	UpdateUserProgress(username string, questionID int) error
 	FetchAllUsers() ([]models.StandardUser, error)
 	FetchUser(username string) (models.StandardUser, error)
-	CountActiveUserInLast24Hours() (int, error)
+	CountActiveUsersInLast24Hours() (int64, error)
+	FindUserByUsername(username string) (bool, error)
+	FindUserByEmail(email string) (bool, error)
+	FindUserByLeetcodeID(leetcodeID string) (bool, error)
 }

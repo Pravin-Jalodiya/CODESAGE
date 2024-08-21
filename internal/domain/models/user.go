@@ -19,5 +19,5 @@ type StandardUser struct {
 	StandardUser    User
 	LeetcodeID      string    `json:"leetcode_id"`
 	QuestionsSolved []int     `json:"questionsSolved"`
-	LastSeenInHours time.Time `json:"last_seen"`
+	LastSeen        time.Time `json:"last_seen"`
 }
