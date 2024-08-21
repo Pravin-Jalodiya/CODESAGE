@@ -1,7 +1,7 @@
 package middleware
 
-var ActiveUserID int
+import "cli-project/pkg/globals"
 
-func Auth(userID int) {
-	ActiveUserID = userID
+func Auth(userID string) {
+	globals.ActiveUser = userID
 }

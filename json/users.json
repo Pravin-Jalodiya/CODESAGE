@@ -1,1 +1,13 @@
-[{"UserID":1,"username":"Pravin","password":"$2a$14$i/Soa7/6cjBLFCC9CKY4Vecv1UfbaLNtD8PWCS8YO713ydfnXnIyW","name":"Pravin","email":"","role":"user"}]
+[
+  {
+  "id":1,
+  "role":"user",
+  "username":"Pravin",
+  "password":"$2a$14$i/Soa7/6cjBLFCC9CKY4Vecv1UfbaLNtD8PWCS8YO713ydfnXnIyW",
+  "name":"Pravin",
+  "email":"",
+  "leetcode_id": "",
+  "questionsSolved": [],
+  "last_seen": 0
+  }
+]

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	usr "cli-project/utils/user"
+	usr "cli-project/pkg/utils/user"
 	"slices"
 )
 
