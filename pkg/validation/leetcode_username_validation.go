@@ -16,8 +16,8 @@ query getUserProfile($username: String!) {
 }
 `
 
-// ValidateLeetCodeUsername checks if the provided LeetCode username exists
-func ValidateLeetCodeUsername(username string) (bool, error) {
+// ValidateLeetcodeUsername checks if the provided LeetCode username exists
+func ValidateLeetcodeUsername(username string) (bool, error) {
 	apiURL := "https://leetcode.com/graphql/"
 
 	// Construct the GraphQL query with variables

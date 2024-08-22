@@ -32,7 +32,7 @@ func (ui *UI) ShowMainMenu() {
 		case "1":
 			ui.ShowSignupPage()
 		case "2":
-			//ui.ShowLoginPage()
+			ui.ShowLoginPage()
 		case "3":
 			fmt.Println("Exiting the application. " + emojis.Exit)
 			return

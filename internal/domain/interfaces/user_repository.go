@@ -8,7 +8,7 @@ type UserRepository interface {
 	FetchAllUsers() ([]models.StandardUser, error)
 	FetchUser(username string) (models.StandardUser, error)
 	CountActiveUsersInLast24Hours() (int64, error)
-	FindUserByUsername(username string) (bool, error)
-	FindUserByEmail(email string) (bool, error)
-	FindUserByLeetcodeID(leetcodeID string) (bool, error)
+	IsUsernameUnique(username string) (bool, error)
+	IsEmailUnique(email string) (bool, error)
+	IsLeetcodeIDUnique(leetcodeID string) (bool, error)
 }

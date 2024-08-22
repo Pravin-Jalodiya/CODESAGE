@@ -1,15 +1,35 @@
 package validation
 
-// ValidateName checks if the name is valid
-func ValidateUsername(name string) bool {
-	// Name must be non-empty and only contain alphabetic characters and spaces
-	if len(name) == 0 {
+import (
+	"unicode"
+)
+
+// ValidateUsername checks if the username is valid
+func ValidateUsername(username string) bool {
+	if len(username) == 0 {
 		return false
 	}
-	for _, r := range name {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || r == ' ') {
+
+	hasLetter := false
+	hasDigitAfterLetter := false
+
+	for _, r := range username {
+		if unicode.IsLetter(r) {
+			hasLetter = true
+			// Digits after a letter are allowed
+			hasDigitAfterLetter = true
+		} else if unicode.IsDigit(r) {
+			if hasLetter {
+				hasDigitAfterLetter = true
+			} else {
+				// Digits are not allowed if there has been no letter before
+				return false
+			}
+		} else {
+			// Invalid character found
 			return false
 		}
 	}
-	return true
+
+	return hasLetter && hasDigitAfterLetter
 }

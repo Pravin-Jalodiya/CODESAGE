@@ -5,6 +5,7 @@ import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"context"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,7 +54,24 @@ func (r *userRepo) FetchAllUsers() ([]models.StandardUser, error) {
 }
 
 func (r *userRepo) FetchUser(username string) (models.StandardUser, error) {
-	return models.StandardUser{}, nil
+	// Set a context with a timeout for the database operation
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"username": username}
+
+	var user models.StandardUser
+
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments // User not found
+		}
+		return user, err
+	}
+
+	// Return the found user
+	return user, nil
 }
 
 func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
@@ -75,38 +93,38 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 	return count, nil
 }
 
-func (r *userRepo) FindUserByEmail(email string) (bool, error) {
-	var result models.User
+func (r *userRepo) IsEmailUnique(email string) (bool, error) {
+	var result models.StandardUser
 	err := r.collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return true, nil // Email is unique
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return true, nil
 		}
 		return false, err
 	}
-	return false, nil // Email already exists
+	return false, nil
 }
 
-func (r *userRepo) FindUserByUsername(username string) (bool, error) {
-	var result models.User
+func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
+	var result models.StandardUser
 	err := r.collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return true, nil // Username is unique
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return true, nil
 		}
 		return false, err
 	}
-	return false, nil // Username already exists
+	return false, nil
 }
 
-func (r *userRepo) FindUserByLeetCodeID(leetcodeID string) (bool, error) {
+func (r *userRepo) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
 	var result models.StandardUser
 	err := r.collection.FindOne(context.Background(), bson.M{"leetcode_id": leetcodeID}).Decode(&result)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return true, nil // LeetCode ID is unique
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return true, nil
 		}
 		return false, err
 	}
-	return false, nil // LeetCode ID already exists
+	return false, nil
 }

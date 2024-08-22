@@ -4,8 +4,10 @@ import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/utils"
-	"cli-project/pkg/utils/password"
+	pwd "cli-project/pkg/utils/password"
+	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserService struct {
@@ -27,7 +29,7 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 	user.StandardUser.ID = userID
 
 	// Hash the user password
-	hashedPassword, err := password.HashPassword(user.StandardUser.Password)
+	hashedPassword, err := pwd.HashPassword(user.StandardUser.Password)
 	if err != nil {
 		return fmt.Errorf("could not hash password: %v", err)
 	}
@@ -46,8 +48,26 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 }
 
 // Login authenticates a user
-func (s *UserService) Login(username string, password string) error {
-	// Placeholder implementation
+func (s *UserService) Login(username, password string) error {
+	// Declare errors
+	var (
+		ErrInvalidCredentials = errors.New("username or password incorrect")
+		ErrUserNotFound       = errors.New("user not found")
+	)
+	// Retrieve the user by username
+	user, err := s.userRepo.FetchUser(username)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return ErrUserNotFound // Return error if user doesn't exist
+		}
+		return fmt.Errorf("could not retrieve user: %v", err)
+	}
+
+	// Verify the password
+	if !pwd.VerifyPassword(password, user.StandardUser.Password) {
+		return ErrInvalidCredentials
+	}
+
 	return nil
 }
 
@@ -76,16 +96,16 @@ func (s *UserService) Logout() {
 	// logout the user
 }
 
-func (us *UserService) IsEmailUnique(email string) (bool, error) {
-	return us.userRepo.FindUserByEmail(email)
+func (s *UserService) IsEmailUnique(email string) (bool, error) {
+	return s.userRepo.IsEmailUnique(email)
 }
 
-func (us *UserService) IsUsernameUnique(username string) (bool, error) {
-	return us.userRepo.FindUserByUsername(username)
+func (s *UserService) IsUsernameUnique(username string) (bool, error) {
+	return s.userRepo.IsUsernameUnique(username)
 }
 
-func (us *UserService) IsLeetCodeIDUnique(leetcodeID string) (bool, error) {
-	return us.userRepo.FindUserByLeetcodeID(leetcodeID)
+func (s *UserService) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
+	return s.userRepo.IsLeetcodeIDUnique(leetcodeID)
 }
 
 //func (s *UserService) WaitForCompletion() {

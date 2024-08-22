@@ -25,9 +25,18 @@ func (ui *UI) ShowSignupPage() {
 		username = strings.TrimSpace(username)
 
 		if validation.ValidateUsername(username) {
-			break
+			unique, err := ui.userService.IsUsernameUnique(username)
+			if err != nil {
+				fmt.Println(emojis.Error, "Error checking username uniqueness:", err)
+				continue
+			}
+			if unique {
+				break
+			}
+			fmt.Println(emojis.Info, "Username already taken. Choose another username.")
+		} else {
+			fmt.Println(emojis.Error, "Invalid username. It should be between 4 and 20 characters long, should not be only numbers and contain no spaces.")
 		}
-		fmt.Println(emojis.Error, "Invalid username. It should be between 4 and 20 characters long, should not be only numbers and contain no spaces.")
 	}
 
 	// Read Password
@@ -51,7 +60,7 @@ func (ui *UI) ShowSignupPage() {
 		if password != confirmPassword {
 			fmt.Println(emojis.Error, "Passwords do not match. Please try again.")
 		} else {
-			fmt.Println(emojis.Error, "Invalid password. It must be at least 8 characters long and include upper/lowercase letters, a digit, and a special character.")
+			fmt.Println(emojis.Error, "Invalid password. It must be at least 8 characters long and include at least 1 upper/lowercase letters, 1 digit, and 1 special character.")
 		}
 	}
 
@@ -74,11 +83,19 @@ func (ui *UI) ShowSignupPage() {
 		email, _ = ui.reader.ReadString('\n')
 		email = strings.TrimSpace(email)
 
-		// Validate Email
 		if validation.ValidateEmail(email) {
-			break
+			unique, err := ui.userService.IsEmailUnique(email)
+			if err != nil {
+				fmt.Println(emojis.Error, "Error checking email uniqueness:", err)
+				continue
+			}
+			if unique {
+				break
+			}
+			fmt.Println(emojis.Info, "Email already registered. Use a different email.")
+		} else {
+			fmt.Println(emojis.Error, "Invalid email format.")
 		}
-		fmt.Println(emojis.Error, "Invalid email format.")
 	}
 
 	// Read LeetCode Username
@@ -88,8 +105,19 @@ func (ui *UI) ShowSignupPage() {
 		leetcodeID, _ = ui.reader.ReadString('\n')
 		leetcodeID = strings.TrimSpace(leetcodeID)
 
-		// Validate LeetCode Username
-		exists, err := validation.ValidateLeetCodeUsername(leetcodeID)
+		// Check if LeetCode ID is unique in the database
+		isUnique, err := ui.userService.IsLeetcodeIDUnique(leetcodeID)
+		if err != nil {
+			fmt.Println(emojis.Error, "Error checking LeetCode ID uniqueness:", err)
+			continue
+		}
+		if !isUnique {
+			fmt.Println(emojis.Error, "LeetCode ID is already taken. Please choose a different ID.")
+			continue
+		}
+
+		// Validate LeetCode Username with LeetCode API
+		exists, err := validation.ValidateLeetcodeUsername(leetcodeID)
 		if err != nil {
 			fmt.Println(emojis.Error, "Error validating LeetCode username:", err)
 			continue
