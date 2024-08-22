@@ -45,17 +45,73 @@ func (r *userRepo) RegisterUser(user models.StandardUser) error {
 	return nil
 }
 
-func (r *userRepo) UpdateUserProgress(username string, questionID int) error {
+func (r *userRepo) UpdateUserProgress(username string, solvedQuestionID int) error {
+	// Set a context with a timeout for the database operation
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	// Find the user by username
+	filter := bson.M{"username": username}
+
+	// Add the solved question ID to the QuestionsSolved slice
+	update := bson.M{
+		"$addToSet": bson.M{
+			"questions_solved": solvedQuestionID,
+		},
+	}
+
+	// Update the user document
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update progress: %v", err)
+	}
+
 	return nil
 }
 
 func (r *userRepo) FetchAllUsers() ([]models.StandardUser, error) {
-	return nil, nil
+	// Set a context with a timeout for the database operation
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	// Define an empty filter to match all documents
+	filter := bson.M{}
+
+	// Find all users
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
+
+	var users []models.StandardUser
+
+	// Iterate through the cursor and decode each document into a StandardUser
+	for cursor.Next(ctx) {
+		var user models.StandardUser
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	// Check if there were any errors during the iteration
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (r *userRepo) FetchUser(username string) (models.StandardUser, error) {
 	// Set a context with a timeout for the database operation
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := CreateContext()
 	defer cancel()
 
 	filter := bson.M{"username": username}
@@ -80,7 +136,7 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 	twentyFourHoursAgo := now.Add(-24 * time.Hour)
 
 	filter := bson.M{
-		"last_seen_in_hours": bson.M{
+		"last_seen": bson.M{
 			"$gte": twentyFourHoursAgo,
 		},
 	}

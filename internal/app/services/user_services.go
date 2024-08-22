@@ -10,6 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+var (
+	ErrInvalidCredentials = errors.New("username or password incorrect")
+	ErrUserNotFound       = errors.New("user not found")
+)
+
 type UserService struct {
 	userRepo interfaces.UserRepository
 	//userWG   *sync.WaitGroup
@@ -49,13 +54,9 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 
 // Login authenticates a user
 func (s *UserService) Login(username, password string) error {
-	// Declare errors
-	var (
-		ErrInvalidCredentials = errors.New("username or password incorrect")
-		ErrUserNotFound       = errors.New("user not found")
-	)
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUser(username)
+
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return ErrUserNotFound // Return error if user doesn't exist
@@ -77,10 +78,9 @@ func (s *UserService) ViewDashboard() error {
 	return nil
 }
 
-// UpdateProgress updates the user's progress in some context
-func (s *UserService) UpdateProgress(userId string, progressData interface{}) error {
-	// Placeholder implementation
-	return nil
+// UpdateUserProgress updates the user's progress in some context
+func (s *UserService) UpdateUserProgress(username string, solvedQuestionID int) error {
+	return s.userRepo.UpdateUserProgress(username, solvedQuestionID)
 }
 
 func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
@@ -92,8 +92,12 @@ func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
 }
 
 func (s *UserService) Logout() {
-	// update lastseen of user
+	// update last seen of user
 	// logout the user
+}
+
+func (s *UserService) GetUserByUsername(username string) (models.StandardUser, error) {
+	return s.userRepo.FetchUser(username)
 }
 
 func (s *UserService) IsEmailUnique(email string) (bool, error) {
@@ -106,6 +110,16 @@ func (s *UserService) IsUsernameUnique(username string) (bool, error) {
 
 func (s *UserService) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
 	return s.userRepo.IsLeetcodeIDUnique(leetcodeID)
+}
+
+func (s *UserService) GetUserRole(username string) (string, error) {
+
+	user, err := s.userRepo.FetchUser(username)
+	if err != nil {
+		return "", err
+	}
+
+	return user.StandardUser.Role, nil
 }
 
 //func (s *UserService) WaitForCompletion() {

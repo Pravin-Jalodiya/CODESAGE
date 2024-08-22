@@ -1,9 +1,13 @@
 package ui
 
 import (
+	"cli-project/internal/app/services"
+	"cli-project/internal/config/roles"
+	"cli-project/pkg/globals"
 	"cli-project/pkg/utils/emojis"
 	"cli-project/pkg/utils/formatting"
 	"cli-project/pkg/validation"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
@@ -39,30 +43,47 @@ func (ui *UI) ShowLoginPage() {
 		}
 		fmt.Println()
 
-		// Attempt to login
+		// Attempt to log in
 		err := ui.userService.Login(username, password)
 		if err != nil {
-			if err.Error() == "user not found" {
+			if errors.Is(err, services.ErrUserNotFound) {
 				fmt.Println(emojis.Error, "User not found. Would you like to sign up instead? (y/n)")
-				var choice string
-				fmt.Print(formatting.Colorize("Choice: ", "blue", ""))
-				choice, err := ui.reader.ReadString('\n')
-				if err != nil {
-					fmt.Println(emojis.Error, "Failed to read input. Please try again.")
-					return
+				for {
+					fmt.Print(formatting.Colorize("Choice: ", "blue", ""))
+					choice, err := ui.reader.ReadString('\n')
+					if err != nil {
+						fmt.Println(emojis.Error, "Failed to read input. Please try again.")
+						return
+					}
+					choice = strings.TrimSpace(choice)
+					if strings.ToLower(choice) == "y" {
+						ui.ShowSignupPage()
+						return
+					} else {
+						fmt.Println("Invalid input. Please try again.")
+					}
 				}
-				choice = strings.TrimSpace(choice)
-				if strings.ToLower(choice) == "y" {
-					ui.ShowSignupPage()
-					return
-				}
-			} else if err.Error() == "username or password incorrect" {
+			} else if errors.Is(err, services.ErrInvalidCredentials) {
 				fmt.Println(emojis.Error, "Username or password incorrect. Please try again.")
 			} else {
 				fmt.Println(emojis.Error, "Login failed:", err)
 			}
 		} else {
 			fmt.Println(emojis.Success, "Login successful!")
+
+			globals.ActiveUser = username
+
+			role, err := ui.userService.GetUserRole(globals.ActiveUser)
+			if err != nil {
+				fmt.Println("Unexpected Error:", err)
+			}
+
+			if role == roles.USER {
+				ShowUserMenu()
+			} else if role == roles.ADMIN {
+				ShowAdminMenu()
+			}
+
 			return
 		}
 	}

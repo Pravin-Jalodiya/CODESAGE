@@ -3,12 +3,12 @@ package models
 import "time"
 
 type User struct {
-	ID       string `json:"id"`
-	Role     string `json:"role,omitempty"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
+	ID       string `bson:"id"`
+	Role     string `bson:"role"`
+	Username string `bson:"username"`
+	Password string `bson:"password"`
+	Name     string `bson:"name"`
+	Email    string `bson:"email"`
 }
 
 type Admin struct {
@@ -16,8 +16,8 @@ type Admin struct {
 }
 
 type StandardUser struct {
-	StandardUser    User
-	LeetcodeID      string    `json:"leetcode_id"`
-	QuestionsSolved []int     `json:"questionsSolved"`
-	LastSeen        time.Time `json:"last_seen"`
+	StandardUser    User      `bson:",inline"`
+	LeetcodeID      string    `bson:"leetcode_id"`
+	QuestionsSolved []int     `bson:"questions_solved"`
+	LastSeen        time.Time `bson:"last_seen"`
 }

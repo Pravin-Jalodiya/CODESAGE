@@ -8,8 +8,9 @@ import (
 
 // UI struct holds the UserService, bufio.Reader, and other dependencies
 type UI struct {
-	userService *services.UserService
-	reader      *bufio.Reader
+	userService     *services.UserService
+	questionService *services.QuestionService
+	reader          *bufio.Reader
 }
 
 // NewUI initializes the UI with the provided services and a bufio.Reader
