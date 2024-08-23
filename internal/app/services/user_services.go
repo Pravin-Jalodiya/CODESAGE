@@ -3,11 +3,13 @@ package services
 import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
 	pwd "cli-project/pkg/utils/password"
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 var (
@@ -93,7 +95,20 @@ func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
 
 func (s *UserService) Logout() {
 	// update last seen of user
+	user, err := s.userRepo.FetchUser(globals.ActiveUser)
+	if err != nil {
+		return
+	}
+
+	user.LastSeen = time.Now().UTC()
+
+	// clear active user
+
+	globals.ActiveUser = ""
+
 	// logout the user
+	
+	return
 }
 
 func (s *UserService) GetUserByUsername(username string) (models.StandardUser, error) {

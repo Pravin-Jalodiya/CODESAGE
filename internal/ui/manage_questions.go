@@ -34,6 +34,7 @@ func (ui *UI) ManageQuestions() {
 		fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
 		ui.ManageQuestions()
 	}
+	return
 }
 
 func (ui *UI) AddQuestions() {

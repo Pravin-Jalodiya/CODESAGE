@@ -13,7 +13,7 @@ func (ui *UI) ShowAdminMenu() {
 	fmt.Println(formatting.Colorize("1. View Dashboard", "green", ""))
 	fmt.Println(formatting.Colorize("2. Add or Remove Questions", "green", ""))
 	fmt.Println(formatting.Colorize("3. Ban or Unban Users", "green", ""))
-	fmt.Println(formatting.Colorize("4. Post Announcement", "green", ""))
+	//fmt.Println(formatting.Colorize("4. Post Announcement", "green", ""))
 
 	fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
 	choice, err := ui.reader.ReadString('\n')
