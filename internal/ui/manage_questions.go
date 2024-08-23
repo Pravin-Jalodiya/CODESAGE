@@ -89,5 +89,24 @@ func (ui *UI) AddQuestions() {
 
 func (ui *UI) RemoveQuestion() {
 	// Placeholder for the remove question logic
-	fmt.Println(formatting.Colorize("Removing question feature is not yet implemented.", "cyan", "bold"))
+	// Prompt admin to enter the Question ID
+	var questionID string
+	var err error
+	for {
+		fmt.Print(formatting.Colorize("Enter the Question ID to remove: ", "yellow", "bold"))
+		questionID, err = ui.reader.ReadString('\n')
+		if err != nil {
+			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+			return
+		}
+
+		break
+	}
+	// Call the QuestionService to remove the question
+	err = ui.questionService.RemoveQuestionByID(questionID)
+	if err != nil {
+		fmt.Println(formatting.Colorize("Failed to remove the question:", "red", "bold"), err)
+	} else {
+		fmt.Println(formatting.Colorize("Question removed successfully!", "green", "bold"))
+	}
 }

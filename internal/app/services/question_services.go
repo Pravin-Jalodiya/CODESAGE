@@ -77,7 +77,7 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) error {
 	return nil
 }
 
-func (s *QuestionService) RemoveQuestionByID(questionID int) error {
+func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 	return s.questionRepo.RemoveQuestionByID(questionID)
 }
 
