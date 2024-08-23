@@ -15,7 +15,7 @@ func (ui *UI) ShowMainMenu() {
 
 		// Print the application name and menu options
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("             TBD-CODE             ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("               CODESAGE             ", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println("Please choose an option:")
 		fmt.Printf("1. %s Sign Up\n", emojis.SignUp)

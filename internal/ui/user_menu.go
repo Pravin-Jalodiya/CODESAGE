@@ -10,9 +10,10 @@ func (ui *UI) ShowUserMenu() {
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("              USER MENU             ", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("1. Solve Questions", "green", ""))
+	fmt.Println(formatting.Colorize("1. View Questions", "green", ""))
 	fmt.Println(formatting.Colorize("2. View Dashboard", "green", ""))
-	fmt.Println(formatting.Colorize("3. Logout", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("3. Update Progress", "green", ""))
+	fmt.Println(formatting.Colorize("4. Logout", "green", ""))
 
 	fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
 	choice, err := ui.reader.ReadString('\n')
@@ -29,9 +30,11 @@ func (ui *UI) ShowUserMenu() {
 	case "2":
 		ui.ShowUserDashboard()
 	case "3":
+		ui.UpdateProgressPage()
+	case "4":
 		ui.userService.Logout()
 	default:
-		ui.ShowUserMenu()
+		fmt.Println("Invalid choice. Try again.")
 	}
 }
 
