@@ -15,7 +15,7 @@ func (ui *UI) ShowMainMenu() {
 
 		// Print the application name and menu options
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("             CHEATCODE             ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("             TBD-CODE             ", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println("Please choose an option:")
 		fmt.Printf("1. %s Sign Up\n", emojis.SignUp)
@@ -34,7 +34,7 @@ func (ui *UI) ShowMainMenu() {
 		case "2":
 			ui.ShowLoginPage()
 		case "3":
-			fmt.Println("Exiting the application. " + emojis.Exit)
+			fmt.Println(emojis.Exit + " Exiting the application.")
 			return
 		default:
 			fmt.Println("Invalid choice. Please try again. " + emojis.Error)

@@ -14,20 +14,30 @@ func main() {
 		log.Fatal("Failed to initialize UserRepository")
 	}
 
+	// Initialize Question Repository
+	questionRepo := repositories.NewQuestionRepo()
+	if questionRepo == nil {
+		log.Fatal("Failed to initialize QuestionRepository")
+	}
+
 	// Initialize User Service
 	userService := services.NewUserService(userRepo)
 	if userService == nil {
 		log.Fatal("Failed to initialize UserService")
 	}
 
+	// Initialize Question Service
+	questionService := services.NewQuestionService(questionRepo)
+	if questionService == nil {
+		log.Fatal("Failed to initialize QuestionService")
+	}
+
 	// Initialize UI
-	ui := ui.NewUI(userService)
-	if ui == nil {
+	newUI := ui.NewUI(userService, questionService)
+	if newUI == nil {
 		log.Fatal("Failed to initialize UI")
 	}
 
 	// Show Main Menu
-	for {
-		ui.ShowMainMenu()
-	}
+	newUI.ShowMainMenu()
 }

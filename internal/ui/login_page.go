@@ -59,6 +59,8 @@ func (ui *UI) ShowLoginPage() {
 					if strings.ToLower(choice) == "y" {
 						ui.ShowSignupPage()
 						return
+					} else if strings.ToLower(choice) == "n" {
+						break
 					} else {
 						fmt.Println("Invalid input. Please try again.")
 					}
@@ -79,9 +81,9 @@ func (ui *UI) ShowLoginPage() {
 			}
 
 			if role == roles.USER {
-				ShowUserMenu()
+				ui.ShowUserMenu()
 			} else if role == roles.ADMIN {
-				ShowAdminMenu()
+				ui.ShowAdminMenu()
 			}
 
 			return

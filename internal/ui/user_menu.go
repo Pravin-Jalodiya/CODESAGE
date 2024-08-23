@@ -24,12 +24,10 @@ func (ui *UI) ShowUserMenu() {
 
 	switch choice {
 	case "1":
-		//ui.SolveQuestions()
+		ui.ViewQuestionsPage()
 	case "2":
-		fmt.Println(formatting.Colorize("You chose to view the dashboard.", "blue", "bold"))
-		//ui.ViewDashboard()
+		ui.ShowUserDashboard()
 	default:
-		fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
 		ui.ShowUserMenu()
 	}
 }
