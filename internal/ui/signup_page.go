@@ -13,6 +13,9 @@ import (
 )
 
 func (ui *UI) ShowSignupPage() {
+	// Clear the screen
+	fmt.Print("\033[H\033[2J")
+
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("               SIGNUP                  ", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
@@ -22,18 +25,19 @@ func (ui *UI) ShowSignupPage() {
 	for {
 		fmt.Print(formatting.Colorize("Username: ", "blue", ""))
 		username, _ = ui.reader.ReadString('\n')
+		username = strings.TrimSuffix(username, "\n")
 		username = strings.TrimSpace(username)
 
 		if validation.ValidateUsername(username) {
 			unique, err := ui.userService.IsUsernameUnique(username)
 			if err != nil {
-				fmt.Println(emojis.Error, "Error checking username uniqueness:", err)
+				fmt.Println(emojis.Error, "Error checking username uniqueness. Try again.")
 				continue
 			}
-			if unique {
-				break
+			if !unique {
+				fmt.Println(emojis.Info, "Username already taken. Choose another username.")
 			}
-			fmt.Println(emojis.Info, "Username already taken. Choose another username.")
+			break
 		} else {
 			fmt.Println(emojis.Error, "Invalid username. It should be between 4 and 20 characters long, should not be only numbers and contain no spaces.")
 		}
@@ -45,23 +49,28 @@ func (ui *UI) ShowSignupPage() {
 		fmt.Print(formatting.Colorize("Password: ", "blue", ""))
 		passwordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		password = string(passwordBytes)
+		password = strings.TrimSpace(password)
 		fmt.Println()
 
 		// Read Confirm Password
 		fmt.Print(formatting.Colorize("Confirm Password: ", "blue", ""))
 		confirmPasswordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		confirmPassword = string(confirmPasswordBytes)
+		confirmPassword = strings.TrimSpace(confirmPassword)
 		fmt.Println()
 
 		// Validate Passwords
 		if password == confirmPassword && validation.ValidatePassword(password) {
 			break
 		}
+
 		if password != confirmPassword {
 			fmt.Println(emojis.Error, "Passwords do not match. Please try again.")
+			continue
 		} else {
 			fmt.Println(emojis.Error, "Invalid password. It must be at least 8 characters long and include at least 1 upper/lowercase letters, 1 digit, and 1 special character.")
 		}
+		break
 	}
 
 	// Read Name
@@ -69,11 +78,13 @@ func (ui *UI) ShowSignupPage() {
 	for {
 		fmt.Print(formatting.Colorize("Name: ", "blue", ""))
 		name, _ = ui.reader.ReadString('\n')
+		name = strings.TrimSuffix(name, "\n")
 		name = strings.TrimSpace(name)
-		if validation.ValidateName(name) {
-			break
+		if !validation.ValidateName(name) {
+			fmt.Println(emojis.Error, "Invalid name. It should be up to 45 characters long and contain only letters and spaces.")
+			continue
 		}
-		fmt.Println(emojis.Error, "Invalid name. It should be up to 45 characters long and contain only letters and spaces.")
+		break
 	}
 
 	// Read Email
@@ -81,6 +92,7 @@ func (ui *UI) ShowSignupPage() {
 	for {
 		fmt.Print(formatting.Colorize("Email: ", "blue", ""))
 		email, _ = ui.reader.ReadString('\n')
+		email = strings.TrimSuffix(email, "\n")
 		email = strings.TrimSpace(email)
 
 		if validation.ValidateEmail(email) {
@@ -93,6 +105,7 @@ func (ui *UI) ShowSignupPage() {
 				break
 			}
 			fmt.Println(emojis.Info, "Email already registered. Use a different email.")
+			break
 		} else {
 			fmt.Println(emojis.Error, "Invalid email format.")
 		}
@@ -103,6 +116,7 @@ func (ui *UI) ShowSignupPage() {
 	for {
 		fmt.Print(formatting.Colorize("LeetCode Username: ", "blue", ""))
 		leetcodeID, _ = ui.reader.ReadString('\n')
+		leetcodeID = strings.TrimSuffix(leetcodeID, "\n")
 		leetcodeID = strings.TrimSpace(leetcodeID)
 
 		// Check if LeetCode ID is unique in the database
@@ -149,5 +163,6 @@ func (ui *UI) ShowSignupPage() {
 	}
 
 	fmt.Println(emojis.Success, "Signup successful!")
-	fmt.Println()
+
+	return
 }

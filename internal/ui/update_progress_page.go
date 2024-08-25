@@ -9,6 +9,9 @@ import (
 )
 
 func (ui *UI) UpdateProgressPage() {
+	// Clear the screen
+	fmt.Print("\033[H\033[2J")
+
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("           UPDATE PROGRESS          ", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))

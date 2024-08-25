@@ -8,6 +8,8 @@ import (
 )
 
 func (ui *UI) ViewQuestionsPage() {
+	// Clear the screen
+	fmt.Print("\033[H\033[2J")
 
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("              QUESTIONS             ", "magenta", "bold"))

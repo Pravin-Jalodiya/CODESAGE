@@ -10,6 +10,9 @@ import (
 )
 
 func (ui *UI) ManageQuestions() {
+	// Clear the screen
+	fmt.Print("\033[H\033[2J")
+
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("         MANAGE QUESTIONS           ", "magenta", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
@@ -95,6 +98,8 @@ func (ui *UI) RemoveQuestion() {
 	for {
 		fmt.Print(formatting.Colorize("Enter the Question ID to remove: ", "yellow", "bold"))
 		questionID, err = ui.reader.ReadString('\n')
+		questionID = strings.TrimSuffix(questionID, "\n")
+		questionID = strings.TrimSpace(questionID)
 		if err != nil {
 			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
 			return

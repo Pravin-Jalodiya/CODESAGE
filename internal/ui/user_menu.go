@@ -7,6 +7,9 @@ import (
 )
 
 func (ui *UI) ShowUserMenu() {
+	// Clear the screen
+	fmt.Print("\033[H\033[2J")
+
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("              USER MENU             ", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
