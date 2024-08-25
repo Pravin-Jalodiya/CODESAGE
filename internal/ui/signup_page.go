@@ -29,7 +29,7 @@ func (ui *UI) ShowSignupPage() {
 		username = strings.TrimSpace(username)
 
 		if validation.ValidateUsername(username) {
-			unique, err := ui.userService.IsUsernameUnique(username)
+			unique, err := ui.authService.IsUsernameUnique(username)
 			if err != nil {
 				fmt.Println(emojis.Error, "Error checking username uniqueness. Try again.")
 				continue
@@ -98,7 +98,7 @@ func (ui *UI) ShowSignupPage() {
 		email = strings.TrimSpace(email)
 
 		if check1, check2 := validation.ValidateEmail(email); check1 == true && check2 == true {
-			unique, err := ui.userService.IsEmailUnique(email)
+			unique, err := ui.authService.IsEmailUnique(email)
 			if err != nil {
 				fmt.Println(emojis.Error, "Error checking email uniqueness. Try again.")
 				continue
@@ -126,7 +126,7 @@ func (ui *UI) ShowSignupPage() {
 		leetcodeID = strings.TrimSpace(leetcodeID)
 
 		// Check if LeetCode ID is unique in the database
-		isUnique, err := ui.userService.IsLeetcodeIDUnique(leetcodeID)
+		isUnique, err := ui.authService.IsLeetcodeIDUnique(leetcodeID)
 
 		if err != nil {
 			fmt.Println(emojis.Error, "Error checking LeetCode ID uniqueness. Try again.")

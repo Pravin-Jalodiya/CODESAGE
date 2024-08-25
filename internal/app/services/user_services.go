@@ -114,18 +114,6 @@ func (s *UserService) GetUserByUsername(username string) (models.StandardUser, e
 	return s.userRepo.FetchUser(username)
 }
 
-func (s *UserService) IsEmailUnique(email string) (bool, error) {
-	return s.userRepo.IsEmailUnique(email)
-}
-
-func (s *UserService) IsUsernameUnique(username string) (bool, error) {
-	return s.userRepo.IsUsernameUnique(username)
-}
-
-func (s *UserService) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
-	return s.userRepo.IsLeetcodeIDUnique(leetcodeID)
-}
-
 func (s *UserService) GetUserRole(username string) (string, error) {
 
 	user, err := s.userRepo.FetchUser(username)
