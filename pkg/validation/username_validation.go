@@ -1,12 +1,11 @@
 package validation
 
-import (
-	"unicode"
-)
+import "unicode"
 
 // ValidateUsername checks if the username is valid
 func ValidateUsername(username string) bool {
-	if len(username) == 0 {
+
+	if len(username) <= 3 || len(username) >= 21 {
 		return false
 	}
 

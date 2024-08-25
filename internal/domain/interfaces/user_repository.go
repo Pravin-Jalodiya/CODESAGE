@@ -4,7 +4,7 @@ import "cli-project/internal/domain/models"
 
 type UserRepository interface {
 	RegisterUser(user models.StandardUser) error
-	UpdateUserProgress(username string, questionID int) error
+	UpdateUserProgress(username string, questionID string) error
 	FetchAllUsers() ([]models.StandardUser, error)
 	FetchUser(username string) (models.StandardUser, error)
 	CountActiveUsersInLast24Hours() (int64, error)

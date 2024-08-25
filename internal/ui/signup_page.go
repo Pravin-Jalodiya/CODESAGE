@@ -36,11 +36,14 @@ func (ui *UI) ShowSignupPage() {
 			}
 			if !unique {
 				fmt.Println(emojis.Info, "Username already taken. Choose another username.")
+				continue
 			}
-			break
+
 		} else {
 			fmt.Println(emojis.Error, "Invalid username. It should be between 4 and 20 characters long, should not be only numbers and contain no spaces.")
+			continue
 		}
+		break
 	}
 
 	// Read Password
@@ -59,17 +62,16 @@ func (ui *UI) ShowSignupPage() {
 		confirmPassword = strings.TrimSpace(confirmPassword)
 		fmt.Println()
 
-		// Validate Passwords
-		if password == confirmPassword && validation.ValidatePassword(password) {
-			break
-		}
-
 		if password != confirmPassword {
 			fmt.Println(emojis.Error, "Passwords do not match. Please try again.")
 			continue
-		} else {
-			fmt.Println(emojis.Error, "Invalid password. It must be at least 8 characters long and include at least 1 upper/lowercase letters, 1 digit, and 1 special character.")
 		}
+
+		if !validation.ValidatePassword(password) {
+			fmt.Println(emojis.Error, "Invalid password. It must be at least 8 characters long and include at least 1 uppercase & lowercase letters, 1 digit, and 1 special character.")
+			continue
+		}
+
 		break
 	}
 
@@ -81,7 +83,7 @@ func (ui *UI) ShowSignupPage() {
 		name = strings.TrimSuffix(name, "\n")
 		name = strings.TrimSpace(name)
 		if !validation.ValidateName(name) {
-			fmt.Println(emojis.Error, "Invalid name. It should be up to 45 characters long and contain only letters and spaces.")
+			fmt.Println(emojis.Error, "Invalid name. It should be 3 to 30 characters long and contain only letters and spaces.")
 			continue
 		}
 		break
@@ -95,20 +97,24 @@ func (ui *UI) ShowSignupPage() {
 		email = strings.TrimSuffix(email, "\n")
 		email = strings.TrimSpace(email)
 
-		if validation.ValidateEmail(email) {
+		if check1, check2 := validation.ValidateEmail(email); check1 == true && check2 == true {
 			unique, err := ui.userService.IsEmailUnique(email)
 			if err != nil {
-				fmt.Println(emojis.Error, "Error checking email uniqueness:", err)
+				fmt.Println(emojis.Error, "Error checking email uniqueness. Try again.")
 				continue
 			}
-			if unique {
-				break
+			if !unique {
+				fmt.Println(emojis.Info, "Email already registered. Use a different email.")
+				continue
 			}
-			fmt.Println(emojis.Info, "Email already registered. Use a different email.")
-			break
-		} else {
+		} else if check1 == false {
 			fmt.Println(emojis.Error, "Invalid email format.")
+			continue
+		} else if check2 == false {
+			fmt.Println(emojis.Error, "Invalid email domain. We only support gmail, outlook, yahoo, hotmail, icloud, watchguard emails.")
+			continue
 		}
+		break
 	}
 
 	// Read LeetCode Username
@@ -121,8 +127,9 @@ func (ui *UI) ShowSignupPage() {
 
 		// Check if LeetCode ID is unique in the database
 		isUnique, err := ui.userService.IsLeetcodeIDUnique(leetcodeID)
+
 		if err != nil {
-			fmt.Println(emojis.Error, "Error checking LeetCode ID uniqueness:", err)
+			fmt.Println(emojis.Error, "Error checking LeetCode ID uniqueness. Try again.")
 			continue
 		}
 		if !isUnique {
@@ -136,10 +143,11 @@ func (ui *UI) ShowSignupPage() {
 			fmt.Println(emojis.Error, "Error validating LeetCode username:", err)
 			continue
 		}
-		if exists {
-			break
+		if !exists {
+			fmt.Println(emojis.Error, "LeetCode username does not exist.")
+			continue
 		}
-		fmt.Println(emojis.Error, "LeetCode username does not exist.")
+		break
 	}
 
 	// Create User Object
@@ -151,7 +159,7 @@ func (ui *UI) ShowSignupPage() {
 			Email:    email,
 		},
 		LeetcodeID:      leetcodeID,
-		QuestionsSolved: []int{},
+		QuestionsSolved: []string{},
 		LastSeen:        time.Now().UTC(),
 	}
 

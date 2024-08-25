@@ -45,7 +45,7 @@ func (r *userRepo) RegisterUser(user models.StandardUser) error {
 	return nil
 }
 
-func (r *userRepo) UpdateUserProgress(username string, solvedQuestionID int) error {
+func (r *userRepo) UpdateUserProgress(username string, solvedQuestionID string) error {
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()

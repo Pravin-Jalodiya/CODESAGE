@@ -38,7 +38,7 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 	// Hash the user password
 	hashedPassword, err := pwd.HashPassword(user.StandardUser.Password)
 	if err != nil {
-		return fmt.Errorf("could not hash password: %v", err)
+		return fmt.Errorf("could not hash password")
 	}
 	user.StandardUser.Password = hashedPassword
 
@@ -48,7 +48,7 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 	// Register the user
 	err = s.userRepo.RegisterUser(user)
 	if err != nil {
-		return fmt.Errorf("could not register user: %v", err)
+		return fmt.Errorf("could not register user")
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (s *UserService) ViewDashboard() error {
 }
 
 // UpdateUserProgress updates the user's progress in some context
-func (s *UserService) UpdateUserProgress(username string, solvedQuestionID int) error {
+func (s *UserService) UpdateUserProgress(username string, solvedQuestionID string) error {
 	return s.userRepo.UpdateUserProgress(username, solvedQuestionID)
 }
 
@@ -101,13 +101,12 @@ func (s *UserService) Logout() {
 	}
 
 	user.LastSeen = time.Now().UTC()
+	//db logic
 
 	// clear active user
 
 	globals.ActiveUser = ""
 
-	// logout the user
-	
 	return
 }
 

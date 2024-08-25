@@ -11,4 +11,6 @@ const (
 	Settings = "⚙️"
 	Question = "❓"
 	Info     = "ℹ️"
+	Back     = "🔙"
+	View     = "👁️"
 )

@@ -7,37 +7,43 @@ import (
 )
 
 func (ui *UI) ShowAdminMenu() {
-	// Clear the screen
-	fmt.Print("\033[H\033[2J")
+	for {
+		// Clear the screen
+		fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("             ADMIN MENU             ", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("1. View Dashboard", "green", ""))
-	fmt.Println(formatting.Colorize("2. Add or Remove Questions", "green", ""))
-	fmt.Println(formatting.Colorize("3. Ban or Unban Users", "green", ""))
-	//fmt.Println(formatting.Colorize("4. Post Announcement", "green", ""))
+		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+		fmt.Println(formatting.Colorize("             ADMIN MENU             ", "magenta", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+		fmt.Println(formatting.Colorize("1. View dashboard", "", ""))
+		fmt.Println(formatting.Colorize("2. Add or remove questions", "", ""))
+		fmt.Println(formatting.Colorize("3. Ban or unban users", "", ""))
+		//fmt.Println(formatting.Colorize("4. Post Announcement", "", ""))
+		fmt.Println(formatting.Colorize("4. Logout", "", ""))
 
-	fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
-	choice, err := ui.reader.ReadString('\n')
-	if err != nil {
-		fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
-		return
-	}
+		fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
+		choice, err := ui.reader.ReadString('\n')
+		choice = strings.TrimSuffix(choice, "\n")
+		choice = strings.TrimSpace(choice)
 
-	choice = strings.TrimSpace(choice)
+		if err != nil {
+			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+			return
+		}
 
-	switch choice {
-	case "1":
-		ui.ShowAdminDashboard()
-	case "2":
-		ui.ManageQuestions()
-	case "3":
-		ui.ManageUsers()
-	//case "4":
-	//	ui.PostAnnouncement()
-	default:
-		fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
-		ui.ShowAdminMenu()
+		switch choice {
+		case "1":
+			ui.ShowAdminDashboard()
+		case "2":
+			ui.ManageQuestions()
+		case "3":
+			ui.ManageUsers()
+		case "4":
+			fmt.Println("Logging out...")
+			return
+		//case "4":
+		//	ui.PostAnnouncement()
+		default:
+			fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
+		}
 	}
 }

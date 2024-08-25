@@ -18,6 +18,6 @@ type Admin struct {
 type StandardUser struct {
 	StandardUser    User      `bson:",inline"`
 	LeetcodeID      string    `bson:"leetcode_id"`
-	QuestionsSolved []int     `bson:"questions_solved"`
+	QuestionsSolved []string  `bson:"questions_solved"`
 	LastSeen        time.Time `bson:"last_seen"`
 }

@@ -81,7 +81,7 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 	return s.questionRepo.RemoveQuestionByID(questionID)
 }
 
-func (s *QuestionService) GetQuestionByID(questionID int) (models.Question, error) {
+func (s *QuestionService) GetQuestionByID(questionID string) (models.Question, error) {
 	return s.questionRepo.FetchQuestionByID(questionID)
 }
 

@@ -21,7 +21,7 @@ func NewQuestionRepo() interfaces.QuestionRepository {
 	}
 }
 
-func (r *questionRepo) AddQuestionsByID(questionID []int) error {
+func (r *questionRepo) AddQuestionsByID(questionID []string) error {
 	// Placeholder implementation
 	return nil
 }
@@ -68,7 +68,7 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	return nil
 }
 
-func (r *questionRepo) FetchQuestionByID(questionID int) (models.Question, error) {
+func (r *questionRepo) FetchQuestionByID(questionID string) (models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
 

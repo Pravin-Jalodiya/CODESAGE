@@ -25,6 +25,7 @@ func (ui *UI) ShowMainMenu() {
 
 		// Read user input
 		choice, _ := ui.reader.ReadString('\n')
+		choice = strings.TrimSuffix(choice, "\n")
 		choice = strings.TrimSpace(choice)
 		fmt.Println()
 
@@ -37,7 +38,7 @@ func (ui *UI) ShowMainMenu() {
 			fmt.Println(emojis.Exit + " Exiting the application.")
 			return
 		default:
-			fmt.Println("Invalid choice. Please try again. " + emojis.Error)
+			fmt.Println(emojis.Error + " Invalid choice. Please try again.")
 		}
 	}
 }
