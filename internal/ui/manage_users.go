@@ -134,13 +134,15 @@ func (ui *UI) banUser() {
 	}
 
 	// banning logic
-	err = ui.userService.BanUser(username)
+	alreadyBanned, err := ui.userService.BanUser(username)
 	if err != nil {
 		fmt.Println(formatting.Colorize("error banning user: ", "red", "bold"), err)
 		return
+	} else if alreadyBanned {
+		fmt.Println(formatting.Colorize("user already banned", "yellow", "bold"))
+	} else {
+		fmt.Println(formatting.Colorize("user banned successfully", "green", "bold"))
 	}
-
-	fmt.Println(formatting.Colorize("user banned successfully", "green", "bold"))
 }
 
 func (ui *UI) unbanUser() {
@@ -170,11 +172,13 @@ func (ui *UI) unbanUser() {
 	}
 
 	// Unbanning logic
-	err = ui.userService.UnbanUser(username)
+	alreadyUnbanned, err := ui.userService.UnbanUser(username)
 	if err != nil {
 		fmt.Println(formatting.Colorize("error unbanning user: ", "red", "bold"), err)
 		return
+	} else if alreadyUnbanned {
+		fmt.Println(formatting.Colorize("user already unbanned", "yellow", "bold"))
+	} else {
+		fmt.Println(formatting.Colorize("user unbanned successfully", "green", "bold"))
 	}
-
-	fmt.Println(formatting.Colorize("user unbanned successfully", "green", "bold"))
 }

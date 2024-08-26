@@ -207,23 +207,42 @@ func (s *UserService) GetUserID(username string) (string, error) {
 	return user.StandardUser.ID, nil
 }
 
-func (s *UserService) BanUser(username string) error {
+func (s *UserService) BanUser(username string) (bool, error) {
 
 	userID, err := s.GetUserID(username)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return s.userRepo.BanUser(userID)
+	alreadyBanned, err := s.IsUserBanned(userID)
+	if err != nil {
+		return false, err
+	}
+
+	if alreadyBanned {
+		return true, nil
+	}
+
+	return false, s.userRepo.BanUser(userID)
 }
 
-func (s *UserService) UnbanUser(username string) error {
+func (s *UserService) UnbanUser(username string) (bool, error) {
+
 	userID, err := s.GetUserID(username)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return s.userRepo.UnbanUser(userID)
+	alreadyBanned, err := s.IsUserBanned(userID)
+	if err != nil {
+		return false, err
+	}
+
+	if !alreadyBanned {
+		return true, nil
+	}
+
+	return false, s.userRepo.UnbanUser(userID)
 }
 
 func (s *UserService) IsUserBanned(userID string) (bool, error) {
