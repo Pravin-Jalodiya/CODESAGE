@@ -59,7 +59,7 @@ func (ui *UI) updateProgress() {
 	err = ui.userService.UpdateUserProgress(globals.ActiveUser, questionID)
 
 	if err != nil {
-		fmt.Println(formatting.Colorize("Failed to update progress:", "red", "bold"))
+		fmt.Println(formatting.Colorize("Failed to update progress: ", "red", "bold"), err)
 		return
 	} else {
 		fmt.Println(formatting.Colorize("Progress updated successfully!", "green", "bold"))

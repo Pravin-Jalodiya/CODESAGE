@@ -37,9 +37,13 @@ func (ui *UI) ShowUserMenu() {
 		case "3":
 			ui.UpdateProgressPage()
 		case "4":
-			ui.userService.Logout()
-			fmt.Printf("%s Logging out...\n", emojis.Info)
-			return
+			err := ui.userService.Logout()
+			if err != nil {
+				fmt.Println(formatting.Colorize("Error logging out: ", "red", "bold"), err)
+			} else {
+				fmt.Printf("%s Logging out...\n", emojis.Info)
+				return
+			}
 		default:
 			fmt.Println("Invalid choice. Try again.")
 		}

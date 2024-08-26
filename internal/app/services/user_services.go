@@ -5,10 +5,13 @@ import (
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
+	"cli-project/pkg/utils/data_cleaning"
 	pwd "cli-project/pkg/utils/password"
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,6 +34,13 @@ func NewUserService(userRepo interfaces.UserRepository) *UserService {
 
 // SignUp creates a new user account
 func (s *UserService) SignUp(user models.StandardUser) error {
+
+	// Change username to lowercase for consistency
+	user.StandardUser.Name = strings.ToLower(user.StandardUser.Name)
+
+	// Change email to lower for consistency
+	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
+
 	// Generate a new UUID for the user
 	userID := utils.GenerateUUID()
 	user.StandardUser.ID = userID
@@ -56,6 +66,10 @@ func (s *UserService) SignUp(user models.StandardUser) error {
 
 // Login authenticates a user
 func (s *UserService) Login(username, password string) error {
+
+	// Change username to lowercase for consistency
+	username = data_cleaning.CleanString(username)
+
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUser(username)
 
@@ -82,6 +96,16 @@ func (s *UserService) ViewDashboard() error {
 
 // UpdateUserProgress updates the user's progress in some context
 func (s *UserService) UpdateUserProgress(username string, solvedQuestionID string) error {
+
+	// Change username to lowercase for consistency
+	username = data_cleaning.CleanString(username)
+
+	// Check if question ID is valid or not
+	_, err := strconv.Atoi(solvedQuestionID)
+	if err != nil {
+		return fmt.Errorf("invalid question id")
+	}
+
 	return s.userRepo.UpdateUserProgress(username, solvedQuestionID)
 }
 
@@ -93,28 +117,48 @@ func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
 	return count, nil
 }
 
-func (s *UserService) Logout() {
-	// update last seen of user
+func (s *UserService) Logout() error {
+	// Get active user
 	user, err := s.userRepo.FetchUser(globals.ActiveUser)
 	if err != nil {
-		return
+		return errors.New("user not found")
 	}
 
+	// update last seen of user
 	user.LastSeen = time.Now().UTC()
-	//db logic
+
+	// update data in db
+	err = s.userRepo.UpdateUserDetails(user)
+	if err != nil {
+		return errors.New("could not update user details")
+	}
 
 	// clear active user
-
 	globals.ActiveUser = ""
 
-	return
+	return nil
 }
 
-func (s *UserService) GetUserByUsername(username string) (models.StandardUser, error) {
+func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, error) {
+
+	if username == "" {
+		return nil, errors.New("username is empty")
+	}
+
+	// Change username to lowercase for consistency
+	username = data_cleaning.CleanString(username)
+
 	return s.userRepo.FetchUser(username)
 }
 
 func (s *UserService) GetUserRole(username string) (string, error) {
+
+	if username == "" {
+		return "", errors.New("username is empty")
+	}
+
+	// Change username to lowercase for consistency
+	username = data_cleaning.CleanString(username)
 
 	user, err := s.userRepo.FetchUser(username)
 	if err != nil {

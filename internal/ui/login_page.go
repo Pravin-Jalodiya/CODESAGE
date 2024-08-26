@@ -31,13 +31,12 @@ func (ui *UI) ShowLoginPage() {
 		username = strings.TrimSuffix(username, "\n")
 		username = strings.TrimSpace(username)
 
-		if username == "" {
-			fmt.Printf("%s Username cannot be empty. Try again.\n", emojis.Info)
-			continue
-		}
-
 		if !validation.ValidateUsername(username) {
-			fmt.Printf("%s Username is invalid. Try again.\n", emojis.Info)
+			if len(username) == 0 {
+				fmt.Printf("%s Username cannot be empty. Try again.\n", emojis.Info)
+			} else {
+				fmt.Printf("%s Username is invalid. Try again.\n", emojis.Info)
+			}
 			continue
 		}
 
@@ -45,6 +44,7 @@ func (ui *UI) ShowLoginPage() {
 		fmt.Print(formatting.Colorize("Password: ", "blue", ""))
 		passwordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		password = string(passwordBytes)
+
 		if password == "" {
 			fmt.Printf("%s Password cannot be empty. Try again.\n", emojis.Info)
 			continue

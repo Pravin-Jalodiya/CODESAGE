@@ -9,4 +9,5 @@ type QuestionRepository interface {
 	FetchQuestionByID(questionID string) (models.Question, error)
 	FetchAllQuestions() ([]models.Question, error)
 	FetchQuestionsByFilters(difficulty, company, topic string) ([]models.Question, error)
+	QuestionExists(questionID string) (bool, error)
 }

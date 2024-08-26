@@ -90,11 +90,12 @@ func (ui *UI) AddQuestions() {
 	fullFilePath := filepath.Join(config.CSV_DIR, fileName)
 
 	// Call the service method to add questions from the selected file
-	err = ui.questionService.AddQuestionsFromFile(fullFilePath)
-
+	newQuestionsAdded, err := ui.questionService.AddQuestionsFromFile(fullFilePath)
 	if err != nil {
-		fmt.Println(formatting.Colorize("Error adding questions from file", "red", "bold"))
+		fmt.Println(formatting.Colorize("Error adding questions from file:", "red", "bold"), fileName, err)
 		return
+	} else if !newQuestionsAdded {
+		fmt.Println(formatting.Colorize("No new questions in the file:", "yellow", "bold"), fileName)
 	} else {
 		fmt.Println(formatting.Colorize("Questions successfully added from file:", "green", "bold"), fileName)
 	}

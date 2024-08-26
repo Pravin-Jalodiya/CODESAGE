@@ -27,26 +27,20 @@ func (r *questionRepo) AddQuestionsByID(questionID []string) error {
 }
 
 func (r *questionRepo) AddQuestions(questions []models.Question) error {
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
-	for _, question := range questions {
-		// Check if the question already exists
-		filter := bson.M{"questions_id": question.QuestionID}
-		var existingQuestion models.Question
-		err := r.collection.FindOne(ctx, filter).Decode(&existingQuestion)
-		if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("could not check if question exists: %v", err)
-		}
-
-		// If the question does not exist, add it to the database
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			_, err := r.collection.InsertOne(ctx, question)
-			if err != nil {
-				return fmt.Errorf("could not insert question: %v", err)
-			}
-		}
+	var documents []interface{} = make([]interface{}, len(questions))
+	for i, question := range questions {
+		documents[i] = question
 	}
+
+	_, err := r.collection.InsertMany(ctx, documents)
+	if err != nil {
+		return fmt.Errorf("could not insert questions: %v", err)
+	}
+
 	return nil
 }
 
@@ -55,7 +49,6 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	defer cancel()
 
 	filter := bson.M{"question_id": questionID}
-
 	result, err := r.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("could not delete question: %v", err)
@@ -68,6 +61,24 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	return nil
 }
 
+//func (r *questionRepo) RemoveQuestionByID(questionID string) error {
+//	ctx, cancel := CreateContext()
+//	defer cancel()
+//
+//	filter := bson.M{"question_id": questionID}
+//
+//	result, err := r.collection.DeleteOne(ctx, filter)
+//	if err != nil {
+//		return fmt.Errorf("could not delete question: %v", err)
+//	}
+//
+//	if result.DeletedCount == 0 {
+//		return fmt.Errorf("question with ID %s not found", questionID)
+//	}
+//
+//	return nil
+//}
+
 func (r *questionRepo) FetchQuestionByID(questionID string) (models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -78,7 +89,7 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (models.Question, er
 	err := r.collection.FindOne(ctx, filter).Decode(&question)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return models.Question{}, fmt.Errorf("question with ID %d not found", questionID)
+			return models.Question{}, fmt.Errorf("question with ID %s not found", questionID)
 		}
 		return models.Question{}, fmt.Errorf("could not fetch question: %v", err)
 	}
@@ -159,4 +170,21 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 	}
 
 	return questions, nil
+}
+
+func (r *questionRepo) QuestionExists(questionID string) (bool, error) {
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	filter := bson.M{"question_id": questionID}
+	var existingQuestion models.Question
+	err := r.collection.FindOne(ctx, filter).Decode(&existingQuestion)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }

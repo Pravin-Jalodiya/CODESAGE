@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
@@ -109,7 +110,7 @@ func (r *userRepo) FetchAllUsers() ([]models.StandardUser, error) {
 	return users, nil
 }
 
-func (r *userRepo) FetchUser(username string) (models.StandardUser, error) {
+func (r *userRepo) FetchUser(username string) (*models.StandardUser, error) {
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -121,13 +122,49 @@ func (r *userRepo) FetchUser(username string) (models.StandardUser, error) {
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return user, mongo.ErrNoDocuments // User not found
+			return &user, mongo.ErrNoDocuments // User not found
 		}
-		return user, err
+		return &user, err
 	}
 
 	// Return the found user
-	return user, nil
+	return &user, nil
+}
+
+func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
+	// Check if user UUID is provided
+	if user.StandardUser.ID == "" {
+		return errors.New("user ID is required")
+	}
+
+	// Create a filter to find the user by UUID
+	filter := bson.M{"id": user.StandardUser.ID}
+
+	// Define the update fields
+	update := bson.M{
+		"$set": bson.M{
+			"username":        user.StandardUser.Username,
+			"email":           user.StandardUser.Email,
+			"leetCodeID":      user.LeetcodeID,
+			"lastSeen":        user.LastSeen,
+			"questionsSolved": user.QuestionsSolved,
+			// Add other fields you want to update
+		},
+	}
+
+	// Set options to return the updated document
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+
+	// Update the document
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	result := r.collection.FindOneAndUpdate(ctx, filter, update, opts)
+	if result.Err() != nil {
+		return result.Err()
+	}
+
+	return nil
 }
 
 func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
