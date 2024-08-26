@@ -226,6 +226,16 @@ func (s *UserService) UnbanUser(username string) error {
 	return s.userRepo.UnbanUser(userID)
 }
 
+func (s *UserService) IsUserBanned(userID string) (bool, error) {
+
+	user, err := s.userRepo.FetchUserByID(userID)
+	if err != nil {
+		return false, err
+	}
+
+	return user.StandardUser.IsBanned, nil
+}
+
 //func (s *UserService) WaitForCompletion() {
 //	s.userWG.Wait()
 //}

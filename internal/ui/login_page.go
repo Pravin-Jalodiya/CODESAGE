@@ -105,12 +105,14 @@ func (ui *UI) ShowLoginPage() {
 			}
 
 			role, err := ui.userService.GetUserRole(globals.ActiveUserID)
-
+			banned, err := ui.userService.IsUserBanned(globals.ActiveUserID)
 			if err != nil {
 				fmt.Println("Unexpected Error:", err)
 			}
 
-			if role == roles.USER {
+			if banned {
+				ui.ShowBannedMessage()
+			} else if role == roles.USER {
 				ui.ShowUserMenu()
 			} else if role == roles.ADMIN {
 				ui.ShowAdminMenu()
