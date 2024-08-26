@@ -61,24 +61,6 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	return nil
 }
 
-//func (r *questionRepo) RemoveQuestionByID(questionID string) error {
-//	ctx, cancel := CreateContext()
-//	defer cancel()
-//
-//	filter := bson.M{"question_id": questionID}
-//
-//	result, err := r.collection.DeleteOne(ctx, filter)
-//	if err != nil {
-//		return fmt.Errorf("could not delete question: %v", err)
-//	}
-//
-//	if result.DeletedCount == 0 {
-//		return fmt.Errorf("question with ID %s not found", questionID)
-//	}
-//
-//	return nil
-//}
-
 func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
