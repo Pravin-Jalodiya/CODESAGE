@@ -82,7 +82,7 @@ func (ui *UI) ShowSignupPage() {
 		fmt.Print(formatting.Colorize("Name: ", "blue", ""))
 		name, _ = ui.reader.ReadString('\n')
 		name = strings.TrimSuffix(name, "\n")
-		name = strings.TrimSpace(name)
+		name = data_cleaning.CleanString(name)
 		if !validation.ValidateName(name) {
 			fmt.Println(emojis.Error, "Invalid name. It should be 3 to 30 characters long and contain only letters and spaces.")
 			continue
@@ -139,7 +139,7 @@ func (ui *UI) ShowSignupPage() {
 		}
 
 		// Validate LeetCode Username with LeetCode API
-		exists, err := validation.ValidateLeetcodeUsername(leetcodeID)
+		exists, err := ui.authService.ValidateLeetcodeUsername(leetcodeID)
 		if err != nil {
 			fmt.Println(emojis.Error, "Error validating LeetCode username:", err)
 			continue
