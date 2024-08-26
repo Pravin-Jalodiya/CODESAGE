@@ -3,12 +3,14 @@ package models
 import "time"
 
 type User struct {
-	ID       string `bson:"id"`
-	Role     string `bson:"role"`
-	Username string `bson:"username"`
-	Password string `bson:"password"`
-	Name     string `bson:"name"`
-	Email    string `bson:"email"`
+	ID           string `bson:"id"`
+	Role         string `bson:"role"`
+	Username     string `bson:"username"`
+	Password     string `bson:"password"`
+	Name         string `bson:"name"`
+	Email        string `bson:"email"`
+	Organisation string `bson:"organisation"`
+	Country      string `bson:"country"`
 }
 
 type Admin struct {

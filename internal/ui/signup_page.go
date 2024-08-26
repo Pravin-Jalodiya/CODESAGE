@@ -151,13 +151,43 @@ func (ui *UI) ShowSignupPage() {
 		break
 	}
 
+	var organisation string
+	for {
+		fmt.Print(formatting.Colorize("Organisation: ", "blue", ""))
+		organisation, _ = ui.reader.ReadString('\n')
+		organisation = strings.TrimSuffix(organisation, "\n")
+		organisation = data_cleaning.CleanString(organisation)
+		valid, err := validation.ValidateOrganizationName(organisation)
+		if !valid {
+			fmt.Println(emojis.Error, err)
+			continue
+		}
+		break
+	}
+
+	var country string
+	for {
+		fmt.Print(formatting.Colorize("Country: ", "blue", ""))
+		country, _ = ui.reader.ReadString('\n')
+		country = strings.TrimSuffix(country, "\n")
+		country = data_cleaning.CleanString(country)
+		valid, err := validation.ValidateCountryName(country)
+		if !valid {
+			fmt.Println(emojis.Error, err)
+			continue
+		}
+		break
+	}
+
 	// Create User Object
 	user := models.StandardUser{
 		StandardUser: models.User{
-			Username: username,
-			Password: password,
-			Name:     name,
-			Email:    email,
+			Username:     username,
+			Password:     password,
+			Name:         name,
+			Email:        email,
+			Organisation: organisation,
+			Country:      country,
 		},
 		LeetcodeID:      leetcodeID,
 		QuestionsSolved: []string{},

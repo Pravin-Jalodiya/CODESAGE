@@ -33,6 +33,8 @@ func (r *userRepo) RegisterUser(user *models.StandardUser) error {
 		"name":             user.StandardUser.Name,
 		"email":            user.StandardUser.Email,
 		"role":             user.StandardUser.Role,
+		"organisation":     user.StandardUser.Organisation,
+		"country":          user.StandardUser.Country,
 		"leetcode_id":      user.LeetcodeID,
 		"questions_solved": user.QuestionsSolved,
 		"last_seen":        user.LastSeen,
@@ -167,6 +169,10 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 		"$set": bson.M{
 			"username":         user.StandardUser.Username,
 			"email":            user.StandardUser.Email,
+			"password":         user.StandardUser.Password, // if user wants to change password
+			"name":             user.StandardUser.Name,
+			"organisation":     user.StandardUser.Organisation,
+			"country":          user.StandardUser.Country,
 			"leetcode_id":      user.LeetcodeID,
 			"last_seen":        user.LastSeen,
 			"questions_solved": user.QuestionsSolved,
