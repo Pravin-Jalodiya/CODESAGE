@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -21,13 +20,15 @@ var (
 )
 
 type UserService struct {
-	userRepo interfaces.UserRepository
+	userRepo        interfaces.UserRepository
+	questionService *QuestionService
 	//userWG   *sync.WaitGroup
 }
 
-func NewUserService(userRepo interfaces.UserRepository) *UserService {
+func NewUserService(userRepo interfaces.UserRepository, questionService *QuestionService) *UserService {
 	return &UserService{
-		userRepo: userRepo,
+		userRepo:        userRepo,
+		questionService: questionService,
 		//userWG:   &sync.WaitGroup{},
 	}
 }
@@ -120,16 +121,32 @@ func (s *UserService) ViewDashboard() error {
 	return nil
 }
 
-// UpdateUserProgress updates the user's progress in some context
-func (s *UserService) UpdateUserProgress(solvedQuestionID string) error {
-
-	// Check if question ID is valid or not
-	_, err := strconv.Atoi(solvedQuestionID)
+// UpdateUserProgress updates the user's progress by adding a solved question ID.
+func (s *UserService) UpdateUserProgress(solvedQuestionID string) (bool, error) {
+	// Fetch the current user from the repository
+	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
 	if err != nil {
-		return fmt.Errorf("invalid question id")
+		return false, fmt.Errorf("could not fetch user: %v", err)
 	}
 
-	return s.userRepo.UpdateUserProgress(solvedQuestionID)
+	// Check if the question ID is already in the user's progress
+	for _, id := range user.QuestionsSolved {
+		if id == solvedQuestionID {
+			return false, nil // No need to update if the question ID is already in the list
+		}
+	}
+
+	// Check if the question ID exists in the questions repository
+	exists, err := s.questionService.QuestionExists(solvedQuestionID)
+	if err != nil {
+		return false, fmt.Errorf("could not check if question exists: %v", err)
+	}
+	if !exists {
+		return false, fmt.Errorf("question with ID %s does not exist", solvedQuestionID)
+	}
+
+	// Update the user's progress
+	return true, s.userRepo.UpdateUserProgress(solvedQuestionID)
 }
 
 func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {

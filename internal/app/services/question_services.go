@@ -53,8 +53,8 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 		}
 
 		questionID := data_cleaning.CleanString(record[0])
-		questionID, err = validation.ValidateQuestionID(questionID)
-		if err != nil {
+		valid, err := validation.ValidateQuestionID(questionID)
+		if !valid {
 			return false, err
 		}
 
@@ -83,7 +83,7 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 			CompanyTags:   companyTags,
 		}
 
-		exists, err := s.questionRepo.QuestionExists(questionID)
+		exists, err := s.QuestionExists(questionID)
 		if err != nil {
 			return false, err
 		}
@@ -105,14 +105,8 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 }
 
 func (s *QuestionService) RemoveQuestionByID(questionID string) error {
-	// Validate the question ID
-	validID, err := validation.ValidateQuestionID(questionID)
-	if err != nil {
-		return err
-	}
-
 	// Check if the question exists in the database
-	exists, err := s.questionRepo.QuestionExists(validID)
+	exists, err := s.QuestionExists(questionID)
 	if err != nil {
 		return fmt.Errorf("error checking if question exists: %v", err)
 	}
@@ -122,27 +116,21 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 	}
 
 	// Call repository to remove the question
-	return s.questionRepo.RemoveQuestionByID(validID)
+	return s.questionRepo.RemoveQuestionByID(questionID)
 }
 
 func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
-	// Validate the question ID
-	validID, err := validation.ValidateQuestionID(questionID)
-	if err != nil {
-		return &models.Question{}, err
-	}
-
 	// Check if the question exists
-	exists, err := s.questionRepo.QuestionExists(validID)
+	exists, err := s.QuestionExists(questionID)
 	if err != nil {
-		return &models.Question{}, err
+		return nil, err
 	}
 	if !exists {
-		return &models.Question{}, fmt.Errorf("question with ID %s not found", validID)
+		return nil, fmt.Errorf("question with ID %s not found", questionID)
 	}
 
 	// Fetch the question from the repository
-	question, err := s.questionRepo.FetchQuestionByID(validID)
+	question, err := s.questionRepo.FetchQuestionByID(questionID)
 	if err != nil {
 		return &models.Question{}, err
 	}
@@ -167,4 +155,14 @@ func (s *QuestionService) GetQuestionsByFilters(difficulty, company, topic strin
 
 	// Fetch questions by filters from the repository
 	return s.questionRepo.FetchQuestionsByFilters(validDifficulty, cleanCompany, cleanTopic)
+}
+
+func (s *QuestionService) QuestionExists(questionID string) (bool, error) {
+	// Validate the question ID
+	valid, err := validation.ValidateQuestionID(questionID)
+	if !valid {
+		return false, err
+	}
+
+	return s.questionRepo.QuestionExists(questionID)
 }

@@ -5,10 +5,10 @@ import (
 	"strconv"
 )
 
-func ValidateQuestionID(questionID string) (string, error) {
+func ValidateQuestionID(questionID string) (bool, error) {
 	qid, err := strconv.Atoi(questionID)
 	if err != nil || qid <= 0 {
-		return "", errors.New("invalid question ID must be a positive number")
+		return false, errors.New("invalid question ID : must be a positive number")
 	}
-	return questionID, nil
+	return true, nil
 }

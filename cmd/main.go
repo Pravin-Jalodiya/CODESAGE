@@ -26,16 +26,16 @@ func main() {
 		log.Fatal("Failed to initialize AuthService")
 	}
 
-	// Initialize User Service
-	userService := services.NewUserService(userRepo)
-	if userService == nil {
-		log.Fatal("Failed to initialize UserService")
-	}
-
 	// Initialize Question Service
 	questionService := services.NewQuestionService(questionRepo)
 	if questionService == nil {
 		log.Fatal("Failed to initialize QuestionService")
+	}
+
+	// Initialize User Service
+	userService := services.NewUserService(userRepo, questionService)
+	if userService == nil {
+		log.Fatal("Failed to initialize UserService")
 	}
 
 	// Initialize UI
