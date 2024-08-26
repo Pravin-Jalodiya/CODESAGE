@@ -188,6 +188,7 @@ func (ui *UI) ShowSignupPage() {
 			Email:        email,
 			Organisation: organisation,
 			Country:      country,
+			IsBlocked:    false,
 		},
 		LeetcodeID:      leetcodeID,
 		QuestionsSolved: []string{},

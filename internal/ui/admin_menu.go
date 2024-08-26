@@ -16,7 +16,7 @@ func (ui *UI) ShowAdminMenu() {
 		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
 		fmt.Println(formatting.Colorize("1. View dashboard", "", ""))
 		fmt.Println(formatting.Colorize("2. Add or remove questions", "", ""))
-		fmt.Println(formatting.Colorize("3. Ban or unban users", "", ""))
+		fmt.Println(formatting.Colorize("3. Manage users", "", ""))
 		//fmt.Println(formatting.Colorize("4. Post Announcement", "", ""))
 		fmt.Println(formatting.Colorize("4. Logout", "", ""))
 

@@ -30,7 +30,7 @@ func (ui *UI) ViewQuestionsPage() {
 
 		switch choice {
 		case "1":
-			ui.ViewQuestions()
+			ui.viewQuestions()
 		case "2":
 			return
 		default:
@@ -41,7 +41,7 @@ func (ui *UI) ViewQuestionsPage() {
 
 }
 
-func (ui *UI) ViewQuestions() {
+func (ui *UI) viewQuestions() {
 
 	// Load all questions in the db
 	questionsList, err := ui.questionService.GetAllQuestions()
@@ -95,6 +95,6 @@ func (ui *UI) ViewQuestions() {
 	}
 }
 
-func (ui *UI) ViewFilteredQuestions(difficulty, topicTag, companyTag string) {
+func (ui *UI) viewFilteredQuestions(difficulty, topicTag, companyTag string) {
 
 }

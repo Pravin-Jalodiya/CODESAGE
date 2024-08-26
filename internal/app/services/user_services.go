@@ -115,6 +115,10 @@ func (s *UserService) Logout() error {
 	return nil
 }
 
+func (s *UserService) GetAllUsers() (*[]models.StandardUser, error) {
+	return s.userRepo.FetchAllUsers()
+}
+
 // ViewDashboard retrieves the dashboard for the active user
 func (s *UserService) ViewDashboard() error {
 	// Placeholder implementation
