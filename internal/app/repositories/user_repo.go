@@ -23,7 +23,7 @@ func NewUserRepo() interfaces.UserRepository {
 	}
 }
 
-func (r *userRepo) RegisterUser(user models.StandardUser) error {
+func (r *userRepo) RegisterUser(user *models.StandardUser) error {
 	// Convert the user model to BSON format
 	userBson := bson.M{
 		"id":               user.StandardUser.ID,
@@ -70,7 +70,7 @@ func (r *userRepo) UpdateUserProgress(username string, solvedQuestionID string) 
 	return nil
 }
 
-func (r *userRepo) FetchAllUsers() ([]models.StandardUser, error) {
+func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -107,7 +107,7 @@ func (r *userRepo) FetchAllUsers() ([]models.StandardUser, error) {
 		return nil, err
 	}
 
-	return users, nil
+	return &users, nil
 }
 
 func (r *userRepo) FetchUser(username string) (*models.StandardUser, error) {

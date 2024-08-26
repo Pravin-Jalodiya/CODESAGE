@@ -51,7 +51,7 @@ func (ui *UI) ViewQuestions() {
 	}
 
 	// If no questions found, notify the user
-	if len(questionsList) == 0 {
+	if len(*questionsList) == 0 {
 		fmt.Println("Trouble loading questions. Try again later.")
 		return
 	}
@@ -66,7 +66,7 @@ func (ui *UI) ViewQuestions() {
 	}
 
 	// Print table rows
-	for _, question := range questionsList {
+	for _, question := range *questionsList {
 		// Convert slices to comma-separated strings for display
 		topicTags := fmt.Sprintf("%v", question.TopicTags)
 		companyTags := fmt.Sprintf("%v", question.CompanyTags)

@@ -21,18 +21,18 @@ func NewQuestionRepo() interfaces.QuestionRepository {
 	}
 }
 
-func (r *questionRepo) AddQuestionsByID(questionID []string) error {
+func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
 	// Placeholder implementation
 	return nil
 }
 
-func (r *questionRepo) AddQuestions(questions []models.Question) error {
+func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 
 	ctx, cancel := CreateContext()
 	defer cancel()
 
-	var documents []interface{} = make([]interface{}, len(questions))
-	for i, question := range questions {
+	var documents []interface{} = make([]interface{}, len(*questions))
+	for i, question := range *questions {
 		documents[i] = question
 	}
 
@@ -79,7 +79,7 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 //	return nil
 //}
 
-func (r *questionRepo) FetchQuestionByID(questionID string) (models.Question, error) {
+func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -89,15 +89,15 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (models.Question, er
 	err := r.collection.FindOne(ctx, filter).Decode(&question)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return models.Question{}, fmt.Errorf("question with ID %s not found", questionID)
+			return &models.Question{}, fmt.Errorf("question with ID %s not found", questionID)
 		}
-		return models.Question{}, fmt.Errorf("could not fetch question: %v", err)
+		return &models.Question{}, fmt.Errorf("could not fetch question: %v", err)
 	}
 
-	return question, nil
+	return &question, nil
 }
 
-func (r *questionRepo) FetchAllQuestions() ([]models.Question, error) {
+func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -126,10 +126,10 @@ func (r *questionRepo) FetchAllQuestions() ([]models.Question, error) {
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}
 
-	return questions, nil
+	return &questions, nil
 }
 
-func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string) ([]models.Question, error) {
+func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -169,7 +169,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}
 
-	return questions, nil
+	return &questions, nil
 }
 
 func (r *questionRepo) QuestionExists(questionID string) (bool, error) {

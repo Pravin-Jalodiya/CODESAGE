@@ -33,10 +33,10 @@ func NewUserService(userRepo interfaces.UserRepository) *UserService {
 }
 
 // SignUp creates a new user account
-func (s *UserService) SignUp(user models.StandardUser) error {
+func (s *UserService) SignUp(user *models.StandardUser) error {
 
 	// Change username to lowercase for consistency
-	user.StandardUser.Name = strings.ToLower(user.StandardUser.Name)
+	user.StandardUser.Username = strings.ToLower(user.StandardUser.Name)
 
 	// Change email to lower for consistency
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)

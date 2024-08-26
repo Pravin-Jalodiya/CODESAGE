@@ -2,6 +2,7 @@ package ui
 
 import (
 	"cli-project/internal/domain/models"
+	"cli-project/pkg/utils/data_cleaning"
 	"cli-project/pkg/utils/emojis"
 	"cli-project/pkg/utils/formatting"
 	"cli-project/pkg/validation"
@@ -26,7 +27,7 @@ func (ui *UI) ShowSignupPage() {
 		fmt.Print(formatting.Colorize("Username: ", "blue", ""))
 		username, _ = ui.reader.ReadString('\n')
 		username = strings.TrimSuffix(username, "\n")
-		username = strings.TrimSpace(username)
+		username = data_cleaning.CleanString(username)
 
 		if validation.ValidateUsername(username) {
 			unique, err := ui.authService.IsUsernameUnique(username)
@@ -95,7 +96,7 @@ func (ui *UI) ShowSignupPage() {
 		fmt.Print(formatting.Colorize("Email: ", "blue", ""))
 		email, _ = ui.reader.ReadString('\n')
 		email = strings.TrimSuffix(email, "\n")
-		email = strings.TrimSpace(email)
+		email = data_cleaning.CleanString(email)
 
 		if check1, check2 := validation.ValidateEmail(email); check1 == true && check2 == true {
 			unique, err := ui.authService.IsEmailUnique(email)
@@ -164,7 +165,7 @@ func (ui *UI) ShowSignupPage() {
 	}
 
 	// Call Signup Service
-	err := ui.userService.SignUp(user)
+	err := ui.userService.SignUp(&user)
 	if err != nil {
 		fmt.Println(emojis.Error, "Signup failed:", err)
 		return

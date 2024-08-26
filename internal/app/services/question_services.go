@@ -95,7 +95,7 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 	}
 
 	if newQuestionsAdded {
-		err = s.questionRepo.AddQuestions(questions)
+		err = s.questionRepo.AddQuestions(&questions)
 		if err != nil {
 			return false, err
 		}
@@ -125,36 +125,36 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 	return s.questionRepo.RemoveQuestionByID(validID)
 }
 
-func (s *QuestionService) GetQuestionByID(questionID string) (models.Question, error) {
+func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
 	// Validate the question ID
 	validID, err := validation.ValidateQuestionID(questionID)
 	if err != nil {
-		return models.Question{}, err
+		return &models.Question{}, err
 	}
 
 	// Check if the question exists
 	exists, err := s.questionRepo.QuestionExists(validID)
 	if err != nil {
-		return models.Question{}, err
+		return &models.Question{}, err
 	}
 	if !exists {
-		return models.Question{}, fmt.Errorf("question with ID %s not found", validID)
+		return &models.Question{}, fmt.Errorf("question with ID %s not found", validID)
 	}
 
 	// Fetch the question from the repository
 	question, err := s.questionRepo.FetchQuestionByID(validID)
 	if err != nil {
-		return models.Question{}, err
+		return &models.Question{}, err
 	}
 
 	return question, nil
 }
 
-func (s *QuestionService) GetAllQuestions() ([]models.Question, error) {
+func (s *QuestionService) GetAllQuestions() (*[]models.Question, error) {
 	return s.questionRepo.FetchAllQuestions()
 }
 
-func (s *QuestionService) GetQuestionsByFilters(difficulty, company, topic string) ([]models.Question, error) {
+func (s *QuestionService) GetQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
 	// Validate and clean the difficulty level
 	validDifficulty, err := validation.ValidateDifficulty(difficulty)
 	if err != nil {
