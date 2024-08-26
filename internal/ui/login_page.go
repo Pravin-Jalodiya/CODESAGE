@@ -4,6 +4,7 @@ import (
 	"cli-project/internal/app/services"
 	"cli-project/internal/config/roles"
 	"cli-project/pkg/globals"
+	"cli-project/pkg/utils/data_cleaning"
 	"cli-project/pkg/utils/emojis"
 	"cli-project/pkg/utils/formatting"
 	"cli-project/pkg/validation"
@@ -29,7 +30,7 @@ func (ui *UI) ShowLoginPage() {
 		fmt.Print(formatting.Colorize("Username: ", "blue", ""))
 		username, _ = ui.reader.ReadString('\n')
 		username = strings.TrimSuffix(username, "\n")
-		username = strings.TrimSpace(username)
+		username = data_cleaning.CleanString(username)
 
 		if !validation.ValidateUsername(username) {
 			if len(username) == 0 {
@@ -96,9 +97,14 @@ func (ui *UI) ShowLoginPage() {
 		} else {
 			fmt.Println(emojis.Success, "Login successful!")
 
-			globals.ActiveUser = username
+			globals.ActiveUserID, err = ui.userService.GetUserID(username)
 
-			role, err := ui.userService.GetUserRole(globals.ActiveUser)
+			if err != nil {
+				fmt.Println(emojis.Error, "Failed to get user ID:", err)
+				return
+			}
+
+			role, err := ui.userService.GetUserRole(globals.ActiveUserID)
 
 			if err != nil {
 				fmt.Println("Unexpected Error:", err)

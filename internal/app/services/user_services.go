@@ -71,7 +71,7 @@ func (s *UserService) Login(username, password string) error {
 	username = data_cleaning.CleanString(username)
 
 	// Retrieve the user by username
-	user, err := s.userRepo.FetchUser(username)
+	user, err := s.userRepo.FetchUserByUsername(username)
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -88,38 +88,9 @@ func (s *UserService) Login(username, password string) error {
 	return nil
 }
 
-// ViewDashboard retrieves the dashboard for the active user
-func (s *UserService) ViewDashboard() error {
-	// Placeholder implementation
-	return nil
-}
-
-// UpdateUserProgress updates the user's progress in some context
-func (s *UserService) UpdateUserProgress(username string, solvedQuestionID string) error {
-
-	// Change username to lowercase for consistency
-	username = data_cleaning.CleanString(username)
-
-	// Check if question ID is valid or not
-	_, err := strconv.Atoi(solvedQuestionID)
-	if err != nil {
-		return fmt.Errorf("invalid question id")
-	}
-
-	return s.userRepo.UpdateUserProgress(username, solvedQuestionID)
-}
-
-func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
-	count, err := s.userRepo.CountActiveUsersInLast24Hours()
-	if err != nil {
-		return count, err
-	}
-	return count, nil
-}
-
 func (s *UserService) Logout() error {
 	// Get active user
-	user, err := s.userRepo.FetchUser(globals.ActiveUser)
+	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
 	if err != nil {
 		return errors.New("user not found")
 	}
@@ -134,9 +105,35 @@ func (s *UserService) Logout() error {
 	}
 
 	// clear active user
-	globals.ActiveUser = ""
+	globals.ActiveUserID = ""
 
 	return nil
+}
+
+// ViewDashboard retrieves the dashboard for the active user
+func (s *UserService) ViewDashboard() error {
+	// Placeholder implementation
+	return nil
+}
+
+// UpdateUserProgress updates the user's progress in some context
+func (s *UserService) UpdateUserProgress(solvedQuestionID string) error {
+
+	// Check if question ID is valid or not
+	_, err := strconv.Atoi(solvedQuestionID)
+	if err != nil {
+		return fmt.Errorf("invalid question id")
+	}
+
+	return s.userRepo.UpdateUserProgress(solvedQuestionID)
+}
+
+func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
+	count, err := s.userRepo.CountActiveUsersInLast24Hours()
+	if err != nil {
+		return count, err
+	}
+	return count, nil
 }
 
 func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, error) {
@@ -145,27 +142,35 @@ func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, 
 		return nil, errors.New("username is empty")
 	}
 
-	// Change username to lowercase for consistency
+	// Change userID to lowercase for consistency
 	username = data_cleaning.CleanString(username)
 
-	return s.userRepo.FetchUser(username)
+	return s.userRepo.FetchUserByUsername(username)
 }
 
-func (s *UserService) GetUserRole(username string) (string, error) {
+func (s *UserService) GetUserRole(userID string) (string, error) {
 
-	if username == "" {
-		return "", errors.New("username is empty")
+	if userID == "" {
+		return "", errors.New("userID is empty")
 	}
 
-	// Change username to lowercase for consistency
-	username = data_cleaning.CleanString(username)
+	// Change userID to lowercase for consistency
+	userID = data_cleaning.CleanString(userID)
 
-	user, err := s.userRepo.FetchUser(username)
+	user, err := s.userRepo.FetchUserByID(userID)
 	if err != nil {
 		return "", err
 	}
 
 	return user.StandardUser.Role, nil
+}
+
+func (s *UserService) GetUserID(username string) (string, error) {
+	user, err := s.userRepo.FetchUserByUsername(username)
+	if err != nil {
+		return "", err
+	}
+	return user.StandardUser.ID, nil
 }
 
 //func (s *UserService) WaitForCompletion() {

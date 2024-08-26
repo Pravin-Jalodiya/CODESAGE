@@ -4,6 +4,7 @@ import (
 	"cli-project/internal/config"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"cli-project/pkg/globals"
 	"context"
 	"errors"
 	"fmt"
@@ -46,13 +47,13 @@ func (r *userRepo) RegisterUser(user *models.StandardUser) error {
 	return nil
 }
 
-func (r *userRepo) UpdateUserProgress(username string, solvedQuestionID string) error {
+func (r *userRepo) UpdateUserProgress(solvedQuestionID string) error {
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
 
-	// Find the user by username
-	filter := bson.M{"username": username}
+	// Find the current user
+	filter := bson.M{"id": globals.ActiveUserID}
 
 	// Add the solved question ID to the QuestionsSolved slice
 	update := bson.M{
@@ -110,7 +111,28 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	return &users, nil
 }
 
-func (r *userRepo) FetchUser(username string) (*models.StandardUser, error) {
+func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
+	// Set a context with a timeout for the database operation
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	filter := bson.M{"id": userID}
+
+	var user models.StandardUser
+
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return &user, mongo.ErrNoDocuments // User not found
+		}
+		return &user, err
+	}
+
+	// Return the found user
+	return &user, nil
+}
+
+func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, error) {
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -137,17 +159,17 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 		return errors.New("user ID is required")
 	}
 
-	// Create a filter to find the user by UUID
+	// Create a filter to find the user by ID
 	filter := bson.M{"id": user.StandardUser.ID}
 
 	// Define the update fields
 	update := bson.M{
 		"$set": bson.M{
-			"username":        user.StandardUser.Username,
-			"email":           user.StandardUser.Email,
-			"leetCodeID":      user.LeetcodeID,
-			"lastSeen":        user.LastSeen,
-			"questionsSolved": user.QuestionsSolved,
+			"username":         user.StandardUser.Username,
+			"email":            user.StandardUser.Email,
+			"leetcode_id":      user.LeetcodeID,
+			"last_seen":        user.LastSeen,
+			"questions_solved": user.QuestionsSolved,
 			// Add other fields you want to update
 		},
 	}

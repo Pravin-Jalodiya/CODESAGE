@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"cli-project/pkg/globals"
 	"cli-project/pkg/utils/formatting"
 	"fmt"
 	"strings"
@@ -56,7 +55,7 @@ func (ui *UI) updateProgress() {
 		break
 	}
 	// Update the user's progress by marking the selected question as done
-	err = ui.userService.UpdateUserProgress(globals.ActiveUser, questionID)
+	err = ui.userService.UpdateUserProgress(questionID)
 
 	if err != nil {
 		fmt.Println(formatting.Colorize("Failed to update progress: ", "red", "bold"), err)

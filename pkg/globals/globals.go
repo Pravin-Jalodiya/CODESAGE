@@ -1,3 +1,3 @@
 package globals
 
-var ActiveUser string
+var ActiveUserID string
