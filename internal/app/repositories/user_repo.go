@@ -35,6 +35,7 @@ func (r *userRepo) RegisterUser(user *models.StandardUser) error {
 		"role":             user.StandardUser.Role,
 		"organisation":     user.StandardUser.Organisation,
 		"country":          user.StandardUser.Country,
+		"isBanned":         user.StandardUser.IsBanned,
 		"leetcode_id":      user.LeetcodeID,
 		"questions_solved": user.QuestionsSolved,
 		"last_seen":        user.LastSeen,
@@ -146,7 +147,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return &user, mongo.ErrNoDocuments // User not found
+			return &user, errors.New("user not found") // User not found
 		}
 		return &user, err
 	}
@@ -190,6 +191,54 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 	result := r.collection.FindOneAndUpdate(ctx, filter, update, opts)
 	if result.Err() != nil {
 		return result.Err()
+	}
+
+	return nil
+}
+
+func (r *userRepo) BanUser(userID string) error {
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	// Filter to find the user by userID
+	filter := bson.M{"id": userID}
+
+	// Update to set the IsBanned field to true
+	update := bson.M{"$set": bson.M{"isBanned": true}}
+
+	// Execute the update operation
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("could not ban user: %v", err)
+	}
+
+	// Check if the user was found and updated
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("user with ID %s not found", userID)
+	}
+
+	return nil
+}
+
+func (r *userRepo) UnbanUser(userID string) error {
+	ctx, cancel := CreateContext()
+	defer cancel()
+
+	// Filter to find the user by userID
+	filter := bson.M{"id": userID}
+
+	// Update to set the IsBanned field to false
+	update := bson.M{"$set": bson.M{"isBanned": false}}
+
+	// Execute the update operation
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("could not unban user: %v", err)
+	}
+
+	// Check if the user was found and updated
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("user with ID %s not found", userID)
 	}
 
 	return nil

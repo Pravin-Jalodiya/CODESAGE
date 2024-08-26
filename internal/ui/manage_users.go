@@ -2,7 +2,9 @@ package ui
 
 import (
 	"cli-project/pkg/utils"
+	"cli-project/pkg/utils/data_cleaning"
 	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/validation"
 	"fmt"
 	"os"
 	"strings"
@@ -27,7 +29,7 @@ func (ui *UI) ManageUsers() {
 		choice = strings.TrimSpace(choice)
 
 		if err != nil {
-			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+			fmt.Println(formatting.Colorize("error reading input:", "red", "bold"), err)
 			return
 		}
 
@@ -41,7 +43,7 @@ func (ui *UI) ManageUsers() {
 		case "4":
 			return // Go back to the previous menu
 		default:
-			fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
+			fmt.Println(formatting.Colorize("invalid choice", "red", "bold"))
 		}
 	}
 }
@@ -50,13 +52,13 @@ func (ui *UI) viewAllUsers() {
 	// Get all users from the user service
 	users, err := ui.userService.GetAllUsers()
 	if err != nil {
-		fmt.Println("Failed to load users.")
+		fmt.Println("failed to load users.")
 		return
 	}
 
 	// If no users found, notify the admin
 	if len(*users) == 0 {
-		fmt.Println("No users found.")
+		fmt.Println("no users found.")
 		return
 	}
 
@@ -66,7 +68,7 @@ func (ui *UI) viewAllUsers() {
 	// Print table headers
 	_, err = fmt.Fprintln(w, "Username\tName\tEmail\tLeetcode ID\tOrganisation\tCountry\tIsBlocked\tLast Seen (IST)")
 	if err != nil {
-		fmt.Println("Error rendering page.")
+		fmt.Println("error rendering page.")
 		return
 	}
 
@@ -87,7 +89,7 @@ func (ui *UI) viewAllUsers() {
 			user.LeetcodeID,
 			user.StandardUser.Organisation,
 			user.StandardUser.Country,
-			user.StandardUser.IsBlocked,
+			user.StandardUser.IsBanned,
 			lastSeenIST,
 		)
 
@@ -106,27 +108,73 @@ func (ui *UI) viewAllUsers() {
 }
 
 func (ui *UI) banUser() {
+
+	// View all users
+	ui.viewAllUsers()
+
 	// Logic to ban a user
-	fmt.Print("Enter the username to ban: ")
-	username, err := ui.reader.ReadString('\n')
+	var username string
+	var err error
+	for {
+		fmt.Print("Enter the username to ban: ")
+		username, err = ui.reader.ReadString('\n')
+		username = data_cleaning.CleanString(username)
+		if err != nil {
+			fmt.Println(formatting.Colorize("error reading input:", "red", "bold"), err)
+			return
+		}
+
+		valid := validation.ValidateUsername(username)
+
+		if !valid {
+			fmt.Println(formatting.Colorize("enter a valid username", "yellow", "bold"))
+			continue
+		}
+		break
+	}
+
+	// banning logic
+	err = ui.userService.BanUser(username)
 	if err != nil {
-		fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+		fmt.Println(formatting.Colorize("error banning user: ", "red", "bold"), err)
 		return
 	}
-	username = strings.TrimSpace(username)
-	// Placeholder for banning logic
-	fmt.Printf("User %s has been banned.\n", username)
+
+	fmt.Println(formatting.Colorize("user banned successfully", "green", "bold"))
 }
 
 func (ui *UI) unbanUser() {
+
+	// View all users
+	ui.viewAllUsers()
+
 	// Logic to unban a user
-	fmt.Print("Enter the username to unban: ")
-	username, err := ui.reader.ReadString('\n')
+	var username string
+	var err error
+	for {
+		fmt.Print("Enter the username to unban: ")
+		username, err = ui.reader.ReadString('\n')
+		username = data_cleaning.CleanString(username)
+		if err != nil {
+			fmt.Println(formatting.Colorize("error reading input:", "red", "bold"), err)
+			return
+		}
+
+		valid := validation.ValidateUsername(username)
+
+		if !valid {
+			fmt.Println(formatting.Colorize("enter a valid username", "yellow", "bold"))
+			continue
+		}
+		break
+	}
+
+	// Unbanning logic
+	err = ui.userService.UnbanUser(username)
 	if err != nil {
-		fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+		fmt.Println(formatting.Colorize("error unbanning user: ", "red", "bold"), err)
 		return
 	}
-	username = strings.TrimSpace(username)
-	// Placeholder for unbanning logic
-	fmt.Printf("User %s has been unbanned.\n", username)
+
+	fmt.Println(formatting.Colorize("user unbanned successfully", "green", "bold"))
 }

@@ -60,6 +60,15 @@ func (s *UserService) SignUp(user *models.StandardUser) error {
 	// Set default role
 	user.StandardUser.Role = "user"
 
+	// Set default blocked status
+	user.StandardUser.IsBanned = false
+
+	// set question solved
+	user.QuestionsSolved = []string{}
+
+	// set last seen
+	user.LastSeen = time.Now().UTC()
+
 	// Register the user
 	err = s.userRepo.RegisterUser(user)
 	if err != nil {
@@ -196,6 +205,25 @@ func (s *UserService) GetUserID(username string) (string, error) {
 		return "", err
 	}
 	return user.StandardUser.ID, nil
+}
+
+func (s *UserService) BanUser(username string) error {
+
+	userID, err := s.GetUserID(username)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.BanUser(userID)
+}
+
+func (s *UserService) UnbanUser(username string) error {
+	userID, err := s.GetUserID(username)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.UnbanUser(userID)
 }
 
 //func (s *UserService) WaitForCompletion() {

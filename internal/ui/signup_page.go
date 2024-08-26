@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"strings"
-	"time"
 )
 
 func (ui *UI) ShowSignupPage() {
@@ -188,11 +187,8 @@ func (ui *UI) ShowSignupPage() {
 			Email:        email,
 			Organisation: organisation,
 			Country:      country,
-			IsBlocked:    false,
 		},
-		LeetcodeID:      leetcodeID,
-		QuestionsSolved: []string{},
-		LastSeen:        time.Now().UTC(),
+		LeetcodeID: leetcodeID,
 	}
 
 	// Call Signup Service

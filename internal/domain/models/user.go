@@ -11,7 +11,7 @@ type User struct {
 	Email        string `bson:"email"`
 	Organisation string `bson:"organisation"`
 	Country      string `bson:"country"`
-	IsBlocked    bool   `bson:"isBlocked"`
+	IsBanned     bool   `bson:"isBanned"`
 }
 
 type Admin struct {

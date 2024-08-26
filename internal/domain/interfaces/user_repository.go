@@ -9,6 +9,8 @@ type UserRepository interface {
 	FetchUserByID(string) (*models.StandardUser, error)
 	FetchUserByUsername(string) (*models.StandardUser, error)
 	UpdateUserDetails(*models.StandardUser) error
+	BanUser(string) error
+	UnbanUser(string) error
 	CountActiveUsersInLast24Hours() (int64, error)
 	IsUsernameUnique(string) (bool, error)
 	IsEmailUnique(string) (bool, error)
