@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strings"
 	"time"
 )
 
@@ -117,15 +118,19 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 	defer cancel()
 
 	filter := bson.M{}
-	if difficulty != "" {
+
+	// Apply filters only if parameters are not "any"
+	if difficulty != "" && strings.ToLower(difficulty) != "any" {
 		filter["difficulty"] = difficulty
 	}
-	if company != "" {
+	if company != "" && strings.ToLower(company) != "any" {
 		filter["company_tags"] = company
 	}
-	if topic != "" {
+	if topic != "" && strings.ToLower(topic) != "any" {
 		filter["topic_tags"] = topic
 	}
+
+	fmt.Printf("Constructed filter: %+v\n", filter) // debug
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
@@ -135,7 +140,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
 		err := cursor.Close(ctx)
 		if err != nil {
-
+			fmt.Println("could not close cursor")
 		}
 	}(cursor, ctx)
 
@@ -152,8 +157,53 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}
 
+	fmt.Printf("Number of questions found: %d\n", len(questions)) // Debug: Print number of questions
+
 	return &questions, nil
 }
+
+//func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
+//	ctx, cancel := CreateContext()
+//	defer cancel()
+//
+//	filter := bson.M{}
+//	if difficulty != "" {
+//		filter["difficulty"] = difficulty
+//	}
+//	if company != "" {
+//		filter["company_tags"] = company
+//	}
+//	if topic != "" {
+//		filter["topic_tags"] = topic
+//	}
+//
+//	cursor, err := r.collection.Find(ctx, filter)
+//	if err != nil {
+//		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
+//	}
+//
+//	defer func(cursor *mongo.Cursor, ctx context.Context) {
+//		err := cursor.Close(ctx)
+//		if err != nil {
+//
+//		}
+//	}(cursor, ctx)
+//
+//	var questions []models.Question
+//	for cursor.Next(ctx) {
+//		var question models.Question
+//		if err := cursor.Decode(&question); err != nil {
+//			return nil, fmt.Errorf("could not decode question: %v", err)
+//		}
+//		questions = append(questions, question)
+//	}
+//
+//	if err := cursor.Err(); err != nil {
+//		return nil, fmt.Errorf("cursor error: %v", err)
+//	}
+//
+//	return &questions, nil
+//}
 
 func (r *questionRepo) CountQuestions() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
