@@ -166,3 +166,7 @@ func (s *QuestionService) QuestionExists(questionID string) (bool, error) {
 
 	return s.questionRepo.QuestionExists(questionID)
 }
+
+func (s *QuestionService) GetTotalQuestionsCount() (int64, error) {
+	return s.questionRepo.CountQuestions()
+}

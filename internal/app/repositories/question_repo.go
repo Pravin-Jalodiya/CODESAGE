@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type questionRepo struct {
@@ -152,6 +153,18 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 	}
 
 	return &questions, nil
+}
+
+func (r *questionRepo) CountQuestions() (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	count, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return 0, fmt.Errorf("could not count questions: %v", err)
+	}
+
+	return count, nil
 }
 
 func (r *questionRepo) QuestionExists(questionID string) (bool, error) {

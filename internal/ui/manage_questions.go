@@ -56,7 +56,7 @@ func (ui *UI) AddQuestions() {
 		return
 	}
 
-	fmt.Println(formatting.Colorize("Select a file to add questions from:", "", "bold"))
+	fmt.Println(formatting.Colorize("Select a file to add questions from:", "cyan", "bold"))
 
 	// Display the list of files with their extensions
 	for i, file := range files {

@@ -17,10 +17,8 @@ func (ui *UI) ShowBannedMessage() {
 	fmt.Println(formatting.Colorize("            THE PLATFORM            ", "red", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "red", "bold"))
 
-	// Prompt user to press any key to return
 	fmt.Println("\nPress any key to return...")
 
-	// Wait for user input
 	reader := bufio.NewReader(os.Stdin)
 	_, _ = reader.ReadString('\n')
 }
