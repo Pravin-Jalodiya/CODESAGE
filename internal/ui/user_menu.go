@@ -15,10 +15,11 @@ func (ui *UI) ShowUserMenu() {
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("              USER MENU             ", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("1. View questions", "green", ""))
-		fmt.Println(formatting.Colorize("2. View dashboard", "green", ""))
-		fmt.Println(formatting.Colorize("3. Update progress", "green", ""))
-		fmt.Println(formatting.Colorize("4. Logout", "green", ""))
+		fmt.Println(formatting.Colorize("1. View questions", "", ""))
+		fmt.Println(formatting.Colorize("2. View dashboard", "", ""))
+		fmt.Println(formatting.Colorize("3. Update progress", "", ""))
+		fmt.Println(formatting.Colorize("4. View profile", "", ""))
+		fmt.Println(formatting.Colorize("5. Logout", "", ""))
 
 		fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
 		choice, err := ui.reader.ReadString('\n')
@@ -37,6 +38,8 @@ func (ui *UI) ShowUserMenu() {
 		case "3":
 			ui.UpdateProgressPage()
 		case "4":
+			ui.ShowUserProfile()
+		case "5":
 			err := ui.userService.Logout()
 			if err != nil {
 				fmt.Println(formatting.Colorize("Error logging out: ", "red", "bold"), err)

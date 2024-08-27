@@ -126,7 +126,7 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return &user, mongo.ErrNoDocuments // User not found
+			return &user, errors.New("user not found") // User not found
 		}
 		return &user, err
 	}
@@ -147,7 +147,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return &user, errors.New("user not found") // User not found
+			return &user, mongo.ErrNoDocuments // User not found
 		}
 		return &user, err
 	}

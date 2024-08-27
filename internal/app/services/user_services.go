@@ -37,7 +37,7 @@ func NewUserService(userRepo interfaces.UserRepository, questionService *Questio
 func (s *UserService) SignUp(user *models.StandardUser) error {
 
 	// Change username to lowercase for consistency
-	user.StandardUser.Username = strings.ToLower(user.StandardUser.Name)
+	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
 
 	// Change email to lower for consistency
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
@@ -91,7 +91,7 @@ func (s *UserService) Login(username, password string) error {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return ErrUserNotFound // Return error if user doesn't exist
 		}
-		return fmt.Errorf("could not retrieve user: %v", err)
+		return fmt.Errorf("%v", err)
 	}
 
 	// Verify the password
@@ -180,6 +180,18 @@ func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, 
 	username = data_cleaning.CleanString(username)
 
 	return s.userRepo.FetchUserByUsername(username)
+}
+
+func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
+	// Clean userID for consistency
+	userID = data_cleaning.CleanString(userID)
+
+	// Fetch user by ID from the repository
+	return s.userRepo.FetchUserByID(userID)
 }
 
 func (s *UserService) GetUserRole(userID string) (string, error) {
