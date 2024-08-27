@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"cli-project/internal/config"
 	"cli-project/internal/domain/interfaces"
 	"encoding/json"
 	"fmt"
@@ -43,8 +44,6 @@ func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
 }
 `
 
-	apiURL := "https://leetcode.com/graphql/"
-
 	// Construct the GraphQL query with variables
 	query := userQuery
 	requestBody := map[string]interface{}{
@@ -59,7 +58,7 @@ func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
 	}
 
 	// Make the HTTP request
-	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return false, fmt.Errorf("request failed: %v", err)
 	}

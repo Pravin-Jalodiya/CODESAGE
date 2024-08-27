@@ -7,4 +7,5 @@ const (
 	CSV_DIR             = "/Users/pravin/Desktop/CODESAGE/csv"
 	GPT_API_ENDPOINT    = "https://api.openai.com/v1/chat/completions"
 	GPT_MODEL           = "gpt-4"
+	LEETCODE_API        = "https://leetcode.com/graphql/"
 )
