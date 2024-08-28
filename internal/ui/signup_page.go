@@ -81,7 +81,7 @@ func (ui *UI) ShowSignupPage() {
 		fmt.Print(formatting.Colorize("Name: ", "yellow", ""))
 		name, _ = ui.reader.ReadString('\n')
 		name = strings.TrimSuffix(name, "\n")
-		name = data_cleaning.CleanString(name)
+		name = strings.TrimSpace(name)
 		if !validation.ValidateName(name) {
 			fmt.Println(emojis.Error, "Invalid name. It should be 3 to 30 characters long and contain only letters and spaces.")
 			continue

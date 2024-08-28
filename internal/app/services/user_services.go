@@ -46,9 +46,9 @@ func (s *UserService) SignUp(user *models.StandardUser) error {
 	// Change email to lower for consistency
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
 
-	// Change org and country name to lowercase
-	user.StandardUser.Organisation = strings.ToLower(user.StandardUser.Organisation)
-	user.StandardUser.Country = strings.ToLower(user.StandardUser.Country)
+	// Change org and country name to proper format
+	user.StandardUser.Organisation = data_cleaning.CapitalizeWords(user.StandardUser.Organisation)
+	user.StandardUser.Country = data_cleaning.CapitalizeWords(user.StandardUser.Country)
 
 	// Generate a new UUID for the user
 	userID := utils.GenerateUUID()
