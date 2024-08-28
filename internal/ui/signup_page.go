@@ -16,14 +16,14 @@ func (ui *UI) ShowSignupPage() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("               SIGNUP                  ", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("               SIGNUP               ", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 
 	// Read Username
 	var username string
 	for {
-		fmt.Print(formatting.Colorize("Username: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Username: ", "yellow", ""))
 		username, _ = ui.reader.ReadString('\n')
 		username = strings.TrimSuffix(username, "\n")
 		username = data_cleaning.CleanString(username)
@@ -49,14 +49,14 @@ func (ui *UI) ShowSignupPage() {
 	// Read Password
 	var password, confirmPassword string
 	for {
-		fmt.Print(formatting.Colorize("Password: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Password: ", "yellow", ""))
 		passwordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		password = string(passwordBytes)
 		password = strings.TrimSpace(password)
 		fmt.Println()
 
 		// Read Confirm Password
-		fmt.Print(formatting.Colorize("Confirm Password: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Confirm Password: ", "yellow", ""))
 		confirmPasswordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		confirmPassword = string(confirmPasswordBytes)
 		confirmPassword = strings.TrimSpace(confirmPassword)
@@ -78,7 +78,7 @@ func (ui *UI) ShowSignupPage() {
 	// Read Name
 	var name string
 	for {
-		fmt.Print(formatting.Colorize("Name: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Name: ", "yellow", ""))
 		name, _ = ui.reader.ReadString('\n')
 		name = strings.TrimSuffix(name, "\n")
 		name = data_cleaning.CleanString(name)
@@ -92,7 +92,7 @@ func (ui *UI) ShowSignupPage() {
 	// Read Email
 	var email string
 	for {
-		fmt.Print(formatting.Colorize("Email: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Email: ", "yellow", ""))
 		email, _ = ui.reader.ReadString('\n')
 		email = strings.TrimSuffix(email, "\n")
 		email = data_cleaning.CleanString(email)
@@ -120,7 +120,7 @@ func (ui *UI) ShowSignupPage() {
 	// Read LeetCode Username
 	var leetcodeID string
 	for {
-		fmt.Print(formatting.Colorize("LeetCode Username: ", "blue", ""))
+		fmt.Print(formatting.Colorize("LeetCode Username: ", "yellow", ""))
 		leetcodeID, _ = ui.reader.ReadString('\n')
 		leetcodeID = strings.TrimSuffix(leetcodeID, "\n")
 		leetcodeID = strings.TrimSpace(leetcodeID)
@@ -152,7 +152,7 @@ func (ui *UI) ShowSignupPage() {
 
 	var organisation string
 	for {
-		fmt.Print(formatting.Colorize("Organisation: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Organisation: ", "yellow", ""))
 		organisation, _ = ui.reader.ReadString('\n')
 		organisation = strings.TrimSuffix(organisation, "\n")
 		organisation = data_cleaning.CleanString(organisation)
@@ -166,7 +166,7 @@ func (ui *UI) ShowSignupPage() {
 
 	var country string
 	for {
-		fmt.Print(formatting.Colorize("Country: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Country: ", "yellow", ""))
 		country, _ = ui.reader.ReadString('\n')
 		country = strings.TrimSuffix(country, "\n")
 		country = data_cleaning.CleanString(country)

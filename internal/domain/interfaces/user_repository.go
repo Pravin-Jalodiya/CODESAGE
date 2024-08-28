@@ -3,7 +3,7 @@ package interfaces
 import "cli-project/internal/domain/models"
 
 type UserRepository interface {
-	RegisterUser(*models.StandardUser) error
+	CreateUser(*models.StandardUser) error
 	UpdateUserProgress(questionID string) error
 	FetchAllUsers() (*[]models.StandardUser, error)
 	FetchUserByID(string) (*models.StandardUser, error)

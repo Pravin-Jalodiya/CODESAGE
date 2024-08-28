@@ -150,7 +150,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 		}
 		questions = append(questions, question)
 	}
-	fmt.Println(*(&questions))
+
 	if err := cursor.Err(); err != nil {
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}

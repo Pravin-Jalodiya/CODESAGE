@@ -20,14 +20,14 @@ func (ui *UI) ShowLoginPage() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("               LOGIN                 ", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("               LOGIN                 ", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 
 	var username, password string
 	for {
 		// Read Username
-		fmt.Print(formatting.Colorize("Username: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Username: ", "yellow", ""))
 		username, _ = ui.reader.ReadString('\n')
 		username = strings.TrimSuffix(username, "\n")
 		username = data_cleaning.CleanString(username)
@@ -42,7 +42,7 @@ func (ui *UI) ShowLoginPage() {
 		}
 
 		// Read Password
-		fmt.Print(formatting.Colorize("Password: ", "blue", ""))
+		fmt.Print(formatting.Colorize("Password: ", "yellow", ""))
 		passwordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		password = string(passwordBytes)
 
@@ -61,7 +61,7 @@ func (ui *UI) ShowLoginPage() {
 			if errors.Is(err, services.ErrUserNotFound) {
 				fmt.Println(emojis.Error, "User not found. Would you like to sign up instead? (y/n)")
 				for {
-					fmt.Print(formatting.Colorize("Choice: ", "blue", ""))
+					fmt.Print(formatting.Colorize("Choice: ", "yellow", ""))
 					choice, err = ui.reader.ReadString('\n')
 					choice = strings.TrimSuffix(choice, "\n")
 					choice = strings.TrimSpace(choice)

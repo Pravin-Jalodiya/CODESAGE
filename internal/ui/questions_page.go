@@ -1,28 +1,25 @@
 package ui
 
 import (
-	"bufio"
 	"cli-project/pkg/utils/data_cleaning"
-	"cli-project/pkg/utils/emojis"
 	"cli-project/pkg/utils/formatting"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"os"
 	"strings"
-	"text/tabwriter"
 )
 
 func (ui *UI) ViewQuestionsPage() {
 
 	for {
-
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("              QUESTIONS             ", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-		fmt.Printf("1. %s View questions\n", emojis.View)
-		fmt.Printf("2. %s Go back\n", emojis.Back)
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("              QUESTIONS             ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println("1. View questions")
+		fmt.Println("2. Go back")
 		fmt.Print("Enter your choice : ")
 
 		// Read user input
@@ -58,43 +55,29 @@ func (ui *UI) ViewQuestions() {
 		return
 	}
 
-	// Create a new tab writer to format the output as a table
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-
-	// Print table headers
-	_, err = fmt.Fprintln(w, "ID\tTitle\tDifficulty\tLink\tTopic-Tags\tCompany-Tags")
-	if err != nil {
-		fmt.Println("Error rendering page.")
-	}
+	// Create a new table writer to format the output as a table
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Title", "Difficulty", "Link", "Topic-Tags", "Company-Tags"})
 
 	// Print table rows
 	for _, question := range *questionsList {
 		// Convert slices to comma-separated strings for display
-		topicTags := fmt.Sprintf("%v", question.TopicTags)
-		companyTags := fmt.Sprintf("%v", question.CompanyTags)
+		topicTags := strings.Join(question.TopicTags, ", ")
+		companyTags := strings.Join(question.CompanyTags, ", ")
 
-		// Format the question details into table rows
-		_, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		// Add the row to the table
+		table.Append([]string{
 			question.QuestionID,
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			topicTags[1:len(topicTags)-1], // Remove square brackets from slice string
-			companyTags[1:len(companyTags)-1],
-		)
-
-		if err != nil {
-			fmt.Println("Error rendering page.")
-			return
-		}
+			topicTags,
+			companyTags,
+		})
 	}
 
-	// Flush the writer to ensure all output is printed
-	err = w.Flush()
-	if err != nil {
-		fmt.Println("Error rendering page.")
-		return
-	}
+	// Render the table to the console
+	table.Render()
 
 	// Prompt user for input
 	fmt.Println("Press 'f' to view filtered questions or any other key to return")
@@ -113,19 +96,19 @@ func (ui *UI) ViewQuestions() {
 func (ui *UI) ViewFilteredQuestions() {
 
 	// Prompt for difficulty
-	fmt.Print("Enter difficulty (or 'any' for no filter): ")
+	fmt.Print("Enter difficulty (press enter to skip): ")
 	difficulty, _ := ui.reader.ReadString('\n')
 	difficulty = strings.TrimSuffix(difficulty, "\n")
 	difficulty = data_cleaning.CleanString(difficulty)
 
 	// Prompt for topic
-	fmt.Print("Enter topic (or 'any' for no filter): ")
+	fmt.Print("Enter topic (press enter to skip): ")
 	topic, _ := ui.reader.ReadString('\n')
 	topic = strings.TrimSuffix(topic, "\n")
 	topic = data_cleaning.CleanString(topic)
 
 	// Prompt for company
-	fmt.Print("Enter company (or 'any' for no filter): ")
+	fmt.Print("Enter company (press enter to skip")
 	company, _ := ui.reader.ReadString('\n')
 	company = strings.TrimSuffix(company, "\n")
 	company = data_cleaning.CleanString(company)
@@ -139,51 +122,36 @@ func (ui *UI) ViewFilteredQuestions() {
 
 	// If no questions found, notify the user
 	if len(*filteredQuestions) == 0 {
-		fmt.Println(formatting.Colorize("no questions match the filter", "yellow", "bold"))
+		fmt.Println(formatting.Colorize("No questions match the filter", "yellow", "bold"))
 		return
 	}
 
-	// Display the questions
-	// Create a new tab writer to format the output as a table
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-
-	// Print table headers
-	_, err = fmt.Fprintln(w, "ID\tTitle\tDifficulty\tLink\tTopic-Tags\tCompany-Tags")
-	if err != nil {
-		fmt.Println("Error rendering page.")
-	}
+	// Create a new table writer to format the output as a table
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Title", "Difficulty", "Link", "Topic-Tags", "Company-Tags"})
 
 	// Print table rows
 	for _, question := range *filteredQuestions {
-		//Convert slices to comma-separated strings for display
-		topicTags := fmt.Sprintf("%v", question.TopicTags)
-		companyTags := fmt.Sprintf("%v", question.CompanyTags)
+		// Convert slices to comma-separated strings for display
+		topicTags := strings.Join(question.TopicTags, ", ")
+		companyTags := strings.Join(question.CompanyTags, ", ")
 
-		// Format the question details into table rows
-		_, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		// Add the row to the table
+		table.Append([]string{
 			question.QuestionID,
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			topicTags[1:len(topicTags)-1], // Remove square brackets from slice string
-			companyTags[1:len(companyTags)-1],
-		)
-
-		if err != nil {
-			fmt.Println("Error rendering page.")
-			return
-		}
+			topicTags,
+			companyTags,
+		})
 	}
 
-	// Flush the writer to ensure all output is printed
-	err = w.Flush()
-	if err != nil {
-		fmt.Println("Error rendering page.")
-		return
-	}
+	// Render the table to the console
+	table.Render()
 
+	// Prompt the user to go back
 	fmt.Println("\nPress any key to go back...")
 
-	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('\n')
+	_, _ = ui.reader.ReadString('\n')
 }

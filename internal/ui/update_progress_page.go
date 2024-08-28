@@ -13,9 +13,9 @@ func (ui *UI) UpdateProgressPage() {
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("           UPDATE PROGRESS          ", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("           UPDATE PROGRESS          ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("1. Update progress", "", ""))
 		fmt.Println(formatting.Colorize("2. Go back", "", ""))
 
@@ -68,4 +68,8 @@ func (ui *UI) updateProgress() {
 	} else {
 		fmt.Println(formatting.Colorize("Updated progress successfully", "green", "bold"))
 	}
+
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
 }

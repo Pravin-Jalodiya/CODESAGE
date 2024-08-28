@@ -1,11 +1,9 @@
 package ui
 
 import (
-	"bufio"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils/formatting"
 	"fmt"
-	"os"
 )
 
 // ShowUserDashboard displays the user's LeetCode stats on the dashboard.
@@ -13,9 +11,9 @@ func (ui *UI) ShowUserDashboard() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("            USER DASHBOARD          ", "magenta", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("            USER DASHBOARD          ", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 
 	// Fetch LeetCode stats (assuming you have a method to get these stats)
 	stats, err := ui.userService.GetLeetCodeStats(globals.ActiveUserID)
@@ -38,6 +36,5 @@ func (ui *UI) ShowUserDashboard() {
 
 	fmt.Println("\nPress any key to go back...")
 
-	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('\n')
+	_, _ = ui.reader.ReadString('\n')
 }

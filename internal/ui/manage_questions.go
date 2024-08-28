@@ -14,9 +14,9 @@ func (ui *UI) ManageQuestions() {
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("         MANAGE QUESTIONS           ", "magenta", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "magenta", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("         MANAGE QUESTIONS           ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("1. Add questions", "", ""))
 		fmt.Println(formatting.Colorize("2. Remove question", "", ""))
 		fmt.Println(formatting.Colorize("3. Go back", "", ""))
@@ -68,7 +68,7 @@ func (ui *UI) AddQuestions() {
 	var fileName string
 	for {
 
-		fmt.Print(formatting.Colorize("Enter the file number: ", "blue", "bold"))
+		fmt.Print(formatting.Colorize("Enter the file number: ", "yellow", "bold"))
 		_, err = fmt.Scan(&choice)
 		if err != nil || choice < 1 || choice > len(files) {
 			fmt.Println(formatting.Colorize("Invalid choice.", "red", "bold"))
@@ -99,9 +99,16 @@ func (ui *UI) AddQuestions() {
 	} else {
 		fmt.Println(formatting.Colorize("Questions successfully added from file:", "green", "bold"), fileName)
 	}
+
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
+
 }
 
 func (ui *UI) RemoveQuestion() {
+
+	ui.ViewQuestions()
 	// Placeholder for the remove question logic
 	// Prompt admin to enter the Question ID
 	var questionID string
@@ -125,4 +132,8 @@ func (ui *UI) RemoveQuestion() {
 	} else {
 		fmt.Println(formatting.Colorize("Question removed successfully!", "green", "bold"))
 	}
+
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
 }

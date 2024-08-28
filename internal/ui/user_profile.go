@@ -21,16 +21,17 @@ func (ui *UI) ShowUserProfile() {
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("            USER PROFILE            ", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("Username: ", "magenta", "bold"), user.StandardUser.Username)
-	fmt.Println(formatting.Colorize("Name: ", "magenta", "bold"), user.StandardUser.Name)
-	fmt.Println(formatting.Colorize("Email: ", "magenta", "bold"), user.StandardUser.Email)
-	fmt.Println(formatting.Colorize("Leetcode ID: ", "magenta", "bold"), user.LeetcodeID)
-	fmt.Println(formatting.Colorize("Organisation: ", "magenta", "bold"), user.StandardUser.Organisation)
-	fmt.Println(formatting.Colorize("Country: ", "magenta", "bold"), user.StandardUser.Country)
+	fmt.Println(formatting.Colorize("Username: ", "cyan", "bold"), user.StandardUser.Username)
+	fmt.Println(formatting.Colorize("Name: ", "cyan", "bold"), user.StandardUser.Name)
+	fmt.Println(formatting.Colorize("Email: ", "cyan", "bold"), user.StandardUser.Email)
+	fmt.Println(formatting.Colorize("Leetcode ID: ", "cyan", "bold"), user.LeetcodeID)
+	fmt.Println(formatting.Colorize("Organisation: ", "cyan", "bold"), user.StandardUser.Organisation)
+	fmt.Println(formatting.Colorize("Country: ", "cyan", "bold"), user.StandardUser.Country)
 
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("Press any key to return to the main menu.", "", "bold"))
 
-	// Wait for the user to press any key to return
-	ui.reader.ReadString('\n')
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
+
 }

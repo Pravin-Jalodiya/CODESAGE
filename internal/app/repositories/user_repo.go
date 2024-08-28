@@ -24,7 +24,7 @@ func NewUserRepo() interfaces.UserRepository {
 	}
 }
 
-func (r *userRepo) RegisterUser(user *models.StandardUser) error {
+func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	// Convert the user model to BSON format
 	userBson := bson.M{
 		"id":               user.StandardUser.ID,

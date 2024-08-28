@@ -6,9 +6,9 @@ import (
 	"cli-project/pkg/utils/formatting"
 	"cli-project/pkg/validation"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"os"
 	"strings"
-	"text/tabwriter"
 )
 
 func (ui *UI) ManageUsers() {
@@ -52,25 +52,19 @@ func (ui *UI) viewAllUsers() {
 	// Get all users from the user service
 	users, err := ui.userService.GetAllUsers()
 	if err != nil {
-		fmt.Println("failed to load users.")
+		fmt.Println("Failed to load users.")
 		return
 	}
 
 	// If no users found, notify the admin
 	if len(*users) == 0 {
-		fmt.Println("no users found.")
+		fmt.Println("No users found.")
 		return
 	}
 
-	// Create a new tab writer to format the output as a table
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-
-	// Print table headers
-	_, err = fmt.Fprintln(w, "Username\tName\tEmail\tLeetcode ID\tOrganisation\tCountry\tIsBlocked\tLast Seen (IST)")
-	if err != nil {
-		fmt.Println("error rendering page.")
-		return
-	}
+	// Create a new table writer to format the output as a table
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Username", "Name", "Email", "Leetcode ID", "Organisation", "Country", "IsBlocked", "Last Seen (IST)"})
 
 	// Print table rows, excluding admin users
 	for _, user := range *users {
@@ -81,30 +75,22 @@ func (ui *UI) viewAllUsers() {
 		// Convert Last Seen time to IST and format it
 		lastSeenIST := utils.ConvertToIST(user.LastSeen)
 
-		// Format the user details into table rows
-		_, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%t\t%s\n",
+		// Add the row to the table
+		table.Append([]string{
 			user.StandardUser.Username,
 			user.StandardUser.Name,
 			user.StandardUser.Email,
 			user.LeetcodeID,
 			user.StandardUser.Organisation,
 			user.StandardUser.Country,
-			user.StandardUser.IsBanned,
+			fmt.Sprintf("%t", user.StandardUser.IsBanned),
 			lastSeenIST,
-		)
-
-		if err != nil {
-			fmt.Println("Error rendering page.")
-			return
-		}
+		})
 	}
 
-	// Flush the writer to ensure all output is printed
-	err = w.Flush()
-	if err != nil {
-		fmt.Println("Error rendering page.")
-		return
-	}
+	// Render the table to the console
+	table.Render()
+
 }
 
 func (ui *UI) banUser() {
@@ -136,13 +122,18 @@ func (ui *UI) banUser() {
 	// banning logic
 	alreadyBanned, err := ui.userService.BanUser(username)
 	if err != nil {
-		fmt.Println(formatting.Colorize("error banning user: ", "red", "bold"), err)
+		fmt.Println(formatting.Colorize("user does not exist", "red", "bold"))
 		return
 	} else if alreadyBanned {
 		fmt.Println(formatting.Colorize("user already banned", "yellow", "bold"))
 	} else {
 		fmt.Println(formatting.Colorize("user banned successfully", "green", "bold"))
 	}
+
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
+
 }
 
 func (ui *UI) unbanUser() {
@@ -174,11 +165,16 @@ func (ui *UI) unbanUser() {
 	// Unbanning logic
 	alreadyUnbanned, err := ui.userService.UnbanUser(username)
 	if err != nil {
-		fmt.Println(formatting.Colorize("error unbanning user: ", "red", "bold"), err)
+		fmt.Println(formatting.Colorize("user does not exist", "red", "bold"), err)
 		return
 	} else if alreadyUnbanned {
 		fmt.Println(formatting.Colorize("user already unbanned", "yellow", "bold"))
 	} else {
 		fmt.Println(formatting.Colorize("user unbanned successfully", "green", "bold"))
 	}
+
+	fmt.Println("\nPress any key to go back...")
+
+	_, _ = ui.reader.ReadString('\n')
+
 }

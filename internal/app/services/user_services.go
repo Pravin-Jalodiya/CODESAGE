@@ -74,7 +74,7 @@ func (s *UserService) SignUp(user *models.StandardUser) error {
 	user.LastSeen = time.Now().UTC()
 
 	// Register the user
-	err = s.userRepo.RegisterUser(user)
+	err = s.userRepo.CreateUser(user)
 	if err != nil {
 		return fmt.Errorf("could not register user")
 	}
