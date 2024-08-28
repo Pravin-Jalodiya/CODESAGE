@@ -104,16 +104,10 @@ func (ui *UI) ViewQuestions() {
 		return
 	}
 
-	//// Check the input and call ViewFilteredQuestions if input is 'f'
-	//if strings.ToLower(input) == "f" {
-	//	ui.ViewFilteredQuestions()
-	//} else {
-	//	fmt.Println("Returning to the previous menu...")
-	//}
-	fmt.Println("\nPress any key to go back...")
-
-	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('\n')
+	// Check the input and call ViewFilteredQuestions if input is 'f'
+	if strings.ToLower(input) == "f" {
+		ui.ViewFilteredQuestions()
+	}
 }
 
 func (ui *UI) ViewFilteredQuestions() {
@@ -149,7 +143,6 @@ func (ui *UI) ViewFilteredQuestions() {
 		return
 	}
 
-	println(*filteredQuestions)
 	// Display the questions
 	// Create a new tab writer to format the output as a table
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
@@ -162,9 +155,9 @@ func (ui *UI) ViewFilteredQuestions() {
 
 	// Print table rows
 	for _, question := range *filteredQuestions {
-		// Convert slices to comma-separated strings for display
-		//topicTags := fmt.Sprintf("%v", question.TopicTags)
-		//companyTags := fmt.Sprintf("%v", question.CompanyTags)
+		//Convert slices to comma-separated strings for display
+		topicTags := fmt.Sprintf("%v", question.TopicTags)
+		companyTags := fmt.Sprintf("%v", question.CompanyTags)
 
 		// Format the question details into table rows
 		_, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
@@ -172,16 +165,21 @@ func (ui *UI) ViewFilteredQuestions() {
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			question.TopicTags,
-			question.CompanyTags,
-			//topicTags[1:len(topicTags)-1], // Remove square brackets from slice string
-			//companyTags[1:len(companyTags)-1],
+			topicTags[1:len(topicTags)-1], // Remove square brackets from slice string
+			companyTags[1:len(companyTags)-1],
 		)
 
 		if err != nil {
 			fmt.Println("Error rendering page.")
 			return
 		}
+	}
+
+	// Flush the writer to ensure all output is printed
+	err = w.Flush()
+	if err != nil {
+		fmt.Println("Error rendering page.")
+		return
 	}
 
 	fmt.Println("\nPress any key to go back...")
