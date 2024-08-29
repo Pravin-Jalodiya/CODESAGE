@@ -15,7 +15,7 @@ func (ui *UI) ManageQuestions() {
 		fmt.Print("\033[H\033[2J")
 
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("         MANAGE QUESTIONS           ", "cyan", "bold"))
+		fmt.Println(formatting.Colorize("          MANAGE QUESTIONS          ", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("1. Add questions", "", ""))
 		fmt.Println(formatting.Colorize("2. Remove question", "", ""))

@@ -1,19 +1,16 @@
 package services
 
 import (
-	"bytes"
-	"cli-project/internal/config"
+	interfaces2 "cli-project/external/domain/interfaces"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
 	"cli-project/pkg/utils/data_cleaning"
 	pwd "cli-project/pkg/utils/password"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -26,13 +23,15 @@ var (
 type UserService struct {
 	userRepo        interfaces.UserRepository
 	questionService *QuestionService
+	leetcodeAPI     interfaces2.LeetcodeAPI
 	//userWG   *sync.WaitGroup
 }
 
-func NewUserService(userRepo interfaces.UserRepository, questionService *QuestionService) *UserService {
+func NewUserService(userRepo interfaces.UserRepository, questionService *QuestionService, leetcodeAPI interfaces2.LeetcodeAPI) *UserService {
 	return &UserService{
 		userRepo:        userRepo,
 		questionService: questionService,
+		leetcodeAPI:     leetcodeAPI,
 		//userWG:   &sync.WaitGroup{},
 	}
 }
@@ -278,133 +277,8 @@ func (s *UserService) GetLeetCodeStats(userID string) (*models.LeetcodeStats, er
 	}
 
 	leetcodeID := user.LeetcodeID
-	recentLimit := 10
 
-	// Updated GraphQL query
-	userStatsQuery := `
-	query userProblemsSolved($username: String!) {
-		allQuestionsCount {
-			difficulty
-			count
-		}
-		matchedUser(username: $username) {
-			submitStatsGlobal {
-				acSubmissionNum {
-					difficulty
-					count
-				}
-			}
-		}
-	}`
-
-	recentSubmissionsQuery := `
-	query recentAcSubmissions($username: String!, $limit: Int!) {
-		recentAcSubmissionList(username: $username, limit: $limit) {
-			title
-		}
-	}`
-
-	// Function to perform GraphQL request
-	fetchData := func(query string, variables map[string]interface{}) (map[string]interface{}, error) {
-		requestBody := map[string]interface{}{
-			"query":     query,
-			"variables": variables,
-		}
-		jsonBody, err := json.Marshal(requestBody)
-		if err != nil {
-			return nil, fmt.Errorf("could not marshal request body: %v", err)
-		}
-
-		resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
-		if err != nil {
-			return nil, fmt.Errorf("request failed: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-		}
-
-		var result map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, fmt.Errorf("could not decode response: %v", err)
-		}
-
-		data, ok := result["data"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid response format")
-		}
-		return data, nil
-	}
-
-	// Fetch user stats
-	statsData, err := fetchData(userStatsQuery, map[string]interface{}{"username": leetcodeID})
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse stats data
-	stats := &models.LeetcodeStats{
-		RecentACSubmissions: []string{},
-	}
-
-	if allQuestionsCount, ok := statsData["allQuestionsCount"].([]interface{}); ok {
-		for _, item := range allQuestionsCount {
-			countInfo := item.(map[string]interface{})
-			difficulty := countInfo["difficulty"].(string)
-			count := int(countInfo["count"].(float64))
-			switch difficulty {
-			case "All":
-				// These are totals for all difficulties combined, not used for individual counts
-				stats.TotalQuestionsCount = count
-			case "Easy":
-				stats.TotalEasyCount = count
-			case "Medium":
-				stats.TotalMediumCount = count
-			case "Hard":
-				stats.TotalHardCount = count
-			}
-		}
-	}
-
-	if matchedUser, ok := statsData["matchedUser"].(map[string]interface{}); ok {
-		if submitStatsGlobal, ok := matchedUser["submitStatsGlobal"].(map[string]interface{}); ok {
-			if acSubmissionNum, ok := submitStatsGlobal["acSubmissionNum"].([]interface{}); ok {
-				for _, item := range acSubmissionNum {
-					difficultyCount := item.(map[string]interface{})
-					difficulty := difficultyCount["difficulty"].(string)
-					count := int(difficultyCount["count"].(float64))
-					switch difficulty {
-					case "All":
-						stats.TotalQuestionsDoneCount = count
-					case "Easy":
-						stats.EasyDoneCount = count
-					case "Medium":
-						stats.MediumDoneCount = count
-					case "Hard":
-						stats.HardDoneCount = count
-					}
-				}
-			}
-		}
-	}
-
-	// Fetch recent accepted submissions
-	submissionsData, err := fetchData(recentSubmissionsQuery, map[string]interface{}{"username": leetcodeID, "limit": recentLimit})
-	if err != nil {
-		return nil, err
-	}
-
-	if recentSubmissions, ok := submissionsData["recentAcSubmissionList"].([]interface{}); ok {
-		for _, item := range recentSubmissions {
-			submission := item.(map[string]interface{})
-			if title, ok := submission["title"].(string); ok {
-				stats.RecentACSubmissions = append(stats.RecentACSubmissions, title)
-			}
-		}
-	}
-
-	return stats, nil
+	return s.leetcodeAPI.GetStats(leetcodeID)
 }
 
 //func (s *UserService) WaitForCompletion() {

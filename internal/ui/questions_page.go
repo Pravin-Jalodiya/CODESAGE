@@ -57,7 +57,7 @@ func (ui *UI) ViewQuestions() {
 
 	// Create a new table writer to format the output as a table
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Title", "Difficulty", "Link", "Topic-Tags", "Company-Tags"})
+	table.SetHeader([]string{"ID", "Title", "Difficulty", "Topic-Tags", "Company-Tags"})
 
 	// Print table rows
 	for _, question := range *questionsList {
@@ -65,16 +65,22 @@ func (ui *UI) ViewQuestions() {
 		topicTags := strings.Join(question.TopicTags, ", ")
 		companyTags := strings.Join(question.CompanyTags, ", ")
 
+		// Create a title with a hyperlink
+		titleWithLink := fmt.Sprintf("%s (%s)", question.QuestionTitle, question.QuestionLink)
+
 		// Add the row to the table
 		table.Append([]string{
 			question.QuestionID,
-			question.QuestionTitle,
+			titleWithLink,
 			question.Difficulty,
-			question.QuestionLink,
 			topicTags,
 			companyTags,
 		})
 	}
+
+	// Enable column wrapping
+	table.SetAutoWrapText(true)
+	table.SetRowLine(true)
 
 	// Render the table to the console
 	table.Render()
@@ -108,7 +114,7 @@ func (ui *UI) ViewFilteredQuestions() {
 	topic = data_cleaning.CleanString(topic)
 
 	// Prompt for company
-	fmt.Print("Enter company (press enter to skip")
+	fmt.Print("Enter company (press enter to skip): ")
 	company, _ := ui.reader.ReadString('\n')
 	company = strings.TrimSuffix(company, "\n")
 	company = data_cleaning.CleanString(company)
@@ -128,7 +134,7 @@ func (ui *UI) ViewFilteredQuestions() {
 
 	// Create a new table writer to format the output as a table
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Title", "Difficulty", "Link", "Topic-Tags", "Company-Tags"})
+	table.SetHeader([]string{"ID", "Title", "Difficulty", "Topic-Tags", "Company-Tags"})
 
 	// Print table rows
 	for _, question := range *filteredQuestions {
@@ -136,16 +142,22 @@ func (ui *UI) ViewFilteredQuestions() {
 		topicTags := strings.Join(question.TopicTags, ", ")
 		companyTags := strings.Join(question.CompanyTags, ", ")
 
+		// Create a title with a hyperlink
+		titleWithLink := fmt.Sprintf("%s (%s)", question.QuestionTitle, question.QuestionLink)
+
 		// Add the row to the table
 		table.Append([]string{
 			question.QuestionID,
-			question.QuestionTitle,
+			titleWithLink,
 			question.Difficulty,
-			question.QuestionLink,
 			topicTags,
 			companyTags,
 		})
 	}
+
+	// Enable column wrapping
+	table.SetAutoWrapText(true)
+	table.SetRowLine(true)
 
 	// Render the table to the console
 	table.Render()

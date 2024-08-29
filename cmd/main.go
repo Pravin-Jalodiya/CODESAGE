@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cli-project/external"
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
 	"cli-project/internal/ui"
@@ -40,22 +41,25 @@ func main() {
 		log.Fatal("Failed to initialize QuestionRepository")
 	}
 
-	// Initialize Auth Service
-	authService := services.NewAuthService(userRepo)
-	if authService == nil {
-		log.Fatal("Failed to initialize AuthService")
-	}
-
 	// Initialize Question Service
 	questionService := services.NewQuestionService(questionRepo)
 	if questionService == nil {
 		log.Fatal("Failed to initialize QuestionService")
 	}
 
+	// Initialize Leetcode Service
+	leetcodeAPI := external.NewLeetcodeAPI()
+
 	// Initialize User Service
-	userService := services.NewUserService(userRepo, questionService)
+	userService := services.NewUserService(userRepo, questionService, leetcodeAPI)
 	if userService == nil {
 		log.Fatal("Failed to initialize UserService")
+	}
+
+	// Initialize Auth Service
+	authService := services.NewAuthService(userRepo, leetcodeAPI)
+	if authService == nil {
+		log.Fatal("Failed to initialize AuthService")
 	}
 
 	// Initialize UI

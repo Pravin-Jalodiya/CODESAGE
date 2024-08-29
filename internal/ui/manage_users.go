@@ -66,6 +66,10 @@ func (ui *UI) viewAllUsers() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Username", "Name", "Email", "Leetcode ID", "Organisation", "Country", "IsBlocked", "Last Seen (IST)"})
 
+	// Enable column wrapping and row lines for better readability
+	table.SetAutoWrapText(true)
+	table.SetRowLine(true)
+
 	// Print table rows, excluding admin users
 	for _, user := range *users {
 		if user.StandardUser.Role != "user" {
@@ -90,7 +94,6 @@ func (ui *UI) viewAllUsers() {
 
 	// Render the table to the console
 	table.Render()
-
 }
 
 func (ui *UI) banUser() {
