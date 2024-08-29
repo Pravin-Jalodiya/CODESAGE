@@ -14,21 +14,32 @@ import (
 )
 
 type questionRepo struct {
-	collection *mongo.Collection
 }
 
 func NewQuestionRepo() interfaces.QuestionRepository {
-	return &questionRepo{
-		collection: client.Database(config.DB_NAME).Collection(config.QUESTION_COLLECTION),
+	return &questionRepo{}
+}
+
+func (r *questionRepo) getCollection() (*mongo.Collection, error) {
+	client, err := GetMongoClient()
+	if err != nil {
+		return nil, err
 	}
+	return client.Database(config.DB_NAME).Collection(config.QUESTION_COLLECTION), nil
 }
 
 func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
 	// Placeholder implementation
+
 	return nil
 }
 
 func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
 
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -38,7 +49,7 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 		documents[i] = question
 	}
 
-	_, err := r.collection.InsertMany(ctx, documents)
+	_, err = collection.InsertMany(ctx, documents)
 	if err != nil {
 		return fmt.Errorf("could not insert questions: %v", err)
 	}
@@ -47,11 +58,17 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 }
 
 func (r *questionRepo) RemoveQuestionByID(questionID string) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
 	filter := bson.M{"question_id": questionID}
-	result, err := r.collection.DeleteOne(ctx, filter)
+	result, err := collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("could not delete question: %v", err)
 	}
@@ -64,13 +81,19 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 }
 
 func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
 	filter := bson.M{"questions_id": questionID}
 
 	var question models.Question
-	err := r.collection.FindOne(ctx, filter).Decode(&question)
+	err = collection.FindOne(ctx, filter).Decode(&question)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return &models.Question{}, fmt.Errorf("question with ID %s not found", questionID)
@@ -82,10 +105,16 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 }
 
 func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
-	cursor, err := r.collection.Find(ctx, bson.M{})
+	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions: %v", err)
 	}
@@ -114,6 +143,12 @@ func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
 }
 
 func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -130,7 +165,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 		filter["topic_tags"] = topic
 	}
 
-	cursor, err := r.collection.Find(ctx, filter)
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
 	}
@@ -159,10 +194,16 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string
 }
 
 func (r *questionRepo) CountQuestions() (int64, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	count, err := r.collection.CountDocuments(ctx, bson.M{})
+	count, err := collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return 0, fmt.Errorf("could not count questions: %v", err)
 	}
@@ -171,12 +212,18 @@ func (r *questionRepo) CountQuestions() (int64, error) {
 }
 
 func (r *questionRepo) QuestionExists(questionID string) (bool, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return false, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
 	filter := bson.M{"question_id": questionID}
 	var existingQuestion models.Question
-	err := r.collection.FindOne(ctx, filter).Decode(&existingQuestion)
+	err = collection.FindOne(ctx, filter).Decode(&existingQuestion)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false, nil

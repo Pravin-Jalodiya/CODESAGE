@@ -5,9 +5,29 @@ import (
 	"cli-project/internal/app/services"
 	"cli-project/internal/ui"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
+
+	defer repositories.CloseMongoClient()
+
+	// Setup graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigChan
+		log.Printf("Received signal: %s. Shutting down gracefully...", sig)
+
+		// Call the function to close MongoDB client
+		repositories.CloseMongoClient()
+
+		os.Exit(0)
+	}()
+
 	// Initialize User Repository
 	userRepo := repositories.NewUserRepo()
 	if userRepo == nil {

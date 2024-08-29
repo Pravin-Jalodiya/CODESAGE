@@ -4,11 +4,10 @@ import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/utils/data_cleaning"
+	"cli-project/pkg/utils/readers"
 	"cli-project/pkg/validation"
-	"encoding/csv"
 	"errors"
 	"fmt"
-	"os"
 )
 
 type QuestionService struct {
@@ -22,20 +21,8 @@ func NewQuestionService(questionRepo interfaces.QuestionRepository) *QuestionSer
 }
 
 func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, error) {
-	file, err := os.Open(questionFilePath)
-	if err != nil {
-		return false, errors.New("error opening question file")
-	}
 
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Println("error closing file")
-		}
-	}(file)
-
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
+	records, err := readers.ReadCSV(questionFilePath)
 	if err != nil {
 		return false, err
 	}

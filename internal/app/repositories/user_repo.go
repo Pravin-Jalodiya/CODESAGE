@@ -15,16 +15,27 @@ import (
 )
 
 type userRepo struct {
-	collection *mongo.Collection
 }
 
 func NewUserRepo() interfaces.UserRepository {
-	return &userRepo{
-		collection: client.Database(config.DB_NAME).Collection(config.USER_COLLECTION),
+	return &userRepo{}
+}
+
+func (r *userRepo) getCollection() (*mongo.Collection, error) {
+	client, err := GetMongoClient()
+	if err != nil {
+		return nil, err
 	}
+	return client.Database(config.DB_NAME).Collection(config.USER_COLLECTION), nil
 }
 
 func (r *userRepo) CreateUser(user *models.StandardUser) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	// Convert the user model to BSON format
 	userBson := bson.M{
 		"id":               user.StandardUser.ID,
@@ -42,7 +53,7 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	}
 
 	// Insert the user document into the collection
-	_, err := r.collection.InsertOne(context.TODO(), userBson)
+	_, err = collection.InsertOne(context.TODO(), userBson)
 	if err != nil {
 		return fmt.Errorf("could not insert user: %v", err)
 	}
@@ -51,6 +62,11 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 }
 
 func (r *userRepo) UpdateUserProgress(solvedQuestionID string) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -66,7 +82,7 @@ func (r *userRepo) UpdateUserProgress(solvedQuestionID string) error {
 	}
 
 	// Update the user document
-	_, err := r.collection.UpdateOne(ctx, filter, update)
+	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to update progress: %v", err)
 	}
@@ -75,6 +91,11 @@ func (r *userRepo) UpdateUserProgress(solvedQuestionID string) error {
 }
 
 func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -83,7 +104,7 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	filter := bson.M{}
 
 	// Find all users
-	cursor, err := r.collection.Find(ctx, filter)
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +136,11 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 }
 
 func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -123,7 +149,7 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 
 	var user models.StandardUser
 
-	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	err = collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return &user, errors.New("user not found") // User not found
@@ -136,6 +162,11 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 }
 
 func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection: %v", err)
+	}
 	// Set a context with a timeout for the database operation
 	ctx, cancel := CreateContext()
 	defer cancel()
@@ -144,7 +175,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 
 	var user models.StandardUser
 
-	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	err = collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return &user, mongo.ErrNoDocuments // User not found
@@ -157,6 +188,11 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 }
 
 func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
 	// Check if user UUID is provided
 	if user.StandardUser.ID == "" {
 		return errors.New("user ID is required")
@@ -188,7 +224,7 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 	ctx, cancel := CreateContext()
 	defer cancel()
 
-	result := r.collection.FindOneAndUpdate(ctx, filter, update, opts)
+	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -197,6 +233,12 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 }
 
 func (r *userRepo) BanUser(userID string) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -207,7 +249,7 @@ func (r *userRepo) BanUser(userID string) error {
 	update := bson.M{"$set": bson.M{"isBanned": true}}
 
 	// Execute the update operation
-	result, err := r.collection.UpdateOne(ctx, filter, update)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("could not ban user: %v", err)
 	}
@@ -221,6 +263,11 @@ func (r *userRepo) BanUser(userID string) error {
 }
 
 func (r *userRepo) UnbanUser(userID string) error {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return fmt.Errorf("failed to get collection: %v", err)
+	}
 	ctx, cancel := CreateContext()
 	defer cancel()
 
@@ -231,7 +278,7 @@ func (r *userRepo) UnbanUser(userID string) error {
 	update := bson.M{"$set": bson.M{"isBanned": false}}
 
 	// Execute the update operation
-	result, err := r.collection.UpdateOne(ctx, filter, update)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("could not unban user: %v", err)
 	}
@@ -246,6 +293,11 @@ func (r *userRepo) UnbanUser(userID string) error {
 
 func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 
+	collection, err := r.getCollection()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	now := time.Now().UTC()
 	twentyFourHoursAgo := now.Add(-24 * time.Hour)
 
@@ -255,7 +307,7 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 		},
 	}
 
-	count, err := r.collection.CountDocuments(context.TODO(), filter)
+	count, err := collection.CountDocuments(context.TODO(), filter)
 	if err != nil {
 		return 0, fmt.Errorf("could not count active users: %v", err)
 	}
@@ -264,8 +316,14 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 }
 
 func (r *userRepo) IsEmailUnique(email string) (bool, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return false, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	var result models.StandardUser
-	err := r.collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
+	err = collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return true, nil
@@ -276,8 +334,14 @@ func (r *userRepo) IsEmailUnique(email string) (bool, error) {
 }
 
 func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return false, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	var result models.StandardUser
-	err := r.collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
+	err = collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return true, nil
@@ -288,8 +352,14 @@ func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
 }
 
 func (r *userRepo) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
+
+	collection, err := r.getCollection()
+	if err != nil {
+		return false, fmt.Errorf("failed to get collection: %v", err)
+	}
+
 	var result models.StandardUser
-	err := r.collection.FindOne(context.Background(), bson.M{"leetcode_id": leetcodeID}).Decode(&result)
+	err = collection.FindOne(context.Background(), bson.M{"leetcode_id": leetcodeID}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return true, nil
