@@ -22,12 +22,12 @@ var (
 
 type UserService struct {
 	userRepo        interfaces.UserRepository
-	questionService *QuestionService
+	questionService interfaces.QuestionService
 	leetcodeAPI     interfaces2.LeetcodeAPI
 	//userWG   *sync.WaitGroup
 }
 
-func NewUserService(userRepo interfaces.UserRepository, questionService *QuestionService, leetcodeAPI interfaces2.LeetcodeAPI) *UserService {
+func NewUserService(userRepo interfaces.UserRepository, questionService interfaces.QuestionService, leetcodeAPI interfaces2.LeetcodeAPI) interfaces.UserService {
 	return &UserService{
 		userRepo:        userRepo,
 		questionService: questionService,

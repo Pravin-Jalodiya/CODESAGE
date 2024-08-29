@@ -1,7 +1,8 @@
 package main
 
 import (
-	"cli-project/external"
+	"bufio"
+	"cli-project/external/api"
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
 	"cli-project/internal/ui"
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	// Initialize Leetcode Service
-	leetcodeAPI := external.NewLeetcodeAPI()
+	leetcodeAPI := api.NewLeetcodeAPI()
 
 	// Initialize User Service
 	userService := services.NewUserService(userRepo, questionService, leetcodeAPI)
@@ -63,7 +64,7 @@ func main() {
 	}
 
 	// Initialize UI
-	newUI := ui.NewUI(authService, userService, questionService)
+	newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
 	if newUI == nil {
 		log.Fatal("Failed to initialize UI")
 	}

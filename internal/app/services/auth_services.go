@@ -10,7 +10,7 @@ type AuthService struct {
 	leetcodeAPI interfaces2.LeetcodeAPI
 }
 
-func NewAuthService(userRepo interfaces.UserRepository, leetcodeAPI interfaces2.LeetcodeAPI) *AuthService {
+func NewAuthService(userRepo interfaces.UserRepository, leetcodeAPI interfaces2.LeetcodeAPI) interfaces.AuthService {
 	return &AuthService{
 		userRepo:    userRepo,
 		leetcodeAPI: leetcodeAPI,

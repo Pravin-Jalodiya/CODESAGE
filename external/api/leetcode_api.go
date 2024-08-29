@@ -1,4 +1,4 @@
-package external
+package api
 
 import (
 	"bytes"
@@ -17,10 +17,10 @@ func NewLeetcodeAPI() interfaces.LeetcodeAPI {
 	return &leetcodeAPI{}
 }
 
-// GetLeetcodeStats makes the API call to fetch user leetcode stats
+// GetStats makes the API call to fetch user leetcode stats
 func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, error) {
 
-	recentLimit := 10
+	recentLimit := config.RECENT_SUBMISSION_LIMIT
 
 	// Updated GraphQL query
 	userStatsQuery := `

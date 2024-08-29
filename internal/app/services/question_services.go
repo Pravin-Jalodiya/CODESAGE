@@ -14,7 +14,7 @@ type QuestionService struct {
 	questionRepo interfaces.QuestionRepository
 }
 
-func NewQuestionService(questionRepo interfaces.QuestionRepository) *QuestionService {
+func NewQuestionService(questionRepo interfaces.QuestionRepository) interfaces.QuestionService {
 	return &QuestionService{
 		questionRepo: questionRepo,
 	}
