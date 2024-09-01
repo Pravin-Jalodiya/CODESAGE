@@ -480,3 +480,93 @@ func TestUserService_IsUserBanned(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isBanned)
 }
+
+func TestUserService_Signup_UserAlreadyExists(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	user := models.StandardUser{
+		StandardUser: models.User{
+			Username: "existinguser",
+			Email:    "existinguser@example.com",
+		},
+	}
+
+	// Simulate an error due to a user already existing
+	mockUserRepo.EXPECT().CreateUser(gomock.Any()).Return(errors.New("could not register user")).Times(1)
+
+	err := userService.Signup(&user)
+	assert.Error(t, err)
+	assert.Equal(t, "could not register user", err.Error())
+}
+
+func TestUserService_GetUserByID_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	userService := services.NewUserService(mockUserRepo, nil, nil)
+
+	userID := "user-id"
+
+	// Simulate an error during user retrieval
+	mockUserRepo.EXPECT().FetchUserByID(userID).Return(nil, errors.New("user not found")).Times(1)
+
+	result, err := userService.GetUserByID(userID)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Equal(t, "user not found", err.Error())
+}
+
+func TestUserService_GetLeetcodeStats_Error(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	userID := "12345"
+
+	mockUserRepo.EXPECT().FetchUserByID(userID).Return(&models.StandardUser{
+		LeetcodeID: "Leetcode_user",
+	}, nil).Times(1)
+
+	// Simulate an error while fetching stats from Leetcode API
+	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(nil, errors.New("Leetcode API error")).Times(1)
+
+	stats, err := userService.GetLeetcodeStats(userID)
+	assert.Error(t, err)
+	assert.Nil(t, stats)
+	assert.Equal(t, "Leetcode API error", err.Error())
+}
+
+func TestUserService_BanUser_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	userService := services.NewUserService(mockUserRepo, nil, nil)
+
+	username := "testuser"
+	userID := "user-id"
+
+	mockUserRepo.EXPECT().FetchUserByUsername(username).Return(&models.StandardUser{
+		StandardUser: models.User{
+			ID: userID,
+		},
+	}, nil).Times(1)
+
+	mockUserRepo.EXPECT().FetchUserByID(userID).Return(&models.StandardUser{
+		StandardUser: models.User{
+			ID:       userID,
+			IsBanned: false,
+		},
+	}, nil).Times(1)
+
+	// Simulate an error while banning the user
+	mockUserRepo.EXPECT().BanUser(userID).Return(errors.New("ban user error")).Times(1)
+
+	banned, err := userService.BanUser(username)
+
+	assert.Error(t, err)
+	assert.False(t, banned)
+	assert.Equal(t, "ban user error", err.Error())
+}

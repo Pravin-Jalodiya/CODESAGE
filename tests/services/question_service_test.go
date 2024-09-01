@@ -29,7 +29,7 @@ func TestQuestionService_GetQuestionByID(t *testing.T) {
 
 	questionID := "q1"
 	mockQuestion := &models.Question{
-		QuestionID:    "q1",
+		QuestionID:    "1",
 		QuestionTitle: "Title1",
 		Difficulty:    "easy",
 		QuestionLink:  "http://example.com/1",
@@ -53,8 +53,8 @@ func TestQuestionService_GetAllQuestions(t *testing.T) {
 	defer teardown()
 
 	mockQuestions := []models.Question{
-		{QuestionID: "q1", QuestionTitle: "Title1", Difficulty: "easy"},
-		{QuestionID: "q2", QuestionTitle: "Title2", Difficulty: "medium"},
+		{QuestionID: "1", QuestionTitle: "Title1", Difficulty: "easy"},
+		{QuestionID: "2", QuestionTitle: "Title2", Difficulty: "medium"},
 	}
 
 	mockQuestionRepo.EXPECT().FetchAllQuestions().Return(&mockQuestions, nil)

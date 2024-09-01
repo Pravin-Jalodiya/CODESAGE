@@ -1,3 +1,4 @@
 .env
 #*test*
 .idea
+.DS_Store
