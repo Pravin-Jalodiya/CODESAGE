@@ -165,11 +165,11 @@ func TestValidateQuestionLink(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"Valid LeetCode link", "https://leetcode.com/problems/example-problem/", "https://leetcode.com/problems/example-problem/"},
+		{"Valid Leetcode link", "https://Leetcode.com/problems/example-problem/", "https://Leetcode.com/problems/example-problem/"},
 		{"Invalid URL", "invalid-url", ""},
-		{"LeetCode link without scheme", "leetcode.com/problems/example-problem/", ""},
-		{"LeetCode link without host", "https://example.com/problems/example-problem/", ""},
-		{"Non-LeetCode link", "https://example.com", ""},
+		{"Leetcode link without scheme", "Leetcode.com/problems/example-problem/", ""},
+		{"Leetcode link without host", "https://example.com/problems/example-problem/", ""},
+		{"Non-Leetcode link", "https://example.com", ""},
 	}
 
 	for _, tt := range tests {

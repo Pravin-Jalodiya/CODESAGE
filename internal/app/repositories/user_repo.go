@@ -47,7 +47,7 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 		"organisation":     user.StandardUser.Organisation,
 		"country":          user.StandardUser.Country,
 		"isBanned":         user.StandardUser.IsBanned,
-		"leetcode_id":      user.LeetcodeID,
+		"Leetcode_id":      user.LeetcodeID,
 		"questions_solved": user.QuestionsSolved,
 		"last_seen":        user.LastSeen,
 	}
@@ -210,7 +210,7 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 			"name":             user.StandardUser.Name,
 			"organisation":     user.StandardUser.Organisation,
 			"country":          user.StandardUser.Country,
-			"leetcode_id":      user.LeetcodeID,
+			"Leetcode_id":      user.LeetcodeID,
 			"last_seen":        user.LastSeen,
 			"questions_solved": user.QuestionsSolved,
 			// Add other fields you want to update
@@ -351,7 +351,7 @@ func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
 	return false, nil
 }
 
-func (r *userRepo) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
+func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 
 	collection, err := r.getCollection()
 	if err != nil {
@@ -359,7 +359,7 @@ func (r *userRepo) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
 	}
 
 	var result models.StandardUser
-	err = collection.FindOne(context.Background(), bson.M{"leetcode_id": leetcodeID}).Decode(&result)
+	err = collection.FindOne(context.Background(), bson.M{"Leetcode_id": LeetcodeID}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return true, nil

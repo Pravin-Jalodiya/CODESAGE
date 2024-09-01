@@ -41,15 +41,15 @@ func TestFetchData(t *testing.T) {
 	defer mockServer.Close()
 
 	// Update the LeetcodeAPI to use the mock server URL
-	originalURL := config.LEETCODE_API
-	config.LEETCODE_API = mockServer.URL
-	defer func() { config.LEETCODE_API = originalURL }()
+	originalURL := config.Leetcode_API
+	config.Leetcode_API = mockServer.URL
+	defer func() { config.Leetcode_API = originalURL }()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// Create an instance of LeetcodeAPI
-	leetcodeAPI := api.NewLeetcodeAPI()
+	LeetcodeAPI := api.NewLeetcodeAPI()
 
 	// Test fetchData function
 	query := `
@@ -70,7 +70,7 @@ func TestFetchData(t *testing.T) {
 
 	variables := map[string]interface{}{"username": "testuser"}
 
-	data, err := leetcodeAPI.FetchData(query, variables)
+	data, err := LeetcodeAPI.FetchData(query, variables)
 	assert.NoError(t, err)
 	assert.NotNil(t, data)
 
@@ -88,7 +88,7 @@ func TestGetUserProblemSolved(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	leetcodeAPI := api.NewLeetcodeAPI()
+	LeetcodeAPI := api.NewLeetcodeAPI()
 
 	// Mock the fetchData function
 	mockFetchData := func(query string, variables map[string]interface{}) (map[string]interface{}, error) {
@@ -112,10 +112,10 @@ func TestGetUserProblemSolved(t *testing.T) {
 	}
 
 	// Replace the real fetchData with the mock
-	leetcodeAPI.FetchData = mockFetchData
+	LeetcodeAPI.FetchData = mockFetchData
 
 	// Test GetUserProblemSolved method
-	stats, err := leetcodeAPI.GetUserProblemSolved("testuser")
+	stats, err := LeetcodeAPI.GetUserProblemSolved("testuser")
 	assert.NoError(t, err)
 	assert.NotNil(t, stats)
 
@@ -133,7 +133,7 @@ func TestGetRecentACSubmission(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	leetcodeAPI := api.NewLeetcodeAPI()
+	LeetcodeAPI := api.NewLeetcodeAPI()
 
 	// Mock the fetchData function
 	mockFetchData := func(query string, variables map[string]interface{}) (map[string]interface{}, error) {
@@ -148,10 +148,10 @@ func TestGetRecentACSubmission(t *testing.T) {
 	}
 
 	// Replace the real fetchData with the mock
-	leetcodeAPI.FetchData = mockFetchData
+	LeetcodeAPI.FetchData = mockFetchData
 
 	// Test GetRecentACSubmission method
-	submissions, err := leetcodeAPI.GetRecentACSubmission("testuser", 3)
+	submissions, err := LeetcodeAPI.GetRecentACSubmission("testuser", 3)
 	assert.NoError(t, err)
 	assert.Len(t, submissions, 3)
 	assert.ElementsMatch(t, []string{"Problem 1", "Problem 2", "Problem 3"}, submissions)

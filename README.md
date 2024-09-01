@@ -1,16 +1,16 @@
 ---------------------------------------DEADLINE COMMIT------------------------------------------
 # CODE-SAGE
 
-Code-Sage is a command-line interface (CLI) application designed to assist users in practicing Data Structures and Algorithms (DSA) questions from LeetCode, with a focus on tracking progress, filtering questions, and managing user activities. This tool is particularly useful for those preparing for coding interviews and wanting to practice.
+Code-Sage is a command-line interface (CLI) application designed to assist users in practicing Data Structures and Algorithms (DSA) questions from Leetcode, with a focus on tracking progress, filtering questions, and managing user activities. This tool is particularly useful for those preparing for coding interviews and wanting to practice.
 
 ## Working Functionalities
 
   1. User Signup and Login
-        - signup
+        - Signup
             - unique username
             - unique email
-            - unique leetcode id
-            - leetcode id verification from official leetcode api
+            - unique Leetcode id
+            - Leetcode id verification from official Leetcode api
             - strong password check
             - username validation
             - hidden password input

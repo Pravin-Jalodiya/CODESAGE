@@ -52,16 +52,16 @@ func TestIsLeetcodeIDUnique(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
-	leetcodeID := "leetcode123"
+	LeetcodeID := "Leetcode123"
 
 	// Set up expectations
 	mockUserRepo.EXPECT().
-		IsLeetcodeIDUnique(leetcodeID).
+		IsLeetcodeIDUnique(LeetcodeID).
 		Return(true, nil).
 		Times(1)
 
 	// Call the method
-	isUnique, err := authService.IsLeetcodeIDUnique(leetcodeID)
+	isUnique, err := authService.IsLeetcodeIDUnique(LeetcodeID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

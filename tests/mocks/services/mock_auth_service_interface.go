@@ -49,18 +49,18 @@ func (mr *MockAuthServiceMockRecorder) IsEmailUnique(email interface{}) *gomock.
 }
 
 // IsLeetcodeIDUnique mocks base method.
-func (m *MockAuthService) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
+func (m *MockAuthService) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", leetcodeID)
+	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", LeetcodeID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsLeetcodeIDUnique indicates an expected call of IsLeetcodeIDUnique.
-func (mr *MockAuthServiceMockRecorder) IsLeetcodeIDUnique(leetcodeID interface{}) *gomock.Call {
+func (mr *MockAuthServiceMockRecorder) IsLeetcodeIDUnique(LeetcodeID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockAuthService)(nil).IsLeetcodeIDUnique), leetcodeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockAuthService)(nil).IsLeetcodeIDUnique), LeetcodeID)
 }
 
 // IsUsernameUnique mocks base method.

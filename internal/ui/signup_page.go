@@ -17,7 +17,7 @@ func (ui *UI) ShowSignupPage() {
 	fmt.Print("\033[H\033[2J")
 
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("               SIGNUP               ", "cyan", "bold"))
+	fmt.Println(formatting.Colorize("               Signup               ", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 
 	// Read Username
@@ -117,34 +117,34 @@ func (ui *UI) ShowSignupPage() {
 		break
 	}
 
-	// Read LeetCode Username
-	var leetcodeID string
+	// Read Leetcode Username
+	var LeetcodeID string
 	for {
-		fmt.Print(formatting.Colorize("LeetCode Username: ", "yellow", ""))
-		leetcodeID, _ = ui.reader.ReadString('\n')
-		leetcodeID = strings.TrimSuffix(leetcodeID, "\n")
-		leetcodeID = strings.TrimSpace(leetcodeID)
+		fmt.Print(formatting.Colorize("Leetcode Username: ", "yellow", ""))
+		LeetcodeID, _ = ui.reader.ReadString('\n')
+		LeetcodeID = strings.TrimSuffix(LeetcodeID, "\n")
+		LeetcodeID = strings.TrimSpace(LeetcodeID)
 
-		// Check if LeetCode ID is unique in the database
-		isUnique, err := ui.authService.IsLeetcodeIDUnique(leetcodeID)
+		// Check if Leetcode ID is unique in the database
+		isUnique, err := ui.authService.IsLeetcodeIDUnique(LeetcodeID)
 
 		if err != nil {
-			fmt.Println(emojis.Error, "Error checking LeetCode ID uniqueness. Try again.")
+			fmt.Println(emojis.Error, "Error checking Leetcode ID uniqueness. Try again.")
 			continue
 		}
 		if !isUnique {
-			fmt.Println(emojis.Error, "LeetCode ID is already taken. Please choose a different ID.")
+			fmt.Println(emojis.Error, "Leetcode ID is already taken. Please choose a different ID.")
 			continue
 		}
 
-		// Validate LeetCode Username with LeetCode API
-		exists, err := ui.authService.ValidateLeetcodeUsername(leetcodeID)
+		// Validate Leetcode Username with Leetcode API
+		exists, err := ui.authService.ValidateLeetcodeUsername(LeetcodeID)
 		if err != nil {
-			fmt.Println(emojis.Error, "Error validating LeetCode username:", err)
+			fmt.Println(emojis.Error, "Error validating Leetcode username:", err)
 			continue
 		}
 		if !exists {
-			fmt.Println(emojis.Error, "LeetCode username does not exist.")
+			fmt.Println(emojis.Error, "Leetcode username does not exist.")
 			continue
 		}
 		break
@@ -188,11 +188,11 @@ func (ui *UI) ShowSignupPage() {
 			Organisation: organisation,
 			Country:      country,
 		},
-		LeetcodeID: leetcodeID,
+		LeetcodeID: LeetcodeID,
 	}
 
 	// Call Signup Service
-	err := ui.userService.SignUp(&user)
+	err := ui.userService.Signup(&user)
 	if err != nil {
 		fmt.Println(emojis.Error, "Signup failed:", err)
 		return

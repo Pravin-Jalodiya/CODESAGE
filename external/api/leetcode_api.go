@@ -11,14 +11,14 @@ import (
 	"net/http"
 )
 
-type leetcodeAPI struct{}
+type LeetcodeAPI struct{}
 
 func NewLeetcodeAPI() interfaces.LeetcodeAPI {
-	return &leetcodeAPI{}
+	return &LeetcodeAPI{}
 }
 
-// GetStats makes the API call to fetch user leetcode stats
-func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, error) {
+// GetStats makes the API call to fetch user Leetcode stats
+func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, error) {
 
 	recentLimit := config.RECENT_SUBMISSION_LIMIT
 
@@ -57,7 +57,7 @@ func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, erro
 			return nil, fmt.Errorf("could not marshal request body: %v", err)
 		}
 
-		resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+		resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
 		if err != nil {
 			return nil, fmt.Errorf("request failed: %v", err)
 		}
@@ -80,7 +80,7 @@ func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, erro
 	}
 
 	// Fetch user stats
-	statsData, err := fetchData(userStatsQuery, map[string]interface{}{"username": leetcodeID})
+	statsData, err := fetchData(userStatsQuery, map[string]interface{}{"username": LeetcodeID})
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, erro
 	}
 
 	// Fetch recent accepted submissions
-	submissionsData, err := fetchData(recentSubmissionsQuery, map[string]interface{}{"username": leetcodeID, "limit": recentLimit})
+	submissionsData, err := fetchData(recentSubmissionsQuery, map[string]interface{}{"username": LeetcodeID, "limit": recentLimit})
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +149,9 @@ func (api *leetcodeAPI) GetStats(leetcodeID string) (*models.LeetcodeStats, erro
 	return stats, nil
 }
 
-func (api *leetcodeAPI) ValidateUsername(username string) (bool, error) {
+func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 
-	// GraphQL query to check if a LeetCode user exists
+	// GraphQL query to check if a Leetcode user exists
 	const userQuery = `
 	query getUserProfile($username: String!) {
   	matchedUser(username: $username) {
@@ -174,7 +174,7 @@ func (api *leetcodeAPI) ValidateUsername(username string) (bool, error) {
 	}
 
 	// Make the HTTP request
-	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return false, fmt.Errorf("request failed: %v", err)
 	}

@@ -27,7 +27,7 @@ func TestUserService_Signup(t *testing.T) {
 			Organisation: "TestOrg",
 			Country:      "TestCountry",
 		},
-		LeetcodeID:      "testleetcode",
+		LeetcodeID:      "testLeetcode",
 		QuestionsSolved: []string{},
 		LastSeen:        time.Now().UTC(),
 	}
@@ -51,7 +51,7 @@ func TestUserService_Signup_Error(t *testing.T) {
 			Organisation: "TestOrg",
 			Country:      "TestCountry",
 		},
-		LeetcodeID:      "testleetcode",
+		LeetcodeID:      "testLeetcode",
 		QuestionsSolved: []string{},
 		LastSeen:        time.Now().UTC(),
 	}
@@ -157,10 +157,10 @@ func TestUserService_GetLeetcodeStats(t *testing.T) {
 	userID := "12345"
 
 	mockUserRepo.EXPECT().FetchUserByID(userID).Return(&models.StandardUser{
-		LeetcodeID: "leetcode_user",
+		LeetcodeID: "Leetcode_user",
 	}, nil).Times(1)
 
-	mockLeetcodeAPI.EXPECT().GetStats("leetcode_user").Return(&models.LeetcodeStats{
+	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(&models.LeetcodeStats{
 		EasyDoneCount:           10,
 		MediumDoneCount:         20,
 		HardDoneCount:           5,

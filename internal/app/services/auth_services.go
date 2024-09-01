@@ -7,13 +7,13 @@ import (
 
 type AuthService struct {
 	userRepo    interfaces.UserRepository
-	leetcodeAPI interfaces2.LeetcodeAPI
+	LeetcodeAPI interfaces2.LeetcodeAPI
 }
 
-func NewAuthService(userRepo interfaces.UserRepository, leetcodeAPI interfaces2.LeetcodeAPI) interfaces.AuthService {
+func NewAuthService(userRepo interfaces.UserRepository, LeetcodeAPI interfaces2.LeetcodeAPI) interfaces.AuthService {
 	return &AuthService{
 		userRepo:    userRepo,
-		leetcodeAPI: leetcodeAPI,
+		LeetcodeAPI: LeetcodeAPI,
 	}
 }
 
@@ -25,11 +25,11 @@ func (s *AuthService) IsUsernameUnique(username string) (bool, error) {
 	return s.userRepo.IsUsernameUnique(username)
 }
 
-func (s *AuthService) IsLeetcodeIDUnique(leetcodeID string) (bool, error) {
-	return s.userRepo.IsLeetcodeIDUnique(leetcodeID)
+func (s *AuthService) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
+	return s.userRepo.IsLeetcodeIDUnique(LeetcodeID)
 }
 
-// ValidateLeetcodeUsername checks if the provided LeetCode username exists
+// ValidateLeetcodeUsername checks if the provided Leetcode username exists
 func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
-	return s.leetcodeAPI.ValidateUsername(username)
+	return s.LeetcodeAPI.ValidateUsername(username)
 }

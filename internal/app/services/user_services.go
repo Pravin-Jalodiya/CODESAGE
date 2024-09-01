@@ -23,21 +23,21 @@ var (
 type UserService struct {
 	userRepo        interfaces.UserRepository
 	questionService interfaces.QuestionService
-	leetcodeAPI     interfaces2.LeetcodeAPI
+	LeetcodeAPI     interfaces2.LeetcodeAPI
 	//userWG   *sync.WaitGroup
 }
 
-func NewUserService(userRepo interfaces.UserRepository, questionService interfaces.QuestionService, leetcodeAPI interfaces2.LeetcodeAPI) interfaces.UserService {
+func NewUserService(userRepo interfaces.UserRepository, questionService interfaces.QuestionService, LeetcodeAPI interfaces2.LeetcodeAPI) interfaces.UserService {
 	return &UserService{
 		userRepo:        userRepo,
 		questionService: questionService,
-		leetcodeAPI:     leetcodeAPI,
+		LeetcodeAPI:     LeetcodeAPI,
 		//userWG:   &sync.WaitGroup{},
 	}
 }
 
-// SignUp creates a new user account
-func (s *UserService) SignUp(user *models.StandardUser) error {
+// Signup creates a new user account
+func (s *UserService) Signup(user *models.StandardUser) error {
 
 	// Change username to lowercase for consistency
 	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
@@ -270,15 +270,15 @@ func (s *UserService) IsUserBanned(userID string) (bool, error) {
 	return user.StandardUser.IsBanned, nil
 }
 
-func (s *UserService) GetLeetCodeStats(userID string) (*models.LeetcodeStats, error) {
+func (s *UserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
 	user, err := s.GetUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	leetcodeID := user.LeetcodeID
+	LeetcodeID := user.LeetcodeID
 
-	return s.leetcodeAPI.GetStats(leetcodeID)
+	return s.LeetcodeAPI.GetStats(LeetcodeID)
 }
 
 //func (s *UserService) WaitForCompletion() {

@@ -7,6 +7,6 @@ const (
 	CSV_DIR                 = "C:/Projects-WG/CLI-Project/csv"
 	GPT_API_ENDPOINT        = "https://api.openai.com/v1/chat/completions"
 	GPT_MODEL               = "gpt-4"
-	LEETCODE_API            = "https://leetcode.com/graphql/"
+	Leetcode_API            = "https://Leetcode.com/graphql/"
 	RECENT_SUBMISSION_LIMIT = 10
 )

@@ -22,7 +22,7 @@ var (
 	userService         interfaces.UserService
 	questionService     interfaces.QuestionService
 	authService         interfaces.AuthService
-	leetcodeAPI         interfaces2.LeetcodeAPI
+	LeetcodeAPI         interfaces2.LeetcodeAPI
 )
 
 func setup(t *testing.T) func() {
@@ -38,13 +38,13 @@ func setup(t *testing.T) func() {
 	mockQuestionService = mock_services.NewMockQuestionService(ctrl)
 	mockAuthService = mock_services.NewMockAuthService(ctrl)
 	mockLeetcodeAPI = mock_services.NewMockLeetcodeAPI(ctrl)
-	leetcodeAPI = mock_services.NewMockLeetcodeAPI(ctrl)
+	LeetcodeAPI = mock_services.NewMockLeetcodeAPI(ctrl)
 
 	// Create Genuine Services
 	userService = services.NewUserService(mockUserRepo, mockQuestionService, mockLeetcodeAPI)
 	questionService = services.NewQuestionService(mockQuestionRepo)
 	authService = services.NewAuthService(mockUserRepo, mockLeetcodeAPI)
-	leetcodeAPI = api.NewLeetcodeAPI()
+	LeetcodeAPI = api.NewLeetcodeAPI()
 
 	// Return a cleanup function to be called at the end of the test
 	return func() {

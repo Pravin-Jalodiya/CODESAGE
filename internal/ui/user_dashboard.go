@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// ShowUserDashboard displays the user's LeetCode stats on the dashboard.
+// ShowUserDashboard displays the user's Leetcode stats on the dashboard.
 func (ui *UI) ShowUserDashboard() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
@@ -15,8 +15,8 @@ func (ui *UI) ShowUserDashboard() {
 	fmt.Println(formatting.Colorize("            USER DASHBOARD          ", "cyan", "bold"))
 	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 
-	// Fetch LeetCode stats (assuming you have a method to get these stats)
-	stats, err := ui.userService.GetLeetCodeStats(globals.ActiveUserID)
+	// Fetch Leetcode stats (assuming you have a method to get these stats)
+	stats, err := ui.userService.GetLeetcodeStats(globals.ActiveUserID)
 	if err != nil {
 		fmt.Println("Error fetching stats:", err)
 		return

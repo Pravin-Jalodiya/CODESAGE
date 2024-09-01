@@ -1,7 +1,7 @@
 package emojis
 
 const (
-	SignUp   = "✍️"
+	Signup   = "✍️"
 	Login    = "🔑"
 	Exit     = "🚪"
 	Error    = "❌"

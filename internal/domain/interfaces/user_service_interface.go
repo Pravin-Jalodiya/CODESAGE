@@ -5,7 +5,7 @@ import (
 )
 
 type UserService interface {
-	SignUp(user *models.StandardUser) error
+	Signup(user *models.StandardUser) error
 	Login(username, password string) error
 	Logout() error
 	GetAllUsers() (*[]models.StandardUser, error)
@@ -19,5 +19,5 @@ type UserService interface {
 	BanUser(username string) (bool, error)
 	UnbanUser(username string) (bool, error)
 	IsUserBanned(userID string) (bool, error)
-	GetLeetCodeStats(userID string) (*models.LeetcodeStats, error)
+	GetLeetcodeStats(userID string) (*models.LeetcodeStats, error)
 }

@@ -18,7 +18,7 @@ func (ui *UI) ShowMainMenu() {
 		fmt.Println(formatting.Colorize("              CODESAGE              ", "cyan", "bold"))
 		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
 		fmt.Println("Please choose an option:")
-		fmt.Printf("1. %s Sign Up\n", emojis.SignUp)
+		fmt.Printf("1. %s Sign Up\n", emojis.Signup)
 		fmt.Printf("2. %s Login\n", emojis.Login)
 		fmt.Printf("3. %s Exit\n", emojis.Exit)
 		fmt.Print("Enter your choice : ")

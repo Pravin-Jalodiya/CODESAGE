@@ -49,16 +49,16 @@ func main() {
 	}
 
 	// Initialize Leetcode Service
-	leetcodeAPI := api.NewLeetcodeAPI()
+	LeetcodeAPI := api.NewLeetcodeAPI()
 
 	// Initialize User Service
-	userService := services.NewUserService(userRepo, questionService, leetcodeAPI)
+	userService := services.NewUserService(userRepo, questionService, LeetcodeAPI)
 	if userService == nil {
 		log.Fatal("Failed to initialize UserService")
 	}
 
 	// Initialize Auth Service
-	authService := services.NewAuthService(userRepo, leetcodeAPI)
+	authService := services.NewAuthService(userRepo, LeetcodeAPI)
 	if authService == nil {
 		log.Fatal("Failed to initialize AuthService")
 	}
