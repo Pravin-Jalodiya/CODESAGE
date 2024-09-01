@@ -79,19 +79,19 @@ func (mr *MockUserServiceMockRecorder) GetAllUsers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserService)(nil).GetAllUsers))
 }
 
-// GetLeetCodeStats mocks base method.
-func (m *MockUserService) GetLeetCodeStats(userID string) (*models.LeetcodeStats, error) {
+// GetLeetcodeStats mocks base method.
+func (m *MockUserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLeetCodeStats", userID)
+	ret := m.ctrl.Call(m, "GetLeetcodeStats", userID)
 	ret0, _ := ret[0].(*models.LeetcodeStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLeetCodeStats indicates an expected call of GetLeetCodeStats.
-func (mr *MockUserServiceMockRecorder) GetLeetCodeStats(userID interface{}) *gomock.Call {
+// GetLeetcodeStats indicates an expected call of GetLeetcodeStats.
+func (mr *MockUserServiceMockRecorder) GetLeetcodeStats(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLeetCodeStats", reflect.TypeOf((*MockUserService)(nil).GetLeetCodeStats), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLeetcodeStats", reflect.TypeOf((*MockUserService)(nil).GetLeetcodeStats), userID)
 }
 
 // GetUserByID mocks base method.
@@ -197,18 +197,18 @@ func (mr *MockUserServiceMockRecorder) Logout() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockUserService)(nil).Logout))
 }
 
-// SignUp mocks base method.
-func (m *MockUserService) SignUp(user *models.StandardUser) error {
+// Signup mocks base method.
+func (m *MockUserService) Signup(user *models.StandardUser) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignUp", user)
+	ret := m.ctrl.Call(m, "Signup", user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SignUp indicates an expected call of SignUp.
-func (mr *MockUserServiceMockRecorder) SignUp(user interface{}) *gomock.Call {
+// Signup indicates an expected call of Signup.
+func (mr *MockUserServiceMockRecorder) Signup(user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUp", reflect.TypeOf((*MockUserService)(nil).SignUp), user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Signup", reflect.TypeOf((*MockUserService)(nil).Signup), user)
 }
 
 // UnbanUser mocks base method.

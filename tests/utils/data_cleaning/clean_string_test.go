@@ -45,7 +45,7 @@ func TestCleanString(t *testing.T) {
 		{
 			name:     "String with spaces around",
 			input:    "   Test   ",
-			expected: "tests",
+			expected: "test",
 		},
 		{
 			name:     "String with special characters",
@@ -60,7 +60,7 @@ func TestCleanString(t *testing.T) {
 		{
 			name:     "Multiline string",
 			input:    "  This is \nA Test  ",
-			expected: "this is \na tests",
+			expected: "this is \na test",
 		},
 	}
 
