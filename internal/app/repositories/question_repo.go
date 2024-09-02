@@ -1,12 +1,13 @@
 package repositories
 
 import (
-	"cli-project/internal/config"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strings"
@@ -20,12 +21,17 @@ func NewQuestionRepo() interfaces.QuestionRepository {
 	return &questionRepo{}
 }
 
-func (r *questionRepo) getCollection() (*mongo.Collection, error) {
-	client, err := GetMongoClient()
+// getDBConnection returns a PostgreSQL client connection and handles errors.
+func (r *questionRepo) getDBConnection() (*sql.DB, error) {
+	db, err := GetPostgresClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
-	return client.Database(config.DB_NAME).Collection(config.QUESTION_COLLECTION), nil
+	return db, nil
+}
+
+func (r *questionRepo) getTableName() string {
+	return "Questions"
 }
 
 func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
@@ -105,38 +111,40 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 }
 
 func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
-
-	collection, err := r.getCollection()
+	// Get a database connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get collection: %v", err)
+		return nil, fmt.Errorf("failed to get DB connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Define the SQL query to fetch all questions
+	query := `
+		SELECT id, title, difficulty, topic_tags, company_tags
+		FROM questions
+	`
 
-	cursor, err := collection.Find(ctx, bson.M{})
+	// Execute the query
+	rows, err := db.QueryContext(context.TODO(), query)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions: %v", err)
 	}
-
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
-		if err != nil {
-
-		}
-	}(cursor, ctx)
+	defer rows.Close()
 
 	var questions []models.Question
-	for cursor.Next(ctx) {
+
+	// Iterate over the rows
+	for rows.Next() {
 		var question models.Question
-		if err := cursor.Decode(&question); err != nil {
-			return nil, fmt.Errorf("could not decode question: %v", err)
+		err := rows.Scan(&question.ID, &question.Title, &question.Difficulty, &question.TopicTags, &question.CompanyTags)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan question: %v", err)
 		}
 		questions = append(questions, question)
 	}
 
-	if err := cursor.Err(); err != nil {
-		return nil, fmt.Errorf("cursor error: %v", err)
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %v", err)
 	}
 
 	return &questions, nil
