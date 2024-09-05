@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"context"
@@ -8,10 +9,8 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/lib/pq"
 	"strings"
-	"time"
 )
 
 type questionRepo struct {
@@ -19,6 +18,10 @@ type questionRepo struct {
 
 func NewQuestionRepo() interfaces.QuestionRepository {
 	return &questionRepo{}
+}
+
+func (r *questionRepo) getTableName() string {
+	return "questions"
 }
 
 // getDBConnection returns a PostgreSQL client connection and handles errors.
@@ -30,116 +33,169 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-func (r *questionRepo) getTableName() string {
-	return "Questions"
-}
-
 func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
 	// Placeholder implementation
-
 	return nil
 }
 
 func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
-
-	collection, err := r.getCollection()
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return fmt.Errorf("failed to get collection: %v", err)
+		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Prepare SQL query for bulk insertion
+	query := `
+		INSERT INTO questions 
+		(title_slug, id, title, difficulty, link, topic_tags, company_tags)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (title_slug) DO NOTHING;
+	`
 
-	var documents []interface{} = make([]interface{}, len(*questions))
-	for i, question := range *questions {
-		documents[i] = question
+	tx, err := db.Begin() // Start a transaction
+	if err != nil {
+		return fmt.Errorf("could not start transaction: %v", err)
 	}
 
-	_, err = collection.InsertMany(ctx, documents)
+	for _, question := range *questions {
+		_, err := tx.Exec(query,
+			question.QuestionTitleSlug,
+			question.QuestionID,
+			question.QuestionTitle,
+			question.Difficulty,
+			question.QuestionLink,
+			question.TopicTags,
+			question.CompanyTags,
+		)
+		if err != nil {
+			tx.Rollback() // Rollback transaction on error
+			return fmt.Errorf("could not insert question: %v", err)
+		}
+	}
+
+	err = tx.Commit() // Commit the transaction
 	if err != nil {
-		return fmt.Errorf("could not insert questions: %v", err)
+		return fmt.Errorf("could not commit transaction: %v", err)
 	}
 
 	return nil
 }
 
 func (r *questionRepo) RemoveQuestionByID(questionID string) error {
-
-	collection, err := r.getCollection()
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return fmt.Errorf("failed to get collection: %v", err)
+		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Define the SQL query to delete a question by its title slug
+	query := `DELETE FROM questions WHERE id = $1`
 
-	filter := bson.M{"question_id": questionID}
-	result, err := collection.DeleteOne(ctx, filter)
+	// Execute the query
+	result, err := db.ExecContext(context.Background(), query, questionID)
 	if err != nil {
 		return fmt.Errorf("could not delete question: %v", err)
 	}
 
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("question with ID %s not found", questionID)
+	// Check if any rows were affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("could not get rows affected: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("question with title slug %s not found", questionID)
 	}
 
 	return nil
 }
 
 func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
-
-	collection, err := r.getCollection()
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get collection: %v", err)
+		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Define the SQL query to fetch a question by its title slug
+	query := `
+		SELECT title_slug, id, title, difficulty, link, topic_tags, company_tags
+		FROM questions
+		WHERE id = $1
+	`
 
-	filter := bson.M{"questions_id": questionID}
+	// Execute the query
+	row := db.QueryRowContext(context.Background(), query, questionID)
 
 	var question models.Question
-	err = collection.FindOne(ctx, filter).Decode(&question)
+	err = row.Scan(
+		&question.QuestionTitleSlug,
+		&question.QuestionID,
+		&question.QuestionTitle,
+		&question.Difficulty,
+		&question.QuestionLink,
+		&question.TopicTags,
+		&question.CompanyTags,
+	)
+
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return &models.Question{}, fmt.Errorf("question with ID %s not found", questionID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("question with title slug %s not found", questionID)
 		}
-		return &models.Question{}, fmt.Errorf("could not fetch question: %v", err)
+		return nil, fmt.Errorf("could not fetch question: %v", err)
 	}
 
 	return &question, nil
 }
 
-func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
-	// Get a database connection
+func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
+	// Get the PostgreSQL connection
 	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get DB connection: %v", err)
+		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Define the SQL query to fetch all questions
+	// Define the SQL query to fetch all questions excluding title_slug
 	query := `
-		SELECT id, title, difficulty, topic_tags, company_tags
+		SELECT id, title, difficulty, link, topic_tags, company_tags
 		FROM questions
 	`
 
 	// Execute the query
-	rows, err := db.QueryContext(context.TODO(), query)
+	rows, err := db.QueryContext(context.Background(), query)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions: %v", err)
 	}
 	defer rows.Close()
 
-	var questions []models.Question
+	var questions []dto.Question
 
 	// Iterate over the rows
 	for rows.Next() {
-		var question models.Question
-		err := rows.Scan(&question.ID, &question.Title, &question.Difficulty, &question.TopicTags, &question.CompanyTags)
+		var (
+			id          string
+			title       string
+			difficulty  string
+			link        string
+			topicTags   []string
+			companyTags []string
+		)
+
+		// Use the appropriate scan method for arrays
+		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
 			return nil, fmt.Errorf("could not scan question: %v", err)
 		}
-		questions = append(questions, question)
+
+		questions = append(questions, dto.Question{
+			QuestionID:    id,
+			QuestionTitle: title,
+			Difficulty:    difficulty,
+			QuestionLink:  link,
+			TopicTags:     topicTags,
+			CompanyTags:   companyTags,
+		})
 	}
 
 	// Check for errors during iteration
@@ -150,68 +206,107 @@ func (r *questionRepo) FetchAllQuestions() (*[]models.Question, error) {
 	return &questions, nil
 }
 
-func (r *questionRepo) FetchQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
-
-	collection, err := r.getCollection()
+func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string) (*[]dto.Question, error) {
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get collection: %v", err)
+		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Initialize the base query
+	query := `SELECT id, title, difficulty, link, topic_tags, company_tags
+	          FROM questions
+	          WHERE TRUE`
 
-	filter := bson.M{}
+	var args []interface{}
+	argIndex := 1
 
-	// Apply filters only if parameters are not "any"
+	// Add filters based on user input
 	if difficulty != "" && strings.ToLower(difficulty) != "any" {
-		filter["difficulty"] = difficulty
-	}
-	if company != "" && strings.ToLower(company) != "any" {
-		filter["company_tags"] = company
-	}
-	if topic != "" && strings.ToLower(topic) != "any" {
-		filter["topic_tags"] = topic
+		query += fmt.Sprintf(" AND difficulty = $%d", argIndex)
+		args = append(args, difficulty)
+		argIndex++
 	}
 
-	cursor, err := collection.Find(ctx, filter)
+	if topic != "" && strings.ToLower(topic) != "any" {
+		query += fmt.Sprintf(" AND topic_tags @> $%d::varchar[]", argIndex)
+		args = append(args, pq.Array([]string{topic}))
+		argIndex++
+	}
+
+	if company != "" && strings.ToLower(company) != "any" {
+		query += fmt.Sprintf(" AND $%d = ANY(company_tags::varchar[])", argIndex)
+		args = append(args, company)
+		argIndex++
+	}
+
+	// Log the query and arguments
+	fmt.Printf("Executing query: %s\n", query)
+	fmt.Printf("With args: %v\n", args)
+
+	// Execute the query
+	rows, err := db.QueryContext(context.Background(), query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
 	}
+	defer rows.Close()
 
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
+	var questions []dto.Question
+
+	// Iterate over the rows
+	for rows.Next() {
+		var (
+			id          string
+			title       string
+			difficulty  string
+			link        string
+			topicTags   []string
+			companyTags []string
+		)
+
+		err := rows.Scan(
+			&id,
+			&title,
+			&difficulty,
+			&link,
+			pq.Array(&topicTags),
+			pq.Array(&companyTags),
+		)
 		if err != nil {
-			fmt.Println("could not close cursor")
+			return nil, fmt.Errorf("could not scan question: %v", err)
 		}
-	}(cursor, ctx)
 
-	var questions []models.Question
-	for cursor.Next(ctx) {
-		var question models.Question
-		if err := cursor.Decode(&question); err != nil {
-			return nil, fmt.Errorf("could not decode question: %v", err)
-		}
-		questions = append(questions, question)
+		questions = append(questions, dto.Question{
+			QuestionID:    id,
+			QuestionTitle: title,
+			Difficulty:    difficulty,
+			QuestionLink:  link,
+			TopicTags:     topicTags,
+			CompanyTags:   companyTags,
+		})
 	}
 
-	if err := cursor.Err(); err != nil {
-		return nil, fmt.Errorf("cursor error: %v", err)
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %v", err)
 	}
 
 	return &questions, nil
 }
 
 func (r *questionRepo) CountQuestions() (int64, error) {
-
-	collection, err := r.getCollection()
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get collection: %v", err)
+		return 0, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Define the SQL query to count the number of questions
+	query := `SELECT COUNT(*) FROM questions`
 
-	count, err := collection.CountDocuments(ctx, bson.M{})
+	// Execute the query
+	var count int64
+	err = db.QueryRowContext(context.Background(), query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("could not count questions: %v", err)
 	}
@@ -220,24 +315,20 @@ func (r *questionRepo) CountQuestions() (int64, error) {
 }
 
 func (r *questionRepo) QuestionExists(questionID string) (bool, error) {
-
-	collection, err := r.getCollection()
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
 	if err != nil {
-		return false, fmt.Errorf("failed to get collection: %v", err)
+		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	ctx, cancel := CreateContext()
-	defer cancel()
+	// Prepare the SQL query to check if the question exists by its title slug
+	query := `SELECT EXISTS (SELECT 1 FROM questions WHERE id = $1)`
 
-	filter := bson.M{"question_id": questionID}
-	var existingQuestion models.Question
-	err = collection.FindOne(ctx, filter).Decode(&existingQuestion)
+	var exists bool
+	err = db.QueryRow(query, questionID).Scan(&exists)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false, nil
-		}
-		return false, err
+		return false, fmt.Errorf("failed to check if question exists: %v", err)
 	}
 
-	return true, nil
+	return exists, nil
 }

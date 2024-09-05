@@ -1,9 +1,8 @@
-package models
+package dto
 
 import "time"
 
 type User struct {
-	ID           string `json:"id"`
 	Role         string `json:"role"`
 	Username     string `json:"username"`
 	Password     string `json:"password"`

@@ -31,7 +31,7 @@ func (ui *UI) ShowSignupPage() {
 		if validation.ValidateUsername(username) {
 			unique, err := ui.authService.IsUsernameUnique(username)
 			if err != nil {
-				fmt.Println(emojis.Error, "Error checking username uniqueness. Try again.")
+				fmt.Println(emojis.Error, err)
 				continue
 			}
 			if !unique {

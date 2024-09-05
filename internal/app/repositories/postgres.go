@@ -16,7 +16,7 @@ var (
 	dbMutex     sync.Mutex // Mutex to handle connection expiration logic
 	connectedAt time.Time
 	dbTTL       = 1 * time.Hour
-	connStr     = "postgres://username:password@localhost:5432/codesage?sslmode=disable"
+	connStr     = "postgres://pravin:password@localhost:5432/codesage?sslmode=disable" // pass username, password, db name and port for env variables or config file
 )
 
 // CreateContext creates a context with a timeout for database operations.

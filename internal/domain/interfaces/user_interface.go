@@ -1,6 +1,8 @@
 package interfaces
 
-import "cli-project/internal/domain/models"
+import (
+	"cli-project/internal/domain/models"
+)
 
 type UserRepository interface {
 	CreateUser(*models.StandardUser) error

@@ -29,7 +29,7 @@ func (r *userRepo) getDBConnection() (*sql.DB, error) {
 }
 
 func (r *userRepo) getTableName() string {
-	return "Users"
+	return "users"
 }
 
 func (r *userRepo) CreateUser(user *models.StandardUser) error {
@@ -182,7 +182,7 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 		&user.StandardUser.IsBanned,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found") // User not found
 		}
 		return nil, fmt.Errorf("could not fetch user: %v", err)
@@ -225,7 +225,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 		&user.StandardUser.IsBanned,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found") // User not found
 		}
 		return nil, fmt.Errorf("could not fetch user: %v", err)
@@ -426,7 +426,7 @@ func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
 	// Define the SQL query to check for the existence of the username
 	query := `
 		SELECT COUNT(*)
-		FROM Users
+		FROM users
 		WHERE username = $1
 	`
 

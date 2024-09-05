@@ -10,7 +10,7 @@ import (
 func ValidateQuestionLink(link string) (string, error) {
 	lowerLink := data_cleaning.CleanString(link)
 	parsedURL, err := url.Parse(lowerLink)
-	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" || !strings.Contains(parsedURL.Host, "Leetcode.com") {
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" || !strings.Contains(parsedURL.Host, "leetcode.com") {
 		return "", errors.New("invalid question link: must be a valid Leetcode link")
 	}
 	return lowerLink, nil

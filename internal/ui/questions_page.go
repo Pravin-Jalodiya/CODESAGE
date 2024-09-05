@@ -45,7 +45,7 @@ func (ui *UI) ViewQuestions() {
 	// Load all questions in the db
 	questionsList, err := ui.questionService.GetAllQuestions()
 	if err != nil {
-		fmt.Println("Failed to load questions")
+		fmt.Println("Failed to load questions: ", err)
 		return
 	}
 

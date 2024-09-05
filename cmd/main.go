@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	defer repositories.CloseMongoClient()
+	defer repositories.ClosePostgresClient()
 
 	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -24,8 +24,8 @@ func main() {
 		sig := <-sigChan
 		log.Printf("Received signal: %s. Shutting down gracefully...", sig)
 
-		// Call the function to close MongoDB client
-		repositories.CloseMongoClient()
+		// Call the function to close Postgres client
+		repositories.ClosePostgresClient()
 
 		os.Exit(0)
 	}()

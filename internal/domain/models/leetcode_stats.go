@@ -9,5 +9,5 @@ type LeetcodeStats struct {
 	EasyDoneCount           int
 	MediumDoneCount         int
 	HardDoneCount           int
-	RecentACSubmissions     []string `bson:"recent_ac_submissions"`
+	RecentACSubmissions     []string `json:"recent_ac_submissions"`
 }
