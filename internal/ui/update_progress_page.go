@@ -1,9 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/data_cleaning"
 	"cli-project/pkg/utils/formatting"
-	"cli-project/pkg/validation"
 	"fmt"
 	"strings"
 )
@@ -42,29 +40,13 @@ func (ui *UI) UpdateProgressPage() {
 
 func (ui *UI) updateProgress() {
 
-	var questionID string
-	var err error
-
-	for {
-		fmt.Print("Enter the ID of the question: ")
-		questionID, err = ui.reader.ReadString('\n')
-		questionID = strings.TrimSuffix(questionID, "\n")
-		questionID = data_cleaning.CleanString(questionID)
-		valid, err := validation.ValidateQuestionID(questionID)
-		if !valid {
-			fmt.Println(err)
-			continue
-		}
-		break
-	}
 	// Update the user's progress by marking the selected question as done
-	progressUpdated, err := ui.userService.UpdateUserProgress(questionID)
+	fmt.Println(formatting.Colorize("Fetching progress updates...", "green", ""))
+	err := ui.userService.UpdateUserProgress()
 
 	if err != nil {
 		fmt.Println(formatting.Colorize("Failed to update progress: ", "red", "bold"), err)
 		return
-	} else if !progressUpdated {
-		fmt.Println(formatting.Colorize("Question already marked as done", "yellow", "bold"))
 	} else {
 		fmt.Println(formatting.Colorize("Updated progress successfully", "green", "bold"))
 	}

@@ -30,7 +30,7 @@ func (ui *UI) ShowUserDashboard() {
 
 	// Display recent AC submissions
 	fmt.Println(formatting.Colorize("\nRecent Accepted Submissions", "cyan", "bold"))
-	for _, submission := range stats.RecentACSubmissions {
+	for _, submission := range stats.RecentACSubmissionTitles {
 		fmt.Println("- " + submission)
 	}
 

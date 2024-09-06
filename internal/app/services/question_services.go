@@ -83,7 +83,7 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 		}
 
 		// Check if the question already exists
-		exists, err := s.QuestionExists(questionID)
+		exists, err := s.QuestionExistsByID(questionID)
 		if err != nil {
 			return false, fmt.Errorf("error checking if question exists: %v", err)
 		}
@@ -108,7 +108,7 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 
 func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 	// Check if the question exists in the database
-	exists, err := s.QuestionExists(questionID)
+	exists, err := s.QuestionExistsByID(questionID)
 	if err != nil {
 		return fmt.Errorf("error checking if question exists: %v", err)
 	}
@@ -123,7 +123,7 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 
 func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
 	// Check if the question exists
-	exists, err := s.QuestionExists(questionID)
+	exists, err := s.QuestionExistsByID(questionID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,14 +164,24 @@ func (s *QuestionService) GetQuestionsByFilters(difficulty, topic, company strin
 	return s.questionRepo.FetchQuestionsByFilters(validDifficulty, cleanTopic, cleanCompany)
 }
 
-func (s *QuestionService) QuestionExists(questionID string) (bool, error) {
+func (s *QuestionService) QuestionExistsByID(questionID string) (bool, error) {
 	// Validate the question ID
 	valid, err := validation.ValidateQuestionID(questionID)
 	if !valid {
 		return false, err
 	}
 
-	return s.questionRepo.QuestionExists(questionID)
+	return s.questionRepo.QuestionExistsByID(questionID)
+}
+
+func (s *QuestionService) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
+	// Validate the title slug
+	valid, err := validation.ValidateTitleSlug(titleSlug)
+	if !valid {
+		return false, err
+	}
+
+	return s.questionRepo.QuestionExistsByTitleSlug(titleSlug)
 }
 
 func (s *QuestionService) GetTotalQuestionsCount() (int64, error) {

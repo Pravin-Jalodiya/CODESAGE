@@ -10,6 +10,7 @@ import (
 	pwd "cli-project/pkg/utils/password"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strings"
 	"time"
@@ -138,31 +139,43 @@ func (s *UserService) ViewDashboard() error {
 }
 
 // UpdateUserProgress updates the user's progress by adding a solved question ID.
-func (s *UserService) UpdateUserProgress(solvedQuestionID string) (bool, error) {
-	// Fetch the current user from the repository
-	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
+func (s *UserService) UpdateUserProgress() error {
+	// Validate if the ActiveUserID is a valid UUID
+	userUUID, err := uuid.Parse(globals.ActiveUserID)
 	if err != nil {
-		return false, fmt.Errorf("could not fetch user: %v", err)
+		return fmt.Errorf("invalid user ID: %v", err)
 	}
 
-	// Check if the question ID is already in the user's progress
-	for _, id := range user.QuestionsSolved {
-		if id == solvedQuestionID {
-			return false, nil // No need to update if the question ID is already in the list
+	// Fetch recent submissions from LeetCode API using GetStats
+	stats, err := s.LeetcodeAPI.GetStats(globals.ActiveUserID)
+	if err != nil {
+		return fmt.Errorf("could not fetch stats from LeetCode API: %v", err)
+	}
+
+	// Extract title slugs from recent submissions
+	recentSlugs := stats.RecentACSubmissionTitleSlugs
+
+	// Check which of the recent slugs are in the questions table
+	var validSlugs []string
+	for _, slug := range recentSlugs {
+		exists, err := s.questionService.QuestionExistsByTitleSlug(slug)
+		if err != nil {
+			return fmt.Errorf("could not check if question exists: %v", err)
+		}
+		if exists {
+			validSlugs = append(validSlugs, slug)
 		}
 	}
 
-	// Check if the question ID exists in the questions repository
-	exists, err := s.questionService.QuestionExists(solvedQuestionID)
-	if err != nil {
-		return false, fmt.Errorf("could not check if question exists: %v", err)
-	}
-	if !exists {
-		return false, fmt.Errorf("question with ID %s does not exist", solvedQuestionID)
+	// Update user's progress with valid slugs
+	if len(validSlugs) > 0 {
+		err := s.userRepo.UpdateUserProgress(userUUID, validSlugs)
+		if err != nil {
+			return fmt.Errorf("could not update user progress: %v", err)
+		}
 	}
 
-	// Update the user's progress
-	return true, s.userRepo.UpdateUserProgress(solvedQuestionID)
+	return nil
 }
 
 func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {

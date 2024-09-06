@@ -314,7 +314,7 @@ func (r *questionRepo) CountQuestions() (int64, error) {
 	return count, nil
 }
 
-func (r *questionRepo) QuestionExists(questionID string) (bool, error) {
+func (r *questionRepo) QuestionExistsByID(questionID string) (bool, error) {
 	// Get the PostgreSQL connection
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -328,6 +328,25 @@ func (r *questionRepo) QuestionExists(questionID string) (bool, error) {
 	err = db.QueryRow(query, questionID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if question exists: %v", err)
+	}
+
+	return exists, nil
+}
+
+func (r *questionRepo) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
+	// Get the PostgreSQL connection
+	db, err := r.getDBConnection()
+	if err != nil {
+		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+	}
+
+	// Prepare the SQL query to check if the question exists by its title slug
+	query := `SELECT EXISTS (SELECT 1 FROM questions WHERE title_slug = $1)`
+
+	var exists bool
+	err = db.QueryRow(query, titleSlug).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if question exists by title slug: %v", err)
 	}
 
 	return exists, nil

@@ -11,6 +11,7 @@ type QuestionService interface {
 	GetQuestionByID(questionID string) (*models.Question, error)
 	GetAllQuestions() (*[]dto.Question, error)
 	GetQuestionsByFilters(difficulty, company, topic string) (*[]dto.Question, error)
-	QuestionExists(questionID string) (bool, error)
+	QuestionExistsByID(questionID string) (bool, error)
+	QuestionExistsByTitleSlug(string) (bool, error)
 	GetTotalQuestionsCount() (int64, error)
 }

@@ -10,7 +10,7 @@ type UserService interface {
 	Logout() error
 	GetAllUsers() (*[]models.StandardUser, error)
 	ViewDashboard() error
-	UpdateUserProgress(solvedQuestionID string) (bool, error)
+	UpdateUserProgress() error
 	CountActiveUserInLast24Hours() (int64, error)
 	GetUserByUsername(username string) (*models.StandardUser, error)
 	GetUserByID(userID string) (*models.StandardUser, error)

@@ -12,6 +12,7 @@ type QuestionRepository interface {
 	FetchQuestionByID(string) (*models.Question, error)
 	FetchAllQuestions() (*[]dto.Question, error)
 	FetchQuestionsByFilters(string, string, string) (*[]dto.Question, error)
-	QuestionExists(string) (bool, error)
+	QuestionExistsByID(string) (bool, error)
+	QuestionExistsByTitleSlug(string) (bool, error)
 	CountQuestions() (int64, error)
 }
