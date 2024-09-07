@@ -152,7 +152,7 @@ func (ui *UI) unbanUser() {
 		username, err = ui.reader.ReadString('\n')
 		username = data_cleaning.CleanString(username)
 		if err != nil {
-			fmt.Println(formatting.Colorize("error reading input:", "red", "bold"), err)
+			fmt.Println(formatting.Colorize("error reading input:", "red", "bold"))
 			return
 		}
 
@@ -168,7 +168,7 @@ func (ui *UI) unbanUser() {
 	// Unbanning logic
 	alreadyUnbanned, err := ui.userService.UnbanUser(username)
 	if err != nil {
-		fmt.Println(formatting.Colorize("user does not exist", "red", "bold"), err)
+		fmt.Println(formatting.Colorize("user does not exist", "red", "bold"))
 		return
 	} else if alreadyUnbanned {
 		fmt.Println(formatting.Colorize("user already unbanned", "yellow", "bold"))

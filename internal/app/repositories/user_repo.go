@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
-	"log"
 	"strings"
 	"time"
 )
@@ -120,8 +119,6 @@ func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error
 		}
 	}
 
-	log.Println("slugs to add:", slugsToAdd)
-
 	// Update progress if needed
 	if len(slugsToAdd) > 0 {
 		query = `
@@ -156,7 +153,13 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch users: %v", err)
 	}
-	defer rows.Close()
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
 
 	var users []models.StandardUser
 
@@ -276,6 +279,38 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	return &user, nil
 }
 
+func (r *userRepo) FetchUserProgress(userID string) (*[]string, error) {
+	// Get a database connection
+	db, err := r.getDBConnection()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DB connection: %v", err)
+	}
+
+	// Define the query to fetch title_slugs from the users_progress table
+	query := `
+		SELECT title_slugs
+		FROM users_progress
+		WHERE user_id = $1
+	`
+
+	// Execute the query
+	row := db.QueryRowContext(context.TODO(), query, userID)
+
+	// Variable to hold the result (use pq.StringArray for PostgreSQL arrays)
+	var titleSlugs pq.StringArray
+	err = row.Scan(&titleSlugs)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("user progress not found") // No progress found
+		}
+		return nil, fmt.Errorf("could not fetch user progress: %v", err)
+	}
+
+	// Convert pq.StringArray to []string and return
+	titleSlugList := []string(titleSlugs)
+	return &titleSlugList, nil
+}
+
 func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 	// Get a database connection
 	db, err := r.getDBConnection()
@@ -340,7 +375,7 @@ func (r *userRepo) BanUser(userID string) error {
 	query := `
 		UPDATE Users
 		SET is_banned = TRUE
-		WHERE id = $1
+		WHERE id = $1 and role = 'user'
 	`
 
 	// Execute the update query
@@ -377,7 +412,7 @@ func (r *userRepo) UnbanUser(userID string) error {
 	query := `
 		UPDATE Users
 		SET is_banned = FALSE
-		WHERE id = $1
+		WHERE id = $1 and role = 'user'
 	`
 
 	// Execute the update query
@@ -398,7 +433,7 @@ func (r *userRepo) UnbanUser(userID string) error {
 	return nil
 }
 
-func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
+func (r *userRepo) CountActiveUsersInLast24Hours() (int, error) {
 	// Get a database connection
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -420,7 +455,7 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int64, error) {
 	row := db.QueryRowContext(context.TODO(), query, twentyFourHoursAgo)
 
 	// Scan the result into a count variable
-	var count int64
+	var count int
 	err = row.Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("could not count active users: %v", err)

@@ -11,7 +11,8 @@ type UserService interface {
 	GetAllUsers() (*[]models.StandardUser, error)
 	ViewDashboard() error
 	UpdateUserProgress() error
-	CountActiveUserInLast24Hours() (int64, error)
+	GetUserProgress(userID string) (*[]string, error)
+	CountActiveUserInLast24Hours() (int, error)
 	GetUserByUsername(username string) (*models.StandardUser, error)
 	GetUserByID(userID string) (*models.StandardUser, error)
 	GetUserRole(userID string) (string, error)
@@ -19,5 +20,7 @@ type UserService interface {
 	BanUser(username string) (bool, error)
 	UnbanUser(username string) (bool, error)
 	IsUserBanned(userID string) (bool, error)
-	GetLeetcodeStats(userID string) (*models.LeetcodeStats, error)
+	GetUserLeetcodeStats(userID string) (*models.LeetcodeStats, error)
+	GetUserCodesageStats(userID string) (*models.CodesageStats, error)
+	GetPlatformStats() (*models.PlatformStats, error)
 }

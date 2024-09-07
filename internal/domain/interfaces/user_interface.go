@@ -11,10 +11,11 @@ type UserRepository interface {
 	FetchAllUsers() (*[]models.StandardUser, error)
 	FetchUserByID(string) (*models.StandardUser, error)
 	FetchUserByUsername(string) (*models.StandardUser, error)
+	FetchUserProgress(string) (*[]string, error)
 	UpdateUserDetails(*models.StandardUser) error
 	BanUser(string) error
 	UnbanUser(string) error
-	CountActiveUsersInLast24Hours() (int64, error)
+	CountActiveUsersInLast24Hours() (int, error)
 	IsUsernameUnique(string) (bool, error)
 	IsEmailUnique(string) (bool, error)
 	IsLeetcodeIDUnique(string) (bool, error)

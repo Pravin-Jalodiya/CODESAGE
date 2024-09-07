@@ -79,19 +79,19 @@ func (mr *MockUserServiceMockRecorder) GetAllUsers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserService)(nil).GetAllUsers))
 }
 
-// GetLeetcodeStats mocks base method.
-func (m *MockUserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
+// GetUserLeetcodeStats mocks base method.
+func (m *MockUserService) GetUserLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLeetcodeStats", userID)
+	ret := m.ctrl.Call(m, "GetUserLeetcodeStats", userID)
 	ret0, _ := ret[0].(*models.LeetcodeStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLeetcodeStats indicates an expected call of GetLeetcodeStats.
-func (mr *MockUserServiceMockRecorder) GetLeetcodeStats(userID interface{}) *gomock.Call {
+// GetUserLeetcodeStats indicates an expected call of GetUserLeetcodeStats.
+func (mr *MockUserServiceMockRecorder) GetUserLeetcodeStats(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLeetcodeStats", reflect.TypeOf((*MockUserService)(nil).GetLeetcodeStats), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserLeetcodeStats", reflect.TypeOf((*MockUserService)(nil).GetUserLeetcodeStats), userID)
 }
 
 // GetUserByID mocks base method.

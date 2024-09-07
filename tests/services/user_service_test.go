@@ -150,7 +150,7 @@ func TestUserService_UpdateUserProgress_QuestionNotExist(t *testing.T) {
 	assert.False(t, updated)
 }
 
-func TestUserService_GetLeetcodeStats(t *testing.T) {
+func TestUserService_GetUserLeetcodeStats(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
@@ -171,7 +171,7 @@ func TestUserService_GetLeetcodeStats(t *testing.T) {
 		TotalQuestionsDoneCount: 35,
 	}, nil).Times(1)
 
-	stats, err := userService.GetLeetcodeStats(userID)
+	stats, err := userService.GetUserLeetcodeStats(userID)
 	assert.NoError(t, err)
 	assert.Equal(t, 10, stats.EasyDoneCount)
 	assert.Equal(t, 20, stats.MediumDoneCount)
@@ -519,7 +519,7 @@ func TestUserService_GetUserByID_Error(t *testing.T) {
 	assert.Equal(t, "user not found", err.Error())
 }
 
-func TestUserService_GetLeetcodeStats_Error(t *testing.T) {
+func TestUserService_GetUserLeetcodeStats_Error(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
@@ -532,7 +532,7 @@ func TestUserService_GetLeetcodeStats_Error(t *testing.T) {
 	// Simulate an error while fetching stats from Leetcode API
 	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(nil, errors.New("Leetcode API error")).Times(1)
 
-	stats, err := userService.GetLeetcodeStats(userID)
+	stats, err := userService.GetUserLeetcodeStats(userID)
 	assert.Error(t, err)
 	assert.Nil(t, stats)
 	assert.Equal(t, "Leetcode API error", err.Error())

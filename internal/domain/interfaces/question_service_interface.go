@@ -13,5 +13,5 @@ type QuestionService interface {
 	GetQuestionsByFilters(difficulty, company, topic string) (*[]dto.Question, error)
 	QuestionExistsByID(questionID string) (bool, error)
 	QuestionExistsByTitleSlug(string) (bool, error)
-	GetTotalQuestionsCount() (int64, error)
+	GetTotalQuestionsCount() (int, error)
 }

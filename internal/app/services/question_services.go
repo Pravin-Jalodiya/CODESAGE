@@ -123,12 +123,12 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 
 func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
 	// Check if the question exists
-	exists, err := s.QuestionExistsByID(questionID)
+	exists, err := s.QuestionExistsByTitleSlug(questionID)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		return nil, fmt.Errorf("question with ID %s not found", questionID)
+		return nil, fmt.Errorf("question with title slug %s not found", questionID)
 	}
 
 	// Fetch the question from the repository
@@ -184,6 +184,6 @@ func (s *QuestionService) QuestionExistsByTitleSlug(titleSlug string) (bool, err
 	return s.questionRepo.QuestionExistsByTitleSlug(titleSlug)
 }
 
-func (s *QuestionService) GetTotalQuestionsCount() (int64, error) {
+func (s *QuestionService) GetTotalQuestionsCount() (int, error) {
 	return s.questionRepo.CountQuestions()
 }

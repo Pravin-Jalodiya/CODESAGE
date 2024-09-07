@@ -122,21 +122,24 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 	query := `
 		SELECT title_slug, id, title, difficulty, link, topic_tags, company_tags
 		FROM questions
-		WHERE id = $1
+		WHERE title_slug = $1
 	`
 
 	// Execute the query
 	row := db.QueryRowContext(context.Background(), query, questionID)
 
 	var question models.Question
+	var topicTags, companyTags []string
+
+	// Scan the row into the struct, converting PostgreSQL arrays into Go slices using pq.Array
 	err = row.Scan(
 		&question.QuestionTitleSlug,
 		&question.QuestionID,
 		&question.QuestionTitle,
 		&question.Difficulty,
 		&question.QuestionLink,
-		&question.TopicTags,
-		&question.CompanyTags,
+		pq.Array(&topicTags),   // Use pq.Array for PostgreSQL arrays
+		pq.Array(&companyTags), // Use pq.Array for PostgreSQL arrays
 	)
 
 	if err != nil {
@@ -145,6 +148,10 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 		}
 		return nil, fmt.Errorf("could not fetch question: %v", err)
 	}
+
+	// Assign the scanned slices to the question struct
+	question.TopicTags = topicTags
+	question.CompanyTags = companyTags
 
 	return &question, nil
 }
@@ -294,7 +301,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 	return &questions, nil
 }
 
-func (r *questionRepo) CountQuestions() (int64, error) {
+func (r *questionRepo) CountQuestions() (int, error) {
 	// Get the PostgreSQL connection
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -305,7 +312,7 @@ func (r *questionRepo) CountQuestions() (int64, error) {
 	query := `SELECT COUNT(*) FROM questions`
 
 	// Execute the query
-	var count int64
+	var count int
 	err = db.QueryRowContext(context.Background(), query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("could not count questions: %v", err)

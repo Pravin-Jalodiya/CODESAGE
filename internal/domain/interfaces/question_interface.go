@@ -14,5 +14,5 @@ type QuestionRepository interface {
 	FetchQuestionsByFilters(string, string, string) (*[]dto.Question, error)
 	QuestionExistsByID(string) (bool, error)
 	QuestionExistsByTitleSlug(string) (bool, error)
-	CountQuestions() (int64, error)
+	CountQuestions() (int, error)
 }
