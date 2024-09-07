@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
+	"log"
 	"strings"
 	"time"
 )
@@ -69,112 +70,6 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	return nil
 }
 
-//func (r *userRepo) UpdateUserProgress(userID string, newSlugs []string) error {
-//
-//	db, err := r.getDBConnection()
-//	// Convert userID from string to UUID
-//	userUUID, err := uuid.Parse(userID)
-//	if err != nil {
-//		return fmt.Errorf("invalid UUID format: %v", err)
-//	}
-//
-//	// Fetch the current user's progress (title_slugs) from the users_progress table
-//	var existingSlugs []string
-//	query := `SELECT title_slugs FROM users_progress WHERE user_id = $1`
-//	err = db.QueryRow(query, userUUID).Scan(pq.Array(&existingSlugs))
-//	if err != nil {
-//		if errors.Is(err, sql.ErrNoRows) {
-//			existingSlugs = []string{} // No progress yet
-//		} else {
-//			return fmt.Errorf("failed to get user's progress: %v", err)
-//		}
-//	}
-//
-//	// Convert existing slugs to a set for easy lookup
-//	existingSlugSet := make(map[string]struct{}, len(existingSlugs))
-//	for _, slug := range existingSlugs {
-//		existingSlugSet[slug] = struct{}{}
-//	}
-//
-//	// Filter out slugs that are already solved by the user
-//	var slugsToAdd []string
-//	for _, slug := range newSlugs {
-//		if _, exists := existingSlugSet[slug]; !exists {
-//			slugsToAdd = append(slugsToAdd, slug)
-//		}
-//	}
-//
-//	// Update the user's progress if there are new slugs
-//	if len(slugsToAdd) > 0 {
-//		// Append new slugs to the user's title_slugs array
-//		query = `
-//			UPDATE users_progress
-//			SET title_slugs = array(SELECT DISTINCT unnest(title_slugs) || unnest($1::text[]))
-//			WHERE user_id = $2`
-//		_, err = db.Exec(query, pq.Array(slugsToAdd), userUUID)
-//		if err != nil {
-//			return fmt.Errorf("failed to update user's progress: %v", err)
-//		}
-//	}
-//
-//	return nil
-//}
-
-//// UpdateUserProgress updates the user's progress
-//func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error {
-//	db, err := r.getDBConnection()
-//
-//	// Fetch the current user's progress (title_slugs) from the users_progress table
-//	var existingSlugs []string
-//	query := `SELECT title_slugs FROM users_progress WHERE user_id = $1`
-//	err = db.QueryRow(query, userID).Scan(pq.Array(&existingSlugs))
-//	if err != nil {
-//		if errors.Is(err, sql.ErrNoRows) {
-//			// Handle case where there is no existing row for this user
-//			existingSlugs = []string{}
-//			fmt.Println("No progress found for user. Inserting new entry.")
-//			// Insert a new record for this user with the new slugs
-//			insertQuery := `INSERT INTO users_progress (user_id, title_slugs) VALUES ($1, $2)`
-//			_, err = db.Exec(insertQuery, userID, pq.Array(newSlugs))
-//			if err != nil {
-//				return fmt.Errorf("failed to insert new user's progress: %v", err)
-//			}
-//			return nil
-//		} else {
-//			return fmt.Errorf("failed to get user's progress: %v", err)
-//		}
-//	}
-//
-//	// Convert existing slugs to a set for easy lookup
-//	existingSlugSet := make(map[string]struct{}, len(existingSlugs))
-//	for _, slug := range existingSlugs {
-//		existingSlugSet[slug] = struct{}{}
-//	}
-//
-//	// Filter out slugs that are already solved by the user
-//	var slugsToAdd []string
-//	for _, slug := range newSlugs {
-//		if _, exists := existingSlugSet[slug]; !exists {
-//			slugsToAdd = append(slugsToAdd, slug)
-//		}
-//	}
-//
-//	// Update the user's progress if there are new slugs
-//	if len(slugsToAdd) > 0 {
-//		// Append new slugs to the user's title_slugs array
-//		query = `
-//			UPDATE users_progress
-//			SET title_slugs = array(SELECT DISTINCT unnest(title_slugs) || unnest($1::text[]))
-//			WHERE user_id = $2`
-//		_, err = db.Exec(query, pq.Array(slugsToAdd), userID)
-//		if err != nil {
-//			return fmt.Errorf("failed to update user's progress: %v", err)
-//		}
-//	}
-//
-//	return nil
-//}
-
 func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -224,6 +119,8 @@ func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error
 			slugsToAdd = append(slugsToAdd, slug)
 		}
 	}
+
+	log.Println("slugs to add:", slugsToAdd)
 
 	// Update progress if needed
 	if len(slugsToAdd) > 0 {
@@ -370,7 +267,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("user not found") // User not found
+			return nil, err // User not found
 		}
 		return nil, fmt.Errorf("could not fetch user: %v", err)
 	}

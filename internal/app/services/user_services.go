@@ -8,10 +8,11 @@ import (
 	"cli-project/pkg/utils"
 	"cli-project/pkg/utils/data_cleaning"
 	pwd "cli-project/pkg/utils/password"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/mongo"
+	"log"
 	"strings"
 	"time"
 )
@@ -84,18 +85,17 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 
 // Login authenticates a user
 func (s *UserService) Login(username, password string) error {
-
 	// Change username to lowercase for consistency
 	username = data_cleaning.CleanString(username)
 
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUserByUsername(username)
-
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
+		// Check if the error is because the user was not found (PostgreSQL)
+		if errors.Is(err, sql.ErrNoRows) {
 			return ErrUserNotFound // Return error if user doesn't exist
 		}
-		return fmt.Errorf("%v", err)
+		return fmt.Errorf("error fetching user: %v", err)
 	}
 
 	// Verify the password
@@ -141,19 +141,24 @@ func (s *UserService) ViewDashboard() error {
 // UpdateUserProgress updates the user's progress by adding a solved question ID.
 func (s *UserService) UpdateUserProgress() error {
 	// Validate if the ActiveUserID is a valid UUID
+	log.Println("User being observed: ", globals.ActiveUserID)
 	userUUID, err := uuid.Parse(globals.ActiveUserID)
 	if err != nil {
 		return fmt.Errorf("invalid user ID: %v", err)
 	}
 
 	// Fetch recent submissions from LeetCode API using GetStats
-	stats, err := s.LeetcodeAPI.GetStats(globals.ActiveUserID)
+	stats, err := s.GetLeetcodeStats(globals.ActiveUserID)
 	if err != nil {
 		return fmt.Errorf("could not fetch stats from LeetCode API: %v", err)
 	}
 
+	log.Println("stats: ", *stats)
+
 	// Extract title slugs from recent submissions
 	recentSlugs := stats.RecentACSubmissionTitleSlugs
+
+	log.Println("recent slugs: ", recentSlugs)
 
 	// Check which of the recent slugs are in the questions table
 	var validSlugs []string
@@ -166,6 +171,8 @@ func (s *UserService) UpdateUserProgress() error {
 			validSlugs = append(validSlugs, slug)
 		}
 	}
+
+	log.Println("valid slugs: ", validSlugs)
 
 	// Update user's progress with valid slugs
 	if len(validSlugs) > 0 {

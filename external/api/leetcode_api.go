@@ -156,6 +156,7 @@ func (api *LeetcodeAPI) fetchRecentSubmissions(username string, limit int) ([]ma
 
 // GetStats combines fetchUserStats and fetchRecentSubmissions
 func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, error) {
+
 	recentLimit := config.RECENT_SUBMISSION_LIMIT
 
 	stats, err := api.fetchUserStats(LeetcodeID)
