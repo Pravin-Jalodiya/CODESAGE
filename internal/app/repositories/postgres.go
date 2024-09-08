@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	db          *sql.DB
-	dbErr       error
-	dbMutex     sync.Mutex // Mutex to handle connection expiration logic
-	connectedAt time.Time
-	dbTTL       = 1 * time.Hour
-	connStr     = "postgres://pravin:password@localhost:5432/codesage?sslmode=disable" // pass username, password, db name and port for env variables or config file
+	Db          *sql.DB
+	DbErr       error
+	DbMutex     sync.Mutex // Mutex to handle connection expiration logic
+	ConnectedAt time.Time
+	DbTTL       = 1 * time.Hour
+	ConnStr     = "postgres://pravin:password@localhost:5432/codesage?sslmode=disable" // pass username, password, Db name and port for env variables or config file
 )
 
 // CreateContext creates a context with a timeout for database operations.
@@ -25,43 +25,43 @@ func CreateContext() (context.Context, context.CancelFunc) {
 }
 
 func GetPostgresClient() (*sql.DB, error) {
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
+	DbMutex.Lock()
+	defer DbMutex.Unlock()
 
 	// If the connection has expired or does not exist, create a new one.
-	if db == nil || time.Since(connectedAt) > dbTTL { // Example: 1-hour expiration
+	if Db == nil || time.Since(ConnectedAt) > DbTTL { // Example: 1-hour expiration
 		// Close the old client if it exists
-		if db != nil {
-			if err := db.Close(); err != nil {
+		if Db != nil {
+			if err := Db.Close(); err != nil {
 				log.Printf("Failed to close old PostgreSQL client: %v", err)
 			}
 		}
 
-		db, dbErr = sql.Open("pgx", connStr)
-		if dbErr != nil {
-			log.Fatalf("Failed to connect to PostgreSQL: %v", dbErr)
+		Db, DbErr = sql.Open("pgx", ConnStr)
+		if DbErr != nil {
+			log.Fatalf("Failed to connect to PostgreSQL: %v", DbErr)
 		}
 
 		// Ping the database to ensure connection is successful
-		if err := db.Ping(); err != nil {
+		if err := Db.Ping(); err != nil {
 			return nil, fmt.Errorf("failed to ping PostgreSQL: %v", err)
 		}
 
-		connectedAt = time.Now() // Update the connection time
+		ConnectedAt = time.Now() // Update the connection time
 	}
-	return db, dbErr
+	return Db, DbErr
 }
 
 // ClosePostgresClient closes the PostgreSQL client connection gracefully.
 func ClosePostgresClient() {
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
+	DbMutex.Lock()
+	defer DbMutex.Unlock()
 
-	if db != nil {
-		if err := db.Close(); err != nil {
+	if Db != nil {
+		if err := Db.Close(); err != nil {
 			log.Printf("Failed to disconnect PostgreSQL: %v", err)
 		}
-		db = nil
+		Db = nil
 		log.Println("PostgreSQL connection closed.")
 	}
 }

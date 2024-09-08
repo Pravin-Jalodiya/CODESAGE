@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"cli-project/internal/app/services"
 	"testing"
 )
 
@@ -73,6 +74,9 @@ func TestIsLeetcodeIDUnique(t *testing.T) {
 func TestValidateLeetcodeUsername(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
+
+	// Ensure mockLeetcodeAPI is part of the authService being tested
+	authService = services.NewAuthService(mockUserRepo, mockLeetcodeAPI)
 
 	username := "validuser"
 

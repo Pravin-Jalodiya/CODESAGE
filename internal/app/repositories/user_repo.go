@@ -34,8 +34,8 @@ func defaultGetPostgresClient() (*sql.DB, error) {
 
 // UseDBClient allows for injecting a custom DB client getter function (used in tests).
 func UseDBClient(getter func() (*sql.DB, error)) {
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
+	DbMutex.Lock()
+	defer DbMutex.Unlock()
 	dbClientGetter = getter
 }
 

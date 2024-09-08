@@ -24,13 +24,8 @@ func (r *questionRepo) getTableName() string {
 	return "questions"
 }
 
-// getDBConnection returns a PostgreSQL client connection and handles errors.
 func (r *questionRepo) getDBConnection() (*sql.DB, error) {
-	db, err := GetPostgresClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
-	}
-	return db, nil
+	return dbClientGetter()
 }
 
 func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
@@ -47,23 +42,16 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 
 	// Prepare SQL query for bulk insertion
 	query := `
-		INSERT INTO questions 
-		(title_slug, id, title, difficulty, link, topic_tags, company_tags)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (title_slug) DO NOTHING;
-	`
+			INSERT INTO questions
+			(title_slug, id, title, difficulty, link, topic_tags, company_tags)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			ON CONFLICT (title_slug) DO NOTHING;
+		`
 
 	tx, err := db.Begin() // Ensure this line is present and correct
 	if err != nil {
 		return fmt.Errorf("could not start transaction: %v", err)
 	}
-
-	stmt, err := tx.Prepare(query) // Prepare the statement as this can also catch errors early
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to prepare statement: %v", err)
-	}
-	defer stmt.Close()
 
 	for _, question := range *questions {
 		_, err := tx.Exec(query,

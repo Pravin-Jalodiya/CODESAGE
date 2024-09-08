@@ -213,118 +213,174 @@ func TestUserService_ViewDashboard(t *testing.T) {
 	})
 }
 
-//
-
-func TestUserService_UpdateUserProgress(t *testing.T) {
+func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
-	t.Run("Invalid ActiveUserID", func(t *testing.T) {
-		invalidUUID := "invalid-uuid"
-		globals.ActiveUserID = invalidUUID
+	// Invalid UUID
+	globals.ActiveUserID = "invalid-uuid"
 
-		err := userService.UpdateUserProgress()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid user ID:")
-	})
+	err := userService.UpdateUserProgress()
+	assert.Error(t, err)
+	assert.Equal(t, "invalid user ID: invalid UUID length: 12", err.Error())
+}
 
-	t.Run("Error Fetching LeetCode Stats", func(t *testing.T) {
-		validUUID := uuid.New().String()
-		globals.ActiveUserID = validUUID
+func TestUserService_UpdateUserProgress_LeetcodeAPIError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
 
-		defer func() { globals.ActiveUserID = "" }()
+	// Valid UUID but simulate Leetcode API error
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
 
-		// Mock the chain: FetchUserByID -> GetStats
-		mockUser := &models.StandardUser{
-			StandardUser: models.User{
-				ID: validUUID,
-			},
-			LeetcodeID: "leetcode_user",
-		}
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
 
-		mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
-		mockLeetcodeAPI.EXPECT().GetStats("leetcode_user").Return(nil, errors.New("leetcode error"))
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(nil, errors.New("Leetcode API error"))
 
-		err := userService.UpdateUserProgress()
-		assert.EqualError(t, err, "could not fetch stats from LeetCode API: leetcode error")
-	})
+	err := userService.UpdateUserProgress()
+	assert.Error(t, err)
+	assert.Equal(t, "could not fetch stats from LeetCode API: Leetcode API error", err.Error())
+}
 
-	t.Run("Error Checking Question Exists", func(t *testing.T) {
-		validUUID := uuid.New().String()
-		globals.ActiveUserID = validUUID
+func TestUserService_UpdateUserProgress_NoRecentSubmissions(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
 
-		// Mock the chain: FetchUserByID -> GetStats
-		mockUser := &models.StandardUser{
-			StandardUser: models.User{
-				ID: validUUID,
-			},
-			LeetcodeID: "leetcode_user",
-		}
+	// Valid UUID with no recent submissions
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
 
-		stats := &models.LeetcodeStats{
-			RecentACSubmissionTitleSlugs: []string{"slug1", "slug2"},
-		}
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
 
-		mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
-		mockLeetcodeAPI.EXPECT().GetStats("leetcode_user").Return(stats, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(false, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug2").Return(false, errors.New("exists error"))
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(&models.LeetcodeStats{
+		RecentACSubmissionTitleSlugs: []string{},
+	}, nil)
 
-		err := userService.UpdateUserProgress()
-		assert.EqualError(t, err, "could not check if question exists: exists error")
-	})
+	err := userService.UpdateUserProgress()
+	assert.NoError(t, err)
+}
 
-	t.Run("Error Updating User Progress", func(t *testing.T) {
-		validUUID := uuid.New().String()
-		globals.ActiveUserID = validUUID
+func TestUserService_UpdateUserProgress_QuestionExistenceCheckError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
 
-		// Mock the chain: FetchUserByID -> GetStats
-		mockUser := &models.StandardUser{
-			StandardUser: models.User{
-				ID: validUUID,
-			},
-			LeetcodeID: "leetcode_user",
-		}
+	// Valid UUID with recent submissions, but error checking question existence
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
 
-		stats := &models.LeetcodeStats{
-			RecentACSubmissionTitleSlugs: []string{"slug1", "slug2"},
-		}
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
 
-		mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
-		mockLeetcodeAPI.EXPECT().GetStats("leetcode_user").Return(stats, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(true, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug2").Return(true, nil)
-		mockUserRepo.EXPECT().UpdateUserProgress(gomock.Any(), gomock.Any()).Return(errors.New("update error"))
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().FetchUserStats("leetcode_user").Return(&models.LeetcodeStats{}, nil)
+	mockLeetcodeAPI.EXPECT().FetchRecentSubmissions("leetcode_user", 10).Return([]map[string]string{}, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(&models.LeetcodeStats{
+		RecentACSubmissionTitleSlugs: []string{"slug1", "slug2"},
+	}, nil)
 
-		err := userService.UpdateUserProgress()
-		assert.EqualError(t, err, "could not update user progress: update error")
-	})
+	mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(false, errors.New("question existence check error"))
 
-	t.Run("Successful UpdateUserProgress", func(t *testing.T) {
-		validUUID := uuid.New().String()
-		globals.ActiveUserID = validUUID
+	err := userService.UpdateUserProgress()
+	assert.Error(t, err)
+	assert.Equal(t, "could not check if question exists: question existence check error", err.Error())
+}
 
-		// Mock the chain: FetchUserByID -> GetStats
-		mockUser := &models.StandardUser{
-			StandardUser: models.User{
-				ID: validUUID,
-			},
-			LeetcodeID: "leetcode_user",
-		}
+func TestUserService_UpdateUserProgress_NoValidSlugs(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
 
-		stats := &models.LeetcodeStats{
-			RecentACSubmissionTitleSlugs: []string{"slug1", "slug2"},
-		}
+	// Valid UUID with recent submissions, but no valid slugs
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
 
-		mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
-		mockLeetcodeAPI.EXPECT().GetStats("leetcode_user").Return(stats, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(true, nil)
-		mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug2").Return(true, nil)
-		mockUserRepo.EXPECT().UpdateUserProgress(gomock.Any(), gomock.Any()).Return(nil)
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
 
-		err := userService.UpdateUserProgress()
-		assert.NoError(t, err)
-	})
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(&models.LeetcodeStats{
+		RecentACSubmissionTitleSlugs: []string{"slug1", "slug2"},
+	}, nil)
+
+	mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(false, nil)
+	mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug2").Return(false, nil)
+
+	err := userService.UpdateUserProgress()
+	assert.NoError(t, err)
+}
+
+func TestUserService_UpdateUserProgress_UpdateError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	// Valid UUID with valid slugs, but error updating progress
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
+
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
+
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(&models.LeetcodeStats{
+		RecentACSubmissionTitleSlugs: []string{"slug1"},
+	}, nil)
+
+	mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(true, nil)
+	mockUserRepo.EXPECT().UpdateUserProgress(gomock.Any(), []string{"slug1"}).Return(errors.New("update error"))
+
+	err := userService.UpdateUserProgress()
+	assert.Error(t, err)
+	assert.Equal(t, "could not update user progress: update error", err.Error())
+}
+
+func TestUserService_UpdateUserProgress_Success(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	// Valid UUID with valid slugs, update success
+	validUUID := uuid.New().String()
+	globals.ActiveUserID = validUUID
+
+	mockUser := &models.StandardUser{
+		StandardUser: models.User{
+			ID: validUUID,
+		},
+		LeetcodeID: "leetcode_user",
+	}
+
+	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(&models.LeetcodeStats{
+		RecentACSubmissionTitleSlugs: []string{"slug1"},
+	}, nil)
+
+	mockQuestionService.EXPECT().QuestionExistsByTitleSlug("slug1").Return(true, nil)
+	mockUserRepo.EXPECT().UpdateUserProgress(gomock.Any(), []string{"slug1"}).Return(nil)
+
+	err := userService.UpdateUserProgress()
+	assert.NoError(t, err)
 }
 
 func TestUserService_GetUserByUsername_NotFound(t *testing.T) {
@@ -547,6 +603,7 @@ func TestUserService_GetUserLeetcodeStats_Error(t *testing.T) {
 
 	userID := "12345"
 
+	// Ensure mockUserRepo.FetchUserByID is called correctly
 	mockUserRepo.EXPECT().FetchUserByID(userID).Return(&models.StandardUser{
 		LeetcodeID: "Leetcode_user",
 	}, nil).Times(1)
@@ -554,6 +611,7 @@ func TestUserService_GetUserLeetcodeStats_Error(t *testing.T) {
 	// Simulate an error while fetching stats from Leetcode API
 	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(nil, errors.New("Leetcode API error")).Times(1)
 
+	// Call the method
 	stats, err := userService.GetUserLeetcodeStats(userID)
 	assert.Error(t, err)
 	assert.Nil(t, stats)
