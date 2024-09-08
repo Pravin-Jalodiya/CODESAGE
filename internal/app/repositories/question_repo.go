@@ -53,10 +53,17 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 		ON CONFLICT (title_slug) DO NOTHING;
 	`
 
-	tx, err := db.Begin() // Start a transaction
+	tx, err := db.Begin() // Ensure this line is present and correct
 	if err != nil {
 		return fmt.Errorf("could not start transaction: %v", err)
 	}
+
+	stmt, err := tx.Prepare(query) // Prepare the statement as this can also catch errors early
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
 
 	for _, question := range *questions {
 		_, err := tx.Exec(query,

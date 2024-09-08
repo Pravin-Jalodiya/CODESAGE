@@ -232,6 +232,8 @@ func TestUserService_UpdateUserProgress(t *testing.T) {
 		validUUID := uuid.New().String()
 		globals.ActiveUserID = validUUID
 
+		defer func() { globals.ActiveUserID = "" }()
+
 		// Mock the chain: FetchUserByID -> GetStats
 		mockUser := &models.StandardUser{
 			StandardUser: models.User{

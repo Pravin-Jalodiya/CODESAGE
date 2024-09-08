@@ -298,3 +298,69 @@ func TestGetStats_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, stats)
 }
+
+func TestValidateUsername_HTTPRequestError(t *testing.T) {
+	// Saving old Leetcode API URL to restore later
+	oldLeetcodeAPI := config.Leetcode_API
+	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+
+	config.Leetcode_API = "\n" // Invalid URL to trigger error
+
+	leetcodeAPI := api.NewLeetcodeAPI()
+	_, err := leetcodeAPI.ValidateUsername("testuser")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "request failed")
+}
+
+func TestValidateUsername_UnexpectedStatusCode(t *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer testServer.Close()
+
+	oldLeetcodeAPI := config.Leetcode_API
+	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+
+	config.Leetcode_API = testServer.URL
+
+	leetcodeAPI := api.NewLeetcodeAPI()
+
+	_, err := leetcodeAPI.ValidateUsername("testuser")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unexpected status code")
+}
+
+func TestValidateUsername_JSONDecodeError(t *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("invalid json"))
+	}))
+	defer testServer.Close()
+
+	oldLeetcodeAPI := config.Leetcode_API
+	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+
+	config.Leetcode_API = testServer.URL
+
+	leetcodeAPI := api.NewLeetcodeAPI()
+	_, err := leetcodeAPI.ValidateUsername("testuser")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "could not decode response")
+}
+
+func TestValidateUsername_InvalidResponseFormat(t *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"invalidKey": "invalidValue"}`))
+	}))
+	defer testServer.Close()
+
+	oldLeetcodeAPI := config.Leetcode_API
+	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+
+	config.Leetcode_API = testServer.URL
+
+	leetcodeAPI := api.NewLeetcodeAPI()
+	_, err := leetcodeAPI.ValidateUsername("testuser")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid response format")
+}

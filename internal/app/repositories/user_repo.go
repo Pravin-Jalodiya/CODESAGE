@@ -14,20 +14,33 @@ import (
 	"time"
 )
 
-type userRepo struct {
-}
+var (
+	dbClientGetter = defaultGetPostgresClient
+)
+
+type userRepo struct{}
 
 func NewUserRepo() interfaces.UserRepository {
 	return &userRepo{}
 }
 
-// getDBConnection returns a PostgreSQL client connection and handles errors.
-func (r *userRepo) getDBConnection() (*sql.DB, error) {
+func defaultGetPostgresClient() (*sql.DB, error) {
 	db, err := GetPostgresClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 	return db, nil
+}
+
+// UseDBClient allows for injecting a custom DB client getter function (used in tests).
+func UseDBClient(getter func() (*sql.DB, error)) {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	dbClientGetter = getter
+}
+
+func (r *userRepo) getDBConnection() (*sql.DB, error) {
+	return dbClientGetter()
 }
 
 func (r *userRepo) getTableName() string {
