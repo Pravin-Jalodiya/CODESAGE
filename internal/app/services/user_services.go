@@ -20,6 +20,8 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("username or password incorrect")
 	ErrUserNotFound       = errors.New("user not found")
+	HashPassword          = pwd.HashPassword
+	VerifyPassword        = pwd.VerifyPassword
 )
 
 type UserService struct {
@@ -56,7 +58,7 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	user.StandardUser.ID = userID
 
 	// Hash the user password
-	hashedPassword, err := pwd.HashPassword(user.StandardUser.Password)
+	hashedPassword, err := HashPassword(user.StandardUser.Password)
 	if err != nil {
 		return fmt.Errorf("could not hash password")
 	}
@@ -79,7 +81,6 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	if err != nil {
 		return fmt.Errorf("could not register user")
 	}
-
 	return nil
 }
 
@@ -97,12 +98,10 @@ func (s *UserService) Login(username, password string) error {
 		}
 		return fmt.Errorf("error fetching user: %v", err)
 	}
-
 	// Verify the password
-	if !pwd.VerifyPassword(password, user.StandardUser.Password) {
+	if !VerifyPassword(password, user.StandardUser.Password) {
 		return ErrInvalidCredentials
 	}
-
 	return nil
 }
 
@@ -113,7 +112,7 @@ func (s *UserService) Logout() error {
 		return errors.New("user not found")
 	}
 
-	// update last seen of user
+	//update last seen of user
 	user.LastSeen = time.Now().UTC()
 
 	// update data in db
@@ -122,7 +121,7 @@ func (s *UserService) Logout() error {
 		return errors.New("could not update user details")
 	}
 
-	// clear active user
+	// clear Active user id
 	globals.ActiveUserID = ""
 
 	return nil
@@ -145,13 +144,11 @@ func (s *UserService) UpdateUserProgress() error {
 	if err != nil {
 		return fmt.Errorf("invalid user ID: %v", err)
 	}
-
 	// Fetch recent submissions from LeetCode API using GetStats
 	stats, err := s.GetUserLeetcodeStats(globals.ActiveUserID)
 	if err != nil {
 		return fmt.Errorf("could not fetch stats from LeetCode API: %v", err)
 	}
-
 	// Extract title slugs from recent submissions
 	recentSlugs := stats.RecentACSubmissionTitleSlugs
 
@@ -166,7 +163,6 @@ func (s *UserService) UpdateUserProgress() error {
 			validSlugs = append(validSlugs, slug)
 		}
 	}
-
 	// Update user's progress with valid slugs
 	if len(validSlugs) > 0 {
 		err := s.userRepo.UpdateUserProgress(userUUID, validSlugs)
@@ -174,7 +170,6 @@ func (s *UserService) UpdateUserProgress() error {
 			return fmt.Errorf("could not update user progress: %v", err)
 		}
 	}
-
 	return nil
 }
 
@@ -258,7 +253,7 @@ func (s *UserService) BanUser(username string) (bool, error) {
 	if role == roles.ADMIN {
 		return false, errors.New("ban operation on admin not allowed")
 	}
-	
+
 	userID, err := s.GetUserID(username)
 	if err != nil {
 		return false, err

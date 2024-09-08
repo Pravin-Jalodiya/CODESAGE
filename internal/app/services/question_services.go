@@ -22,10 +22,18 @@ func NewQuestionService(questionRepo interfaces.QuestionRepository) interfaces.Q
 	}
 }
 
+var (
+	CSVReader                  = readers.ReadCSV
+	ValidateQuestionID         = validation.ValidateQuestionID
+	ValidateQuestionDifficulty = validation.ValidateQuestionDifficulty
+	ValidateQuestionLink       = validation.ValidateQuestionLink
+	ValidateTitleSlug          = validation.ValidateTitleSlug
+)
+
 func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, error) {
 
 	// Read the CSV file
-	records, err := readers.ReadCSV(questionFilePath)
+	records, err := CSVReader(questionFilePath)
 	if err != nil {
 		return false, fmt.Errorf("error reading CSV file: %v", err)
 	}
@@ -54,19 +62,19 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 		companyTags := data_cleaning.CleanTags(record[6])
 
 		// Validate question ID
-		valid, err := validation.ValidateQuestionID(questionID)
+		valid, err := ValidateQuestionID(questionID)
 		if !valid {
 			return false, fmt.Errorf("invalid question ID: %v", err)
 		}
 
 		// Validate difficulty
-		difficulty, err = validation.ValidateDifficulty(difficulty)
+		difficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
 			return false, fmt.Errorf("invalid difficulty: %v", err)
 		}
 
 		// Validate question link
-		questionLink, err = validation.ValidateQuestionLink(questionLink)
+		questionLink, err = ValidateQuestionLink(questionLink)
 		if err != nil {
 			return false, fmt.Errorf("invalid question link: %v", err)
 		}
@@ -150,7 +158,7 @@ func (s *QuestionService) GetQuestionsByFilters(difficulty, topic, company strin
 	var err error
 
 	if difficulty != "" && strings.ToLower(difficulty) != "any" {
-		validDifficulty, err = validation.ValidateDifficulty(difficulty)
+		validDifficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +184,7 @@ func (s *QuestionService) QuestionExistsByID(questionID string) (bool, error) {
 
 func (s *QuestionService) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
 	// Validate the title slug
-	valid, err := validation.ValidateTitleSlug(titleSlug)
+	valid, err := ValidateTitleSlug(titleSlug)
 	if !valid {
 		return false, err
 	}

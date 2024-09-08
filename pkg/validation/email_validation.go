@@ -6,6 +6,13 @@ import (
 )
 
 func ValidateEmail(email string) (bool, bool) {
+
+	// Extract the domain from the email
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false, false
+	}
+
 	// Define a list of reputable email domains
 	reputableDomains := []string{"gmail.com", "outlook.com", "yahoo.com", "watchguard.com", "hotmail.com", "icloud.com"}
 
@@ -16,11 +23,6 @@ func ValidateEmail(email string) (bool, bool) {
 		return false, false
 	}
 
-	// Extract the domain from the email
-	parts := strings.Split(email, "@")
-	if len(parts) != 2 {
-		return false, false
-	}
 	domain := parts[1]
 
 	// Check if the domain is in the list of reputable domains
@@ -29,6 +31,5 @@ func ValidateEmail(email string) (bool, bool) {
 			return true, true
 		}
 	}
-
 	return true, false
 }

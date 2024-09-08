@@ -1,6 +1,6 @@
 package config
 
-const (
+var (
 	DB_NAME                 = "codesage"
 	USER_COLLECTION         = "users"
 	QUESTION_COLLECTION     = "questions"

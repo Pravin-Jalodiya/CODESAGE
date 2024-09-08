@@ -18,7 +18,7 @@ func NewLeetcodeAPI() interfaces.LeetcodeAPI {
 }
 
 // Function to perform GraphQL request
-func fetchData(query string, variables map[string]interface{}) (map[string]interface{}, error) {
+func (api *LeetcodeAPI) FetchData(query string, variables map[string]interface{}) (map[string]interface{}, error) {
 	requestBody := map[string]interface{}{
 		"query":     query,
 		"variables": variables,
@@ -51,7 +51,7 @@ func fetchData(query string, variables map[string]interface{}) (map[string]inter
 }
 
 // Fetch user stats
-func (api *LeetcodeAPI) fetchUserStats(username string) (*models.LeetcodeStats, error) {
+func (api *LeetcodeAPI) FetchUserStats(username string) (*models.LeetcodeStats, error) {
 	userStatsQuery := `
 	query userProblemsSolved($username: String!) {
 		allQuestionsCount {
@@ -68,7 +68,7 @@ func (api *LeetcodeAPI) fetchUserStats(username string) (*models.LeetcodeStats, 
 		}
 	}`
 
-	statsData, err := fetchData(userStatsQuery, map[string]interface{}{"username": username})
+	statsData, err := api.FetchData(userStatsQuery, map[string]interface{}{"username": username})
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (api *LeetcodeAPI) fetchUserStats(username string) (*models.LeetcodeStats, 
 }
 
 // Fetch recent accepted submissions
-func (api *LeetcodeAPI) fetchRecentSubmissions(username string, limit int) ([]map[string]string, error) {
+func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]map[string]string, error) {
 	recentSubmissionsQuery := `
 	query recentAcSubmissions($username: String!, $limit: Int!) {
 		recentAcSubmissionList(username: $username, limit: $limit) {
@@ -131,7 +131,7 @@ func (api *LeetcodeAPI) fetchRecentSubmissions(username string, limit int) ([]ma
 		}
 	}`
 
-	submissionsData, err := fetchData(recentSubmissionsQuery, map[string]interface{}{"username": username, "limit": limit})
+	submissionsData, err := api.FetchData(recentSubmissionsQuery, map[string]interface{}{"username": username, "limit": limit})
 	if err != nil {
 		return nil, err
 	}
@@ -159,12 +159,12 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 
 	recentLimit := config.RECENT_SUBMISSION_LIMIT
 
-	stats, err := api.fetchUserStats(LeetcodeID)
+	stats, err := api.FetchUserStats(LeetcodeID)
 	if err != nil {
 		return nil, err
 	}
 
-	recentSubmissions, err := api.fetchRecentSubmissions(LeetcodeID, recentLimit)
+	recentSubmissions, err := api.FetchRecentSubmissions(LeetcodeID, recentLimit)
 	if err != nil {
 		return nil, err
 	}

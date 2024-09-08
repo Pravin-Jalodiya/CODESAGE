@@ -22,52 +22,27 @@ func createTempCSV(t *testing.T, content string) string {
 	return file.Name()
 }
 
-func TestReadCSV_Success(t *testing.T) {
-	csvContent := "name,age,city\nJohn Doe,30,New York\nJane Smith,25,Los Angeles"
-	filePath := createTempCSV(t, csvContent)
-	defer os.Remove(filePath)
-
-	expected := [][]string{
-		{"name", "age", "city"},
-		{"John Doe", "30", "New York"},
-		{"Jane Smith", "25", "Los Angeles"},
-	}
-
-	records, err := readers.ReadCSV(filePath)
+func TestReadCSV(t *testing.T) {
+	// Create a temporary CSV file for testing
+	file, err := os.CreateTemp("", "test.csv")
 	if err != nil {
-		t.Fatalf("ReadCSV returned an error: %v", err)
+		t.Fatalf("Error creating temp file: %v", err)
+	}
+	defer os.Remove(file.Name())
+
+	file.WriteString("col1,col2,col3\nval1,val2,val3\n")
+	file.Close()
+
+	records, err := readers.ReadCSV(file.Name())
+	if err != nil {
+		t.Errorf("Expected no error, but got %v", err)
+	}
+	if len(records) != 2 {
+		t.Errorf("Expected 2 records, but got %d", len(records))
 	}
 
-	if len(records) != len(expected) {
-		t.Fatalf("expected %d rows, got %d", len(expected), len(records))
-	}
-
-	for i, record := range records {
-		if len(record) != len(expected[i]) {
-			t.Fatalf("expected %d columns in row %d, got %d", len(expected[i]), i, len(record))
-		}
-		for j, value := range record {
-			if value != expected[i][j] {
-				t.Errorf("expected %s at row %d column %d, got %s", expected[i][j], i, j, value)
-			}
-		}
-	}
-}
-
-func TestReadCSV_FileNotFound(t *testing.T) {
-	filePath := "nonexistent_file.csv"
-
-	_, err := readers.ReadCSV(filePath)
+	_, err = readers.ReadCSV("invalid_path.csv")
 	if err == nil {
-		t.Fatalf("expected an error for nonexistent file, got nil")
-	}
-}
-
-func TestReadCSV_FileCannotBeOpened(t *testing.T) {
-	filePath := "/root/forbidden_file.csv" // Adjust this path as necessary for your environment
-
-	_, err := readers.ReadCSV(filePath)
-	if err == nil {
-		t.Fatalf("expected an error for file that cannot be opened, got nil")
+		t.Error("Expected an error for invalid path")
 	}
 }

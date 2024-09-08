@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func ValidateDifficulty(difficulty string) (string, error) {
+func ValidateQuestionDifficulty(difficulty string) (string, error) {
 	lowerDifficulty := data_cleaning.CleanString(difficulty)
 	validDifficulties := map[string]bool{"easy": true, "medium": true, "hard": true}
 

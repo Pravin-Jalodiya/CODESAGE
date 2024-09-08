@@ -4,33 +4,25 @@ import (
 	"cli-project/pkg/utils"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
-// TestConvertToIST tests the ConvertToIST function.
 func TestConvertToIST(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    time.Time
-		expected string
-	}{
-		{
-			name:     "Start of year",
-			input:    time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local),
-			expected: "01/01/2024 00:00:00",
-		},
-		{
-			name:     "End of year",
-			input:    time.Date(2024, time.December, 31, 23, 59, 59, 0, time.Local),
-			expected: "31/12/2024 23:59:59",
-		},
+
+	// Test case: converting from UTC to IST
+	utcTime, _ := time.Parse(time.RFC3339, "2000-01-01T00:00:00Z") // This is 00:00:00 on 01/01/2000 in UTC.
+	expectedIST := "01/01/2000 05:30:00"                           // Corresponding IST time.
+
+	result := utils.ConvertToIST(utcTime)
+	if result != expectedIST {
+		t.Errorf("Expected %s, but got %s", expectedIST, result)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := utils.ConvertToIST(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
+	est, _ := time.LoadLocation("America/New_York")
+	estTime := time.Date(2000, 1, 1, 0, 0, 0, 0, est) // 01/01/2000 00:00:00 EST
+	expectedIST = "01/01/2000 10:30:00"               // Corresponding IST time.
+
+	result = utils.ConvertToIST(estTime)
+	if result != expectedIST {
+		t.Errorf("Expected %s, but got %s", expectedIST, result)
 	}
 }
