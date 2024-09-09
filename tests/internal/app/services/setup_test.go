@@ -65,12 +65,12 @@ func setup(t *testing.T) func() {
 		originalValidateQuestionLink = services.ValidateQuestionLink
 	}
 
-	originalLeetcodeAPIConfig = config.Leetcode_API
+	originalLeetcodeAPIConfig = config.LEETCODE_API
 
 	mockLeetcodeAPI = mock_services.NewMockLeetcodeAPI(ctrl)
 
 	// We can set a mock API endpoint if necessary here
-	config.Leetcode_API = "http://mock-api-endpoint.com"
+	config.LEETCODE_API = "http://mock-api-endpoint.com"
 
 	// Return a cleanup function to be called at the end of the test
 	return func() {
@@ -79,7 +79,7 @@ func setup(t *testing.T) func() {
 		services.ValidateQuestionDifficulty = originalValidateQuestionDifficulty
 		services.ValidateQuestionLink = originalValidateQuestionLink
 		services.ValidateTitleSlug = originalValidateTitleSlug
-		config.Leetcode_API = originalLeetcodeAPIConfig
+		config.LEETCODE_API = originalLeetcodeAPIConfig
 		ctrl.Finish()
 	}
 }

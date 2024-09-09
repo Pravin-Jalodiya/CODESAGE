@@ -6,7 +6,7 @@ import (
 )
 
 type QuestionRepository interface {
-	AddQuestionsByID(*[]string) error
+	//AddQuestionsByID(*[]string) error
 	AddQuestions(*[]models.Question) error
 	RemoveQuestionByID(string) error
 	FetchQuestionByID(string) (*models.Question, error)

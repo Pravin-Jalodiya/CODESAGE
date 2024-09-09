@@ -6,12 +6,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUserRepo_CreateUser(t *testing.T) {
@@ -578,8 +577,8 @@ func TestUserRepo_CountActiveUsersInLast24Hours(t *testing.T) {
 	cleanup := setup(t)
 	defer cleanup()
 
-	// Define the time range
-	now := time.Now().UTC().Truncate(time.Second)
+	// Define the time range with consistent precision
+	now := time.Now().UTC().Truncate(time.Millisecond) // Truncate to milliseconds for precision match
 	twentyFourHoursAgo := now.Add(-24 * time.Hour)
 	expectedCount := 5
 

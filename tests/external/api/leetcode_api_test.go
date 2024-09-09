@@ -35,7 +35,7 @@ func TestFetchData_Success(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	api := api.NewLeetcodeAPI()
 	query := `query userProblemsSolved($username: String!) { allQuestionsCount { difficulty count } matchedUser(username: $username) { submitStatsGlobal { acSubmissionNum { difficulty count } } } }`
@@ -56,7 +56,7 @@ func TestFetchData_Error(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	api := api.NewLeetcodeAPI()
 	query := `query userProblemsSolved($username: String!) { allQuestionsCount { difficulty count } matchedUser(username: $username) { submitStatsGlobal { acSubmissionNum { difficulty count } } } }`
@@ -97,7 +97,7 @@ func TestFetchUserStats_Success(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	stats, err := leetcodeAPI.FetchUserStats("testuser")
@@ -122,7 +122,7 @@ func TestFetchUserStats_Error(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	stats, err := leetcodeAPI.FetchUserStats("testuser")
@@ -154,7 +154,7 @@ func TestFetchRecentSubmissions_Success(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	submissions, err := leetcodeAPI.FetchRecentSubmissions("testuser", 2)
@@ -173,7 +173,7 @@ func TestFetchRecentSubmissions_Error(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	submissions, err := leetcodeAPI.FetchRecentSubmissions("testuser", 2)
@@ -198,7 +198,7 @@ func TestLeetcodeAPI_ValidateUsername_Success(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	valid, err := leetcodeAPI.ValidateUsername("testuser")
@@ -215,7 +215,7 @@ func TestLeetcodeAPI_ValidateUsername_Error(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	valid, err := leetcodeAPI.ValidateUsername("testuser")
@@ -263,7 +263,7 @@ func TestGetStats_Success(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 	config.RECENT_SUBMISSION_LIMIT = 2
 
 	leetcodeAPI := api.NewLeetcodeAPI()
@@ -291,7 +291,7 @@ func TestGetStats_Error(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	stats, err := leetcodeAPI.GetStats("testuser")
@@ -301,10 +301,10 @@ func TestGetStats_Error(t *testing.T) {
 
 func TestValidateUsername_HTTPRequestError(t *testing.T) {
 	// Saving old Leetcode API URL to restore later
-	oldLeetcodeAPI := config.Leetcode_API
-	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+	oldLeetcodeAPI := config.LEETCODE_API
+	defer func() { config.LEETCODE_API = oldLeetcodeAPI }()
 
-	config.Leetcode_API = "\n" // Invalid URL to trigger error
+	config.LEETCODE_API = "\n" // Invalid URL to trigger error
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	_, err := leetcodeAPI.ValidateUsername("testuser")
@@ -318,10 +318,10 @@ func TestValidateUsername_UnexpectedStatusCode(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	oldLeetcodeAPI := config.Leetcode_API
-	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+	oldLeetcodeAPI := config.LEETCODE_API
+	defer func() { config.LEETCODE_API = oldLeetcodeAPI }()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 
@@ -336,10 +336,10 @@ func TestValidateUsername_JSONDecodeError(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	oldLeetcodeAPI := config.Leetcode_API
-	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+	oldLeetcodeAPI := config.LEETCODE_API
+	defer func() { config.LEETCODE_API = oldLeetcodeAPI }()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	_, err := leetcodeAPI.ValidateUsername("testuser")
@@ -354,10 +354,10 @@ func TestValidateUsername_InvalidResponseFormat(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	oldLeetcodeAPI := config.Leetcode_API
-	defer func() { config.Leetcode_API = oldLeetcodeAPI }()
+	oldLeetcodeAPI := config.LEETCODE_API
+	defer func() { config.LEETCODE_API = oldLeetcodeAPI }()
 
-	config.Leetcode_API = testServer.URL
+	config.LEETCODE_API = testServer.URL
 
 	leetcodeAPI := api.NewLeetcodeAPI()
 	_, err := leetcodeAPI.ValidateUsername("testuser")

@@ -28,11 +28,6 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 	return dbClientGetter()
 }
 
-func (r *questionRepo) AddQuestionsByID(questionID *[]string) error {
-	// Placeholder implementation
-	return nil
-}
-
 func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 	// Get the PostgreSQL connection
 	db, err := r.getDBConnection()
@@ -60,8 +55,8 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			question.TopicTags,
-			question.CompanyTags,
+			pq.Array(question.TopicTags), // Convert to PostgreSQL array format
+			pq.Array(question.CompanyTags),
 		)
 		if err != nil {
 			tx.Rollback() // Rollback transaction on error

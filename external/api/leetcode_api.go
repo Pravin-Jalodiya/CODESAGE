@@ -28,7 +28,7 @@ func (api *LeetcodeAPI) FetchData(query string, variables map[string]interface{}
 		return nil, fmt.Errorf("could not marshal request body: %v", err)
 	}
 
-	resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %v", err)
 	}
@@ -210,7 +210,7 @@ func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 		return false, fmt.Errorf("could not marshal request body: %v", err)
 	}
 
-	resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return false, fmt.Errorf("request failed: %v", err)
 	}
