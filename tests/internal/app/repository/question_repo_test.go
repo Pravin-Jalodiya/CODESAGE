@@ -5,9 +5,133 @@ import (
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
+
+func TestAddQuestions_Success(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	questions := []models.Question{
+		{
+			QuestionTitleSlug: "two-sum",
+			QuestionID:        "1",
+			QuestionTitle:     "Two Sum",
+			Difficulty:        "Easy",
+			QuestionLink:      "https://leetcode.com/problems/two-sum/",
+			TopicTags:         []string{"Array", "Hash Table"},
+			CompanyTags:       []string{"Google", "Amazon"},
+		},
+	}
+
+	// Expect the SQL statement to be prepared and executed
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO questions").
+		WithArgs(
+			"two-sum",
+			"1",
+			"Two Sum",
+			"Easy",
+			"https://leetcode.com/problems/two-sum/",
+			pq.Array([]string{"Array", "Hash Table"}), // Mock array handling with pq.Array
+			pq.Array([]string{"Google", "Amazon"}),    // Mock array handling with pq.Array
+		).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	// Call the function
+	err := questionRepo.AddQuestions(&questions)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	// Ensure all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+}
+
+func TestAddQuestions_TransactionFailure(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	questions := []models.Question{
+		{
+			QuestionTitleSlug: "two-sum",
+			QuestionID:        "1",
+			QuestionTitle:     "Two Sum",
+			Difficulty:        "Easy",
+			QuestionLink:      "https://leetcode.com/problems/two-sum/",
+			TopicTags:         []string{"Array", "Hash Table"},
+			CompanyTags:       []string{"Google", "Amazon"},
+		},
+	}
+
+	// Simulate transaction failure
+	mock.ExpectBegin().WillReturnError(sql.ErrConnDone)
+
+	// Call the function being tested
+	err := questionRepo.AddQuestions(&questions)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "could not start transaction: sql: connection is already closed")
+
+	// Ensure all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestAddQuestions_InsertFailure(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+
+	questions := []models.Question{
+		{
+			QuestionTitleSlug: "two-sum",
+			QuestionID:        "1",
+			QuestionTitle:     "Two Sum",
+			Difficulty:        "Easy",
+			QuestionLink:      "https://leetcode.com/problems/two-sum/",
+			TopicTags:         []string{"Array", "Hash Table"},
+			CompanyTags:       []string{"Google", "Amazon"},
+		},
+	}
+
+	// Begin a transaction
+	mock.ExpectBegin()
+
+	// Mock the SQL insert query to fail
+	query := `INSERT INTO questions \(title_slug, id, title, difficulty, link, topic_tags, company_tags\)
+			  VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7\)
+			  ON CONFLICT \(title_slug\) DO NOTHING;`
+
+	mock.ExpectExec(query).
+		WithArgs(
+			"two-sum",
+			"1",
+			"Two Sum",
+			"Easy",
+			"https://leetcode.com/problems/two-sum/",
+			pq.Array([]string{"Array", "Hash Table"}), // Use pq.Array
+			pq.Array([]string{"Google", "Amazon"}),    // Use pq.Array
+		).
+		WillReturnError(sql.ErrTxDone)
+
+	// Expect rollback on failure
+	mock.ExpectRollback()
+
+	// Call the function being tested
+	err := questionRepo.AddQuestions(&questions)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "could not insert question")
+
+	// Ensure all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 
 func TestFetchQuestionByID(t *testing.T) {
 	defer setup(t)()

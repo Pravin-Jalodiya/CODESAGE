@@ -578,8 +578,8 @@ func TestUserRepo_CountActiveUsersInLast24Hours(t *testing.T) {
 	cleanup := setup(t)
 	defer cleanup()
 
-	// Define the time range
-	now := time.Now().UTC().Truncate(time.Second)
+	// Define the time range with consistent precision
+	now := time.Now().UTC().Truncate(time.Millisecond) // Truncate to milliseconds for precision match
 	twentyFourHoursAgo := now.Add(-24 * time.Hour)
 	expectedCount := 5
 

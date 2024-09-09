@@ -60,8 +60,10 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			question.TopicTags,
-			question.CompanyTags,
+			pq.Array(question.TopicTags), // Convert to PostgreSQL array format
+			pq.Array(question.CompanyTags),
+			//question.TopicTags,
+			//question.CompanyTags,
 		)
 		if err != nil {
 			tx.Rollback() // Rollback transaction on error
