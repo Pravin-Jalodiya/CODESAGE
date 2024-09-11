@@ -1,4 +1,4 @@
-package data_cleaning
+package utils
 
 import (
 	"strings"
@@ -15,4 +15,16 @@ func CapitalizeWords(s string) string {
 		}
 	}
 	return strings.Join(words, " ")
+}
+
+func CleanString(input string) string {
+	return strings.ToLower(strings.TrimSpace(input))
+}
+
+func CleanTags(tags string) []string {
+	tagList := strings.Split(tags, ",")
+	for i, tag := range tagList {
+		tagList[i] = CleanString(tag)
+	}
+	return tagList
 }

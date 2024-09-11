@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"os"
 
@@ -11,14 +11,14 @@ import (
 func (ui *UI) DisplayPlatformStats() {
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("        📊 PLATFORM STATS 📊        ", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("        📊 PLATFORM STATS 📊        ", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
 
 	// Fetch platform stats
 	platformStats, err := ui.userService.GetPlatformStats()
 	if err != nil {
-		fmt.Println(formatting.Colorize("Error fetching platform stats: ", "red", "bold"), err)
+		fmt.Println(utils.Colorize("Error fetching platform stats: ", "red", "bold"), err)
 		return
 	}
 
@@ -30,11 +30,11 @@ func (ui *UI) DisplayPlatformStats() {
 
 	statsTable.Append([]string{
 		"Active Users (Last 24 Hours)",
-		formatting.Colorize(fmt.Sprintf("%d", platformStats.ActiveUserInLast24Hours), "cyan", "bold"),
+		utils.Colorize(fmt.Sprintf("%d", platformStats.ActiveUserInLast24Hours), "cyan", "bold"),
 	})
 	statsTable.Append([]string{
 		"Total Questions on the Platform",
-		formatting.Colorize(fmt.Sprintf("%d", platformStats.TotalQuestionsCount), "cyan", "bold"),
+		utils.Colorize(fmt.Sprintf("%d", platformStats.TotalQuestionsCount), "cyan", "bold"),
 	})
 
 	statsTable.SetAutoWrapText(true)
@@ -42,7 +42,7 @@ func (ui *UI) DisplayPlatformStats() {
 	statsTable.Render()
 
 	// Create and display table for difficulty-wise question counts
-	fmt.Println(formatting.Colorize("\nDifficulty-wise Questions Count", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nDifficulty-wise Questions Count", "cyan", "bold"))
 	difficultyTable := tablewriter.NewWriter(os.Stdout)
 	difficultyTable.SetHeader([]string{"Difficulty", "Count"})
 	difficultyTable.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER})
@@ -67,7 +67,7 @@ func (ui *UI) DisplayPlatformStats() {
 		}
 
 		difficultyTable.Append([]string{
-			formatting.Colorize(difficulty, color, "bold"),
+			utils.Colorize(difficulty, color, "bold"),
 			fmt.Sprintf("%d", count),
 		})
 	}
@@ -77,7 +77,7 @@ func (ui *UI) DisplayPlatformStats() {
 	difficultyTable.Render()
 
 	// Create and display table for topic-wise question counts
-	fmt.Println(formatting.Colorize("\nTopic-wise Questions Count", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nTopic-wise Questions Count", "cyan", "bold"))
 	topicTable := tablewriter.NewWriter(os.Stdout)
 	topicTable.SetHeader([]string{"Topic", "Count"})
 	topicTable.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER})
@@ -91,7 +91,7 @@ func (ui *UI) DisplayPlatformStats() {
 	topicTable.Render()
 
 	// Create and display table for company-wise question counts
-	fmt.Println(formatting.Colorize("\nCompany-wise Questions Count", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nCompany-wise Questions Count", "cyan", "bold"))
 	companyTable := tablewriter.NewWriter(os.Stdout)
 	companyTable.SetHeader([]string{"Company", "Count"})
 	companyTable.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER})

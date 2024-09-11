@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/emojis"
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"strings"
 )
@@ -12,21 +11,21 @@ func (ui *UI) ShowUserMenu() {
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("              USER MENU             ", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("1. View questions", "", ""))
-		fmt.Println(formatting.Colorize("2. View dashboard", "", ""))
-		fmt.Println(formatting.Colorize("3. Update progress", "", ""))
-		fmt.Println(formatting.Colorize("4. View profile", "", ""))
-		fmt.Println(formatting.Colorize("5. Logout", "", ""))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("              USER MENU             ", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("1. View questions", "", ""))
+		fmt.Println(utils.Colorize("2. View dashboard", "", ""))
+		fmt.Println(utils.Colorize("3. Update progress", "", ""))
+		fmt.Println(utils.Colorize("4. View profile", "", ""))
+		fmt.Println(utils.Colorize("5. Logout", "", ""))
 
-		fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
+		fmt.Print(utils.Colorize("Enter your choice: ", "yellow", "bold"))
 		choice, err := ui.reader.ReadString('\n')
 		choice = strings.TrimSuffix(choice, "\n")
 		choice = strings.TrimSpace(choice)
 		if err != nil {
-			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+			fmt.Println(utils.Colorize("Error reading input:", "red", "bold"), err)
 			return
 		}
 
@@ -42,9 +41,9 @@ func (ui *UI) ShowUserMenu() {
 		case "5":
 			err := ui.userService.Logout()
 			if err != nil {
-				fmt.Println(formatting.Colorize("Error logging out: ", "red", "bold"), err)
+				fmt.Println(utils.Colorize("Error logging out: ", "red", "bold"), err)
 			} else {
-				fmt.Printf("%s Logging out...\n", emojis.Info)
+				fmt.Printf("%s Logging out...\n", utils.InfoEmoji)
 				return
 			}
 		default:

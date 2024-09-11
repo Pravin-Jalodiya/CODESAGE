@@ -1,7 +1,7 @@
-package password
+package utils
 
 import (
-	"cli-project/pkg/utils/password"
+	"cli-project/pkg/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,7 +34,7 @@ func TestHashString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hash, err := password.HashString(tt.password)
+			hash, err := utils.HashString(tt.password)
 			if err != nil {
 				t.Fatalf("HashString() returned an error: %v", err)
 			}
@@ -95,7 +95,7 @@ func TestVerifyString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := password.VerifyString(tt.password, tt.hash)
+			result := utils.VerifyString(tt.password, tt.hash)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -2,7 +2,7 @@ package ui
 
 import (
 	"cli-project/pkg/globals"
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"os"
@@ -13,9 +13,9 @@ func (ui *UI) ShowUserDashboard() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("            USER DASHBOARD          ", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("            USER DASHBOARD          ", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
 
 	// Fetch Leetcode stats
 	leetcodeStats, err := ui.userService.GetUserLeetcodeStats(globals.ActiveUserID)
@@ -32,7 +32,7 @@ func (ui *UI) ShowUserDashboard() {
 	}
 
 	// Create a new table for Leetcode stats
-	fmt.Println(formatting.Colorize("Leetcode Stats", "cyan", "bold"))
+	fmt.Println(utils.Colorize("Leetcode Stats", "cyan", "bold"))
 	leetcodeTable := tablewriter.NewWriter(os.Stdout)
 	leetcodeTable.SetHeader([]string{"Difficulty", "Solved", "Total"})
 
@@ -52,7 +52,7 @@ func (ui *UI) ShowUserDashboard() {
 	leetcodeTable.Render()
 
 	// Create a table for recent accepted submissions
-	fmt.Println(formatting.Colorize("\nRecent Accepted Submissions", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nRecent Accepted Submissions", "cyan", "bold"))
 	submissionsTable := tablewriter.NewWriter(os.Stdout)
 	submissionsTable.SetHeader([]string{"Recent AC Submissions"})
 	for _, submission := range leetcodeStats.RecentACSubmissionTitles {
@@ -61,7 +61,7 @@ func (ui *UI) ShowUserDashboard() {
 	submissionsTable.Render()
 
 	// Create a new table for Codesage stats
-	fmt.Println(formatting.Colorize("\nCodesage Stats", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nCodesage Stats", "cyan", "bold"))
 	codesageTable := tablewriter.NewWriter(os.Stdout)
 	codesageTable.SetHeader([]string{"Metric", "Count"})
 
@@ -89,7 +89,7 @@ func (ui *UI) ShowUserDashboard() {
 	codesageTable.Render()
 
 	// Display topic-wise stats in a table
-	fmt.Println(formatting.Colorize("\nTopic-wise Stats", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nTopic-wise Stats", "cyan", "bold"))
 	topicTable := tablewriter.NewWriter(os.Stdout)
 	topicTable.SetHeader([]string{"Topic", "Solved"})
 	for topic, count := range codesageStats.TopicWiseStats {
@@ -98,7 +98,7 @@ func (ui *UI) ShowUserDashboard() {
 	topicTable.Render()
 
 	// Display company-wise stats in a table
-	fmt.Println(formatting.Colorize("\nCompany-wise Stats", "cyan", "bold"))
+	fmt.Println(utils.Colorize("\nCompany-wise Stats", "cyan", "bold"))
 	companyTable := tablewriter.NewWriter(os.Stdout)
 	companyTable.SetHeader([]string{"Company", "Solved"})
 	for company, count := range codesageStats.CompanyWiseStats {

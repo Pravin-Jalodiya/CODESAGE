@@ -7,8 +7,6 @@ import (
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
-	"cli-project/pkg/utils/data_cleaning"
-	pwd "cli-project/pkg/utils/password"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -20,8 +18,8 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("username or password incorrect")
 	ErrUserNotFound       = errors.New("user not found")
-	HashString            = pwd.HashString
-	VerifyString          = pwd.VerifyString
+	HashString            = utils.HashString
+	VerifyString          = utils.VerifyString
 )
 
 type UserService struct {
@@ -50,8 +48,8 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
 
 	// Change org and country name to proper format
-	user.StandardUser.Organisation = data_cleaning.CapitalizeWords(user.StandardUser.Organisation)
-	user.StandardUser.Country = data_cleaning.CapitalizeWords(user.StandardUser.Country)
+	user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
+	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
 
 	// Generate a new UUID for the user
 	userID := utils.GenerateUUID()
@@ -87,7 +85,7 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 // Login authenticates a user
 func (s *UserService) Login(username, password string) error {
 	// Change username to lowercase for consistency
-	username = data_cleaning.CleanString(username)
+	username = utils.CleanString(username)
 
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUserByUsername(username)
@@ -188,7 +186,7 @@ func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, 
 	}
 
 	// Change userID to lowercase for consistency
-	username = data_cleaning.CleanString(username)
+	username = utils.CleanString(username)
 
 	return s.userRepo.FetchUserByUsername(username)
 }
@@ -199,7 +197,7 @@ func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
 	}
 
 	// Clean userID for consistency
-	userID = data_cleaning.CleanString(userID)
+	userID = utils.CleanString(userID)
 
 	// Fetch user by ID from the repository
 	return s.userRepo.FetchUserByID(userID)
@@ -212,7 +210,7 @@ func (s *UserService) GetUserRole(userID string) (string, error) {
 	}
 
 	// Change userID to lowercase for consistency
-	userID = data_cleaning.CleanString(userID)
+	userID = utils.CleanString(userID)
 
 	user, err := s.userRepo.FetchUserByID(userID)
 	if err != nil {

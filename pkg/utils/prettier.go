@@ -1,7 +1,22 @@
-package formatting
+package utils
 
 import (
 	"github.com/fatih/color"
+)
+
+const (
+	SignupEmoji   = "✍️"
+	LoginEmoji    = "🔑"
+	ExitEmoji     = "🚪"
+	ErrorEmoji    = "❌"
+	SuccessEmoji  = "✅"
+	ProfileEmoji  = "👤"
+	StatsEmoji    = "📊"
+	SettingsEmoji = "⚙️"
+	QuestionEmoji = "❓"
+	InfoEmoji     = "ℹ️"
+	BackEmoji     = "🔙"
+	ViewEmoji     = "👁️"
 )
 
 // Colorize generates a colorized string with the specified foreground color and style

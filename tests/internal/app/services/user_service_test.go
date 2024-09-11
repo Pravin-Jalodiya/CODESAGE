@@ -6,7 +6,7 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
-	"cli-project/pkg/utils/data_cleaning"
+	"cli-project/pkg/utils"
 	mocks "cli-project/tests/mocks/repository"
 	"database/sql"
 	"errors"
@@ -44,8 +44,8 @@ func TestUserService_Signup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, strings.ToLower("TestUser"), user.StandardUser.Username)
 		assert.Equal(t, strings.ToLower("testuser@example.com"), user.StandardUser.Email)
-		assert.Equal(t, data_cleaning.CapitalizeWords("test org"), user.StandardUser.Organisation)
-		assert.Equal(t, data_cleaning.CapitalizeWords("test country"), user.StandardUser.Country)
+		assert.Equal(t, utils.CapitalizeWords("test org"), user.StandardUser.Organisation)
+		assert.Equal(t, utils.CapitalizeWords("test country"), user.StandardUser.Country)
 		assert.NotEmpty(t, user.StandardUser.ID)
 		assert.NotEqual(t, "securepassword", user.StandardUser.Password)
 		assert.Equal(t, "user", user.StandardUser.Role)

@@ -4,8 +4,7 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
-	"cli-project/pkg/utils/data_cleaning"
-	"cli-project/pkg/utils/readers"
+	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"errors"
 	"fmt"
@@ -23,7 +22,7 @@ func NewQuestionService(questionRepo interfaces.QuestionRepository) interfaces.Q
 }
 
 var (
-	CSVReader                  = readers.ReadCSV
+	CSVReader                  = utils.ReadCSV
 	ValidateQuestionID         = validation.ValidateQuestionID
 	ValidateQuestionDifficulty = validation.ValidateQuestionDifficulty
 	ValidateQuestionLink       = validation.ValidateQuestionLink
@@ -53,13 +52,13 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 		}
 
 		// Clean and validate the fields
-		titleSlug := data_cleaning.CleanString(record[0])
-		questionID := data_cleaning.CleanString(record[1])
-		questionTitle := data_cleaning.CleanString(record[2])
+		titleSlug := utils.CleanString(record[0])
+		questionID := utils.CleanString(record[1])
+		questionTitle := utils.CleanString(record[2])
 		difficulty := record[3]
 		questionLink := record[4]
-		topicTags := data_cleaning.CleanTags(record[5])
-		companyTags := data_cleaning.CleanTags(record[6])
+		topicTags := utils.CleanTags(record[5])
+		companyTags := utils.CleanTags(record[6])
 
 		// Validate question ID
 		valid, err := ValidateQuestionID(questionID)
@@ -165,8 +164,8 @@ func (s *QuestionService) GetQuestionsByFilters(difficulty, topic, company strin
 	}
 
 	// Clean company and topic strings
-	cleanCompany := data_cleaning.CleanString(company)
-	cleanTopic := data_cleaning.CleanString(topic)
+	cleanCompany := utils.CleanString(company)
+	cleanTopic := utils.CleanString(topic)
 
 	// Fetch questions by filters from the repository
 	return s.questionRepo.FetchQuestionsByFilters(validDifficulty, cleanTopic, cleanCompany)

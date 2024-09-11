@@ -1,7 +1,7 @@
-package readers
+package utils
 
 import (
-	"cli-project/pkg/utils/readers"
+	"cli-project/pkg/utils"
 	"os"
 	"testing"
 )
@@ -33,7 +33,7 @@ func TestReadCSV(t *testing.T) {
 	file.WriteString("col1,col2,col3\nval1,val2,val3\n")
 	file.Close()
 
-	records, err := readers.ReadCSV(file.Name())
+	records, err := utils.ReadCSV(file.Name())
 	if err != nil {
 		t.Errorf("Expected no error, but got %v", err)
 	}
@@ -41,7 +41,7 @@ func TestReadCSV(t *testing.T) {
 		t.Errorf("Expected 2 records, but got %d", len(records))
 	}
 
-	_, err = readers.ReadCSV("invalid_path.csv")
+	_, err = utils.ReadCSV("invalid_path.csv")
 	if err == nil {
 		t.Error("Expected an error for invalid path")
 	}

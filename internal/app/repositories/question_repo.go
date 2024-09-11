@@ -73,7 +73,7 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 }
 
 func (r *questionRepo) RemoveQuestionByID(questionID string) error {
-	// Get the PostgreSQL connection
+	// Get the PostgresSQL connection
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
