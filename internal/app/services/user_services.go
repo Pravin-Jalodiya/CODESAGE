@@ -203,10 +203,10 @@ func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
 	return s.userRepo.FetchUserByID(userID)
 }
 
-func (s *UserService) GetUserRole(userID string) (string, error) {
+func (s *UserService) GetUserRole(userID string) (roles.Role, error) {
 
 	if userID == "" {
-		return "", errors.New("userID is empty")
+		return -1, errors.New("userID is empty")
 	}
 
 	// Change userID to lowercase for consistency
@@ -214,10 +214,15 @@ func (s *UserService) GetUserRole(userID string) (string, error) {
 
 	user, err := s.userRepo.FetchUserByID(userID)
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
-	return user.StandardUser.Role, nil
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return -1, err
+	}
+
+	return role, nil
 }
 
 func (s *UserService) GetUserProgress(userID string) (*[]string, error) {
@@ -246,7 +251,10 @@ func (s *UserService) BanUser(username string) (bool, error) {
 		return false, err
 	}
 
-	role := user.StandardUser.Role
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return false, err
+	}
 
 	if role == roles.ADMIN {
 		return false, errors.New("ban operation on admin not allowed")
@@ -276,7 +284,10 @@ func (s *UserService) UnbanUser(username string) (bool, error) {
 		return false, err
 	}
 
-	role := user.StandardUser.Role
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return false, err
+	}
 
 	if role == roles.ADMIN {
 		return false, errors.New("unban operation on admin not allowed")

@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"cli-project/internal/config/roles"
 	"cli-project/internal/domain/models"
 )
 
@@ -15,7 +16,7 @@ type UserService interface {
 	CountActiveUserInLast24Hours() (int, error)
 	GetUserByUsername(username string) (*models.StandardUser, error)
 	GetUserByID(userID string) (*models.StandardUser, error)
-	GetUserRole(userID string) (string, error)
+	GetUserRole(userID string) (roles.Role, error)
 	GetUserID(username string) (string, error)
 	BanUser(username string) (bool, error)
 	UnbanUser(username string) (bool, error)

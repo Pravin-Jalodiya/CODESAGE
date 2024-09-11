@@ -57,7 +57,7 @@ func (ui *UI) ShowLoginPage() {
 			var choice string
 
 			if errors.Is(err, services.ErrUserNotFound) {
-				fmt.Println(utils.ErrorEmoji, "User not found. Would you like to sign up instead? (y/n)")
+				fmt.Println(utils.ErrorEmoji, "User not found. Would you like to sign up instead? (y(es)/n(o))")
 				for {
 					fmt.Print(utils.Colorize("Choice: ", "yellow", ""))
 					choice, err = ui.reader.ReadString('\n')
@@ -69,11 +69,11 @@ func (ui *UI) ShowLoginPage() {
 						continue
 					}
 
-					if strings.ToLower(choice) == "y" {
+					if strings.ToLower(choice) == "y" || choice == "yes" {
 						ui.ShowSignupPage()
 						return
 
-					} else if strings.ToLower(choice) == "n" {
+					} else if strings.ToLower(choice) == "n" || choice == "no" {
 						break
 
 					} else {

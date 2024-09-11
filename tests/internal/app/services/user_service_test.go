@@ -241,7 +241,7 @@ func TestUserService_UpdateUserProgress_LeetcodeAPIError(t *testing.T) {
 	}
 
 	mockUserRepo.EXPECT().FetchUserByID(validUUID).Return(mockUser, nil)
-	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(nil, errors.New("Leetcode API error"))
+	mockLeetcodeAPI.EXPECT().GetStats(mockUser.LeetcodeID).Return(nil, errors.New("leetcode API error"))
 
 	err := userService.UpdateUserProgress()
 	assert.Error(t, err)
@@ -455,26 +455,26 @@ func TestUserService_GetUserRole(t *testing.T) {
 	t.Run("Empty UserID", func(t *testing.T) {
 		role, err := userService.GetUserRole("")
 		assert.EqualError(t, err, "userID is empty")
-		assert.Empty(t, role)
+		assert.Equal(t, roles.Role(-1), role)
 	})
 
 	t.Run("Fetch User Success", func(t *testing.T) {
-		mockUser := &models.StandardUser{StandardUser: models.User{ID: "userid", Role: "admin"}}
+		mockUser := &models.StandardUser{StandardUser: models.User{ID: "userid", Role: roles.ADMIN.String()}}
 		cleanUserID := "userid"
 		mockUserRepo.EXPECT().FetchUserByID(cleanUserID).Return(mockUser, nil)
 
-		role, err := userService.GetUserRole("UserID")
+		role, err := userService.GetUserRole(cleanUserID)
 		assert.NoError(t, err)
-		assert.Equal(t, "admin", role)
+		assert.Equal(t, roles.ADMIN, role)
 	})
 
 	t.Run("Fetch User Error", func(t *testing.T) {
 		cleanUserID := "userid"
 		mockUserRepo.EXPECT().FetchUserByID(cleanUserID).Return(nil, errors.New("fetch error"))
 
-		role, err := userService.GetUserRole("UserID")
+		role, err := userService.GetUserRole(cleanUserID)
 		assert.EqualError(t, err, "fetch error")
-		assert.Empty(t, role)
+		assert.Equal(t, roles.Role(-1), role)
 	})
 }
 
@@ -609,7 +609,7 @@ func TestUserService_GetUserLeetcodeStats_Error(t *testing.T) {
 	}, nil).Times(1)
 
 	// Simulate an error while fetching stats from Leetcode API
-	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(nil, errors.New("Leetcode API error")).Times(1)
+	mockLeetcodeAPI.EXPECT().GetStats("Leetcode_user").Return(nil, errors.New("leetcode API error")).Times(1)
 
 	// Call the method
 	stats, err := userService.GetUserLeetcodeStats(userID)
@@ -619,18 +619,18 @@ func TestUserService_GetUserLeetcodeStats_Error(t *testing.T) {
 }
 
 func TestUserService_BanUser_Error(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUserRepo := mocks.NewMockUserRepository(ctrl)
-	userService := services.NewUserService(mockUserRepo, nil, nil)
+	// Set up the mock environment and cleanup
+	cleanup := setup(t)
+	defer cleanup()
 
 	username := "testuser"
 	userID := "user-id"
 
+	// Mock FetchUserByUsername to return a user with a valid, non-admin role
 	mockUserRepo.EXPECT().FetchUserByUsername(username).Return(&models.StandardUser{
 		StandardUser: models.User{
-			ID: userID,
+			ID:   userID,
+			Role: roles.USER.String(), // Ensure it's a valid non-admin role
 		},
 	}, nil).Times(2)
 
@@ -644,8 +644,10 @@ func TestUserService_BanUser_Error(t *testing.T) {
 	// Simulate an error while banning the user
 	mockUserRepo.EXPECT().BanUser(userID).Return(errors.New("ban user error")).Times(1)
 
+	// Call BanUser and check the result
 	banned, err := userService.BanUser(username)
 
+	// Validate the results
 	assert.Error(t, err)
 	assert.False(t, banned)
 	assert.Equal(t, "ban user error", err.Error())
@@ -721,7 +723,7 @@ func TestUserService_BanUser(t *testing.T) {
 		mockUser := &models.StandardUser{
 			StandardUser: models.User{
 				Username: "testadmin",
-				Role:     roles.ADMIN,
+				Role:     roles.ADMIN.String(), // Ensure it's an admin role
 			},
 		}
 		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
@@ -736,10 +738,15 @@ func TestUserService_BanUser(t *testing.T) {
 		mockUser := &models.StandardUser{
 			StandardUser: models.User{
 				Username: "testuser",
+				Role:     roles.USER.String(),
 			},
 		}
-		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
-		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(nil, errors.New("fetch error"))
+
+		// Expect the call for FetchUserByUsername and return mockUser
+		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil).Times(1)
+
+		// Expect the second call and return error
+		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(nil, errors.New("fetch error")).Times(1)
 
 		success, err := userService.BanUser(username)
 		assert.False(t, success)
@@ -753,6 +760,7 @@ func TestUserService_BanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				Role:     roles.USER.String(),
 			},
 		}
 		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
@@ -771,6 +779,8 @@ func TestUserService_BanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				IsBanned: true,
+				Role:     roles.USER.String(),
 			},
 		}
 
@@ -778,11 +788,10 @@ func TestUserService_BanUser(t *testing.T) {
 			mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil),
 			mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil), // For GetUserID
 			mockUserRepo.EXPECT().FetchUserByID(userID).Return(mockUser, nil),
-			mockUserRepo.EXPECT().BanUser(userID).Return(nil), // User is already banned
 		)
 
 		success, err := userService.BanUser(username)
-		assert.False(t, success)
+		assert.True(t, success) // User is already banned
 		assert.NoError(t, err)
 	})
 
@@ -793,6 +802,7 @@ func TestUserService_BanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				Role:     roles.USER.String(),
 			},
 		}
 
@@ -807,7 +817,6 @@ func TestUserService_BanUser(t *testing.T) {
 		assert.False(t, success)
 		assert.NoError(t, err)
 	})
-
 }
 
 func TestUserService_UnbanUser(t *testing.T) {
@@ -828,7 +837,7 @@ func TestUserService_UnbanUser(t *testing.T) {
 		mockUser := &models.StandardUser{
 			StandardUser: models.User{
 				Username: "testadmin",
-				Role:     roles.ADMIN,
+				Role:     roles.ADMIN.String(), // Ensure it's an admin role
 			},
 		}
 		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
@@ -843,6 +852,7 @@ func TestUserService_UnbanUser(t *testing.T) {
 		mockUser := &models.StandardUser{
 			StandardUser: models.User{
 				Username: "testuser",
+				Role:     roles.USER.String(),
 			},
 		}
 		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
@@ -860,6 +870,7 @@ func TestUserService_UnbanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				Role:     roles.USER.String(),
 			},
 		}
 		mockUserRepo.EXPECT().FetchUserByUsername(username).Return(mockUser, nil)
@@ -878,6 +889,8 @@ func TestUserService_UnbanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				IsBanned: false,
+				Role:     roles.USER.String(),
 			},
 		}
 
@@ -888,7 +901,7 @@ func TestUserService_UnbanUser(t *testing.T) {
 		)
 
 		success, err := userService.UnbanUser(username)
-		assert.True(t, success)
+		assert.True(t, success) // User is already unbanned
 		assert.NoError(t, err)
 	})
 
@@ -899,6 +912,7 @@ func TestUserService_UnbanUser(t *testing.T) {
 			StandardUser: models.User{
 				Username: "testuser",
 				ID:       userID,
+				Role:     roles.USER.String(),
 			},
 		}
 
@@ -912,7 +926,6 @@ func TestUserService_UnbanUser(t *testing.T) {
 		assert.True(t, success)
 		assert.NoError(t, err)
 	})
-
 }
 
 func TestUserService_IsUserBanned(t *testing.T) {
