@@ -4,7 +4,6 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -18,10 +17,6 @@ type questionRepo struct {
 
 func NewQuestionRepo() interfaces.QuestionRepository {
 	return &questionRepo{}
-}
-
-func (r *questionRepo) getTableName() string {
-	return "questions"
 }
 
 func (r *questionRepo) getDBConnection() (*sql.DB, error) {
@@ -83,7 +78,7 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	query := `DELETE FROM questions WHERE id = $1`
 
 	// Execute the query
-	result, err := db.ExecContext(context.Background(), query, questionID)
+	result, err := db.ExecContext(ctx, query, questionID)
 	if err != nil {
 		return fmt.Errorf("could not delete question: %v", err)
 	}
@@ -116,7 +111,7 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.Background(), query, questionID)
+	row := db.QueryRowContext(ctx, query, questionID)
 
 	var question models.Question
 	var topicTags, companyTags []string
@@ -160,7 +155,7 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 	`
 
 	// Execute the query
-	rows, err := db.QueryContext(context.Background(), query)
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions: %v", err)
 	}
@@ -242,7 +237,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 	fmt.Printf("With args: %v\n", args)
 
 	// Execute the query
-	rows, err := db.QueryContext(context.Background(), query, args...)
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
 	}
@@ -303,7 +298,7 @@ func (r *questionRepo) CountQuestions() (int, error) {
 
 	// Execute the query
 	var count int
-	err = db.QueryRowContext(context.Background(), query).Scan(&count)
+	err = db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("could not count questions: %v", err)
 	}

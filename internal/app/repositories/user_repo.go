@@ -3,7 +3,6 @@ package repositories
 import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -14,38 +13,15 @@ import (
 	"time"
 )
 
-var (
-	dbClientGetter = defaultGetPostgresClient
-)
-
 type userRepo struct{}
 
 func NewUserRepo() interfaces.UserRepository {
 	return &userRepo{}
 }
 
-func defaultGetPostgresClient() (*sql.DB, error) {
-	db, err := GetPostgresClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
-	}
-	return db, nil
-}
-
-// UseDBClient allows for injecting a custom DB client getter function (used in tests).
-func UseDBClient(getter func() (*sql.DB, error)) {
-	DbMutex.Lock()
-	defer DbMutex.Unlock()
-	dbClientGetter = getter
-}
-
 func (r *userRepo) getDBConnection() (*sql.DB, error) {
 	return dbClientGetter()
 }
-
-//func (r *userRepo) getTableName() string {
-//	return "users"
-//}
 
 func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	// Get a database connection
@@ -62,7 +38,7 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 		)
 	`
-	_, err = db.ExecContext(context.TODO(), query,
+	_, err = db.ExecContext(ctx, query,
 		user.StandardUser.ID,
 		strings.ToLower(user.StandardUser.Username),
 		user.StandardUser.Password,
@@ -162,7 +138,7 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	`
 
 	// Execute the query
-	rows, err := db.QueryContext(context.TODO(), query)
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch users: %v", err)
 	}
@@ -222,7 +198,7 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, userID)
+	row := db.QueryRowContext(ctx, query, userID)
 
 	var user models.StandardUser
 	err = row.Scan(
@@ -265,7 +241,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, username)
+	row := db.QueryRowContext(ctx, query, username)
 
 	var user models.StandardUser
 	err = row.Scan(
@@ -307,7 +283,7 @@ func (r *userRepo) FetchUserProgress(userID string) (*[]string, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, userID)
+	row := db.QueryRowContext(ctx, query, userID)
 
 	// Variable to hold the result (use pq.StringArray for PostgreSQL arrays)
 	var titleSlugs pq.StringArray
@@ -353,7 +329,7 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 
 	// Execute the update query
 	_, err = db.ExecContext(
-		context.TODO(),
+		ctx,
 		query,
 		user.StandardUser.Username,
 		user.StandardUser.Email,
@@ -392,7 +368,7 @@ func (r *userRepo) BanUser(userID string) error {
 	`
 
 	// Execute the update query
-	result, err := db.ExecContext(context.TODO(), query, userID)
+	result, err := db.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("could not ban user: %v", err)
 	}
@@ -429,7 +405,7 @@ func (r *userRepo) UnbanUser(userID string) error {
 	`
 
 	// Execute the update query
-	result, err := db.ExecContext(context.TODO(), query, userID)
+	result, err := db.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("could not unban user: %v", err)
 	}
@@ -465,7 +441,7 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, twentyFourHoursAgo)
+	row := db.QueryRowContext(ctx, query, twentyFourHoursAgo)
 
 	// Scan the result into a count variable
 	var count int
@@ -492,7 +468,7 @@ func (r *userRepo) IsEmailUnique(email string) (bool, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, email)
+	row := db.QueryRowContext(ctx, query, email)
 
 	// Scan the result into a count variable
 	var count int
@@ -520,7 +496,7 @@ func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, username)
+	row := db.QueryRowContext(ctx, query, username)
 
 	// Scan the result into a count variable
 	var count int
@@ -539,7 +515,6 @@ func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get DB connection: %v", err)
 	}
-	context, _ := CreateContext()
 
 	// Define the SQL query to check for the existence of the LeetcodeID
 	query := `
@@ -549,7 +524,7 @@ func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context, query, LeetcodeID)
+	row := db.QueryRowContext(ctx, query, LeetcodeID)
 
 	// Scan the result into a count variable
 	var count int
