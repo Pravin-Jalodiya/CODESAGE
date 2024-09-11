@@ -55,11 +55,11 @@ func TestUserService_Signup(t *testing.T) {
 	})
 
 	t.Run("Password Hash Error", func(t *testing.T) {
-		originalHashPassword := services.HashPassword
-		services.HashPassword = func(password string) (string, error) {
+		originalHashString := services.HashString
+		services.HashString = func(password string) (string, error) {
 			return "", errors.New("hash error")
 		}
-		defer func() { services.HashPassword = originalHashPassword }()
+		defer func() { services.HashString = originalHashString }()
 
 		user := models.StandardUser{
 			StandardUser: models.User{
@@ -117,11 +117,11 @@ func TestUserService_Login(t *testing.T) {
 		}
 
 		mockUserRepo.EXPECT().FetchUserByUsername(lowercaseUsername).Return(user, nil)
-		mockVerifyPassword := services.VerifyPassword
-		services.VerifyPassword = func(inputPassword, storedPassword string) bool {
+		mockVerifyString := services.VerifyString
+		services.VerifyString = func(inputPassword, storedPassword string) bool {
 			return inputPassword == storedPassword
 		}
-		defer func() { services.VerifyPassword = mockVerifyPassword }()
+		defer func() { services.VerifyString = mockVerifyString }()
 
 		err := userService.Login(username, password)
 		assert.NoError(t, err)
@@ -162,11 +162,11 @@ func TestUserService_Login(t *testing.T) {
 		}
 
 		mockUserRepo.EXPECT().FetchUserByUsername(lowercaseUsername).Return(user, nil)
-		mockVerifyPassword := services.VerifyPassword
-		services.VerifyPassword = func(inputPassword, storedPassword string) bool {
+		mockVerifyString := services.VerifyString
+		services.VerifyString = func(inputPassword, storedPassword string) bool {
 			return inputPassword == storedPassword
 		}
-		defer func() { services.VerifyPassword = mockVerifyPassword }()
+		defer func() { services.VerifyString = mockVerifyString }()
 
 		err := userService.Login(username, password)
 		assert.EqualError(t, err, services.ErrInvalidCredentials.Error())

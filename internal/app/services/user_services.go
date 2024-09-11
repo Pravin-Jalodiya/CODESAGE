@@ -20,8 +20,8 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("username or password incorrect")
 	ErrUserNotFound       = errors.New("user not found")
-	HashPassword          = pwd.HashPassword
-	VerifyPassword        = pwd.VerifyPassword
+	HashString            = pwd.HashString
+	VerifyString          = pwd.VerifyString
 )
 
 type UserService struct {
@@ -58,7 +58,7 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	user.StandardUser.ID = userID
 
 	// Hash the user password
-	hashedPassword, err := HashPassword(user.StandardUser.Password)
+	hashedPassword, err := HashString(user.StandardUser.Password)
 	if err != nil {
 		return fmt.Errorf("could not hash password")
 	}
@@ -99,7 +99,7 @@ func (s *UserService) Login(username, password string) error {
 		return fmt.Errorf("error fetching user: %v", err)
 	}
 	// Verify the password
-	if !VerifyPassword(password, user.StandardUser.Password) {
+	if !VerifyString(password, user.StandardUser.Password) {
 		return ErrInvalidCredentials
 	}
 	return nil

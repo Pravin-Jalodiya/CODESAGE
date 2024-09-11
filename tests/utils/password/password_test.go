@@ -8,8 +8,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TestHashPassword tests the HashPassword function.
-func TestHashPassword(t *testing.T) {
+// TestHashString tests the HashString function.
+func TestHashString(t *testing.T) {
 	tests := []struct {
 		name     string
 		password string
@@ -34,27 +34,27 @@ func TestHashPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hash, err := password.HashPassword(tt.password)
+			hash, err := password.HashString(tt.password)
 			if err != nil {
-				t.Fatalf("HashPassword() returned an error: %v", err)
+				t.Fatalf("HashString() returned an error: %v", err)
 			}
 
 			// Ensure the hash is not empty
 			if hash == "" {
-				t.Errorf("HashPassword() returned an empty hash")
+				t.Errorf("HashString() returned an empty hash")
 			}
 
 			// Check if the hash is valid
 			err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(tt.password))
 			if err != nil {
-				t.Errorf("HashPassword() returned an invalid hash: %v", err)
+				t.Errorf("HashString() returned an invalid hash: %v", err)
 			}
 		})
 	}
 }
 
-// TestVerifyPassword tests the VerifyPassword function.
-func TestVerifyPassword(t *testing.T) {
+// TestVerifyString tests the VerifyString function.
+func TestVerifyString(t *testing.T) {
 	tests := []struct {
 		name     string
 		password string
@@ -95,7 +95,7 @@ func TestVerifyPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := password.VerifyPassword(tt.password, tt.hash)
+			result := password.VerifyString(tt.password, tt.hash)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
