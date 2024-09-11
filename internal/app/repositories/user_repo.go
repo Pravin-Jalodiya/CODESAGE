@@ -43,9 +43,9 @@ func (r *userRepo) getDBConnection() (*sql.DB, error) {
 	return dbClientGetter()
 }
 
-func (r *userRepo) getTableName() string {
-	return "users"
-}
+//func (r *userRepo) getTableName() string {
+//	return "users"
+//}
 
 func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	// Get a database connection
@@ -539,6 +539,7 @@ func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get DB connection: %v", err)
 	}
+	context, _ := CreateContext()
 
 	// Define the SQL query to check for the existence of the LeetcodeID
 	query := `
@@ -548,7 +549,7 @@ func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
 	`
 
 	// Execute the query
-	row := db.QueryRowContext(context.TODO(), query, LeetcodeID)
+	row := db.QueryRowContext(context, query, LeetcodeID)
 
 	// Scan the result into a count variable
 	var count int

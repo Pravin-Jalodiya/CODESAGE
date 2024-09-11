@@ -103,6 +103,6 @@ func TestVerifyPassword(t *testing.T) {
 
 // Helper function to generate a hash for a password
 func getHashForPassword(password string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(hash)
 }
