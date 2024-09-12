@@ -1,19 +1,19 @@
+// repositories/questionRepo.go
 package repositories
 
 import (
+	"cli-project/internal/config/queries"
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
 	"strings"
 )
 
-type questionRepo struct {
-}
+type questionRepo struct{}
 
 func NewQuestionRepo() interfaces.QuestionRepository {
 	return &questionRepo{}
@@ -24,42 +24,42 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 }
 
 func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Prepare SQL query for bulk insertion
-	query := `
-			INSERT INTO questions
-			(title_slug, id, title, difficulty, link, topic_tags, company_tags)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			ON CONFLICT (title_slug) DO NOTHING;
-		`
+	query := queries.QueryBuilder(queries.BaseInsert, map[string]string{
+		"table":   "questions",
+		"columns": "title_slug, id, title, difficulty, link, topic_tags, company_tags",
+		"values":  "$1, $2, $3, $4, $5, $6, $7",
+	}) + " ON CONFLICT (title_slug) DO NOTHING;"
 
-	tx, err := db.Begin() // Ensure this line is present and correct
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("could not start transaction: %v", err)
 	}
 
 	for _, question := range *questions {
-		_, err := tx.Exec(query,
+		_, err := tx.ExecContext(ctx, query,
 			question.QuestionTitleSlug,
 			question.QuestionID,
 			question.QuestionTitle,
 			question.Difficulty,
 			question.QuestionLink,
-			pq.Array(question.TopicTags), // Convert to PostgreSQL array format
+			pq.Array(question.TopicTags),
 			pq.Array(question.CompanyTags),
 		)
 		if err != nil {
-			tx.Rollback() // Rollback transaction on error
+			tx.Rollback()
 			return fmt.Errorf("could not insert question: %v", err)
 		}
 	}
 
-	err = tx.Commit() // Commit the transaction
+	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("could not commit transaction: %v", err)
 	}
@@ -68,79 +68,72 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 }
 
 func (r *questionRepo) RemoveQuestionByID(questionID string) error {
-	// Get the PostgresSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Define the SQL query to delete a question by its title slug
-	query := `DELETE FROM questions WHERE id = $1`
+	query := queries.QueryBuilder(queries.BaseDelete, map[string]string{
+		"table":      "questions",
+		"conditions": "id = $1",
+	})
 
-	ctx, cancel := CreateContext()
-	defer cancel()
-
-	// Execute the query
 	result, err := db.ExecContext(ctx, query, questionID)
 	if err != nil {
 		return fmt.Errorf("could not delete question: %v", err)
 	}
 
-	// Check if any rows were affected
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("could not get rows affected: %v", err)
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("question with title slug %s not found", questionID)
+		return fmt.Errorf("question with ID %s not found", questionID)
 	}
 
 	return nil
 }
 
 func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Define the SQL query to fetch a question by its title slug
-	query := `
-		SELECT title_slug, id, title, difficulty, link, topic_tags, company_tags
-		FROM questions
-		WHERE title_slug = $1
-	`
+	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+		"columns":    "title_slug, id, title, difficulty, link, topic_tags, company_tags",
+		"table":      "questions",
+		"conditions": "title_slug = $1",
+	})
 
-	ctx, cancel := CreateContext()
-	defer cancel()
-
-	// Execute the query
 	row := db.QueryRowContext(ctx, query, questionID)
 
 	var question models.Question
 	var topicTags, companyTags []string
 
-	// Scan the row into the struct, converting PostgreSQL arrays into Go slices using pq.Array
 	err = row.Scan(
 		&question.QuestionTitleSlug,
 		&question.QuestionID,
 		&question.QuestionTitle,
 		&question.Difficulty,
 		&question.QuestionLink,
-		pq.Array(&topicTags),   // Use pq.Array for PostgreSQL arrays
-		pq.Array(&companyTags), // Use pq.Array for PostgreSQL arrays
+		pq.Array(&topicTags),
+		pq.Array(&companyTags),
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("question with title slug %s not found", questionID)
+			return nil, fmt.Errorf("question with ID %s not found", questionID)
 		}
 		return nil, fmt.Errorf("could not fetch question: %v", err)
 	}
 
-	// Assign the scanned slices to the question struct
 	question.TopicTags = topicTags
 	question.CompanyTags = companyTags
 
@@ -148,22 +141,19 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 }
 
 func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Define the SQL query to fetch all questions excluding title_slug
-	query := `
-		SELECT id, title, difficulty, link, topic_tags, company_tags
-		FROM questions
-	`
+	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
+		"columns": "id, title, difficulty, link, topic_tags, company_tags",
+		"table":   "questions",
+	})
 
-	ctx, cancel := CreateContext()
-	defer cancel()
-
-	// Execute the query
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions: %v", err)
@@ -172,7 +162,6 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 
 	var questions []dto.Question
 
-	// Iterate over the rows
 	for rows.Next() {
 		var (
 			id          string
@@ -183,7 +172,6 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 			companyTags []string
 		)
 
-		// Use the appropriate scan method for arrays
 		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
 			return nil, fmt.Errorf("could not scan question: %v", err)
@@ -199,7 +187,6 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 		})
 	}
 
-	// Check for errors during iteration
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("rows error: %v", err)
 	}
@@ -208,21 +195,22 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 }
 
 func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string) (*[]dto.Question, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Initialize the base query
-	query := `SELECT id, title, difficulty, link, topic_tags, company_tags
-	          FROM questions
-	          WHERE TRUE`
+	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
+		"columns": "id, title, difficulty, link, topic_tags, company_tags",
+		"table":   "questions",
+	}) + " WHERE TRUE"
 
 	var args []interface{}
 	argIndex := 1
 
-	// Add filters based on user input
 	if difficulty != "" && strings.ToLower(difficulty) != "any" {
 		query += fmt.Sprintf(" AND difficulty = $%d", argIndex)
 		args = append(args, difficulty)
@@ -241,14 +229,6 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 		argIndex++
 	}
 
-	// Log the query and arguments
-	fmt.Printf("Executing query: %s\n", query)
-	fmt.Printf("With args: %v\n", args)
-
-	ctx, cancel := CreateContext()
-	defer cancel()
-
-	// Execute the query
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
@@ -257,7 +237,6 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 
 	var questions []dto.Question
 
-	// Iterate over the rows
 	for rows.Next() {
 		var (
 			id          string
@@ -268,14 +247,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 			companyTags []string
 		)
 
-		err := rows.Scan(
-			&id,
-			&title,
-			&difficulty,
-			&link,
-			pq.Array(&topicTags),
-			pq.Array(&companyTags),
-		)
+		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
 			return nil, fmt.Errorf("could not scan question: %v", err)
 		}
@@ -290,7 +262,6 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 		})
 	}
 
-	// Check for errors during iteration
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("rows error: %v", err)
 	}
@@ -299,19 +270,19 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 }
 
 func (r *questionRepo) CountQuestions() (int, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Define the SQL query to count the number of questions
-	query := `SELECT COUNT(*) FROM questions`
+	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
+		"columns": "COUNT(*)",
+		"table":   "questions",
+	})
 
-	ctx, cancel := CreateContext()
-	defer cancel()
-
-	// Execute the query
 	var count int
 	err = db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
@@ -322,17 +293,21 @@ func (r *questionRepo) CountQuestions() (int, error) {
 }
 
 func (r *questionRepo) QuestionExistsByID(questionID string) (bool, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Prepare the SQL query to check if the question exists by its title slug
-	query := `SELECT EXISTS (SELECT 1 FROM questions WHERE id = $1)`
+	query := queries.QueryBuilder(queries.BaseSelectExistsWhere, map[string]string{
+		"table":      "questions",
+		"conditions": "id = $1",
+	})
 
 	var exists bool
-	err = db.QueryRow(query, questionID).Scan(&exists)
+	err = db.QueryRowContext(ctx, query, questionID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if question exists: %v", err)
 	}
@@ -341,17 +316,21 @@ func (r *questionRepo) QuestionExistsByID(questionID string) (bool, error) {
 }
 
 func (r *questionRepo) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
-	// Get the PostgreSQL connection
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
 	}
 
-	// Prepare the SQL query to check if the question exists by its title slug
-	query := `SELECT EXISTS (SELECT 1 FROM questions WHERE title_slug = $1)`
+	query := queries.QueryBuilder(queries.BaseSelectExistsWhere, map[string]string{
+		"table":      "questions",
+		"conditions": "title_slug = $1",
+	})
 
 	var exists bool
-	err = db.QueryRow(query, titleSlug).Scan(&exists)
+	err = db.QueryRowContext(ctx, query, titleSlug).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if question exists by title slug: %v", err)
 	}
