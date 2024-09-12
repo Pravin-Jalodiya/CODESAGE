@@ -283,7 +283,7 @@ func TestCountQuestions(t *testing.T) {
 func TestQuestionExistsByID(t *testing.T) {
 	defer setup(t)()
 
-	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM questions WHERE id = \$1\)`).
+	mock.ExpectQuery(`SELECT * EXISTS \(SELECT 1 FROM questions WHERE id = \$1\)`).
 		WithArgs("1").
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
@@ -299,7 +299,7 @@ func TestQuestionExistsByID(t *testing.T) {
 func TestQuestionExistsByTitleSlug(t *testing.T) {
 	defer setup(t)()
 
-	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM questions WHERE title_slug = \$1\)`).
+	mock.ExpectQuery(`SELECT * EXISTS \(SELECT 1 FROM questions WHERE title_slug = \$1\)`).
 		WithArgs("test-slug").
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
