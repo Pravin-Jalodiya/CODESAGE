@@ -3,8 +3,8 @@ package queries
 import "strings"
 
 const (
-	BaseSelect      = "SELECT {column} FROM {table}"
-	BaseSelectWhere = "SELECT {column} FROM {table} WHERE {conditions}"
+	BaseSelect      = "SELECT {columns} FROM {table}"
+	BaseSelectWhere = "SELECT {columns} FROM {table} WHERE {conditions}"
 	BaseInsert      = "INSERT INTO {table} ({columns}) VALUES ({values})"
 	BaseUpdate      = "UPDATE {table} SET {assignments} WHERE {conditions}"
 )

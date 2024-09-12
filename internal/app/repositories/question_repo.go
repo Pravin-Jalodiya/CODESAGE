@@ -77,6 +77,9 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	// Define the SQL query to delete a question by its title slug
 	query := `DELETE FROM questions WHERE id = $1`
 
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	// Execute the query
 	result, err := db.ExecContext(ctx, query, questionID)
 	if err != nil {
@@ -109,6 +112,9 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 		FROM questions
 		WHERE title_slug = $1
 	`
+
+	ctx, cancel := CreateContext()
+	defer cancel()
 
 	// Execute the query
 	row := db.QueryRowContext(ctx, query, questionID)
@@ -153,6 +159,9 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 		SELECT id, title, difficulty, link, topic_tags, company_tags
 		FROM questions
 	`
+
+	ctx, cancel := CreateContext()
+	defer cancel()
 
 	// Execute the query
 	rows, err := db.QueryContext(ctx, query)
@@ -236,6 +245,9 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 	fmt.Printf("Executing query: %s\n", query)
 	fmt.Printf("With args: %v\n", args)
 
+	ctx, cancel := CreateContext()
+	defer cancel()
+
 	// Execute the query
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -295,6 +307,9 @@ func (r *questionRepo) CountQuestions() (int, error) {
 
 	// Define the SQL query to count the number of questions
 	query := `SELECT COUNT(*) FROM questions`
+
+	ctx, cancel := CreateContext()
+	defer cancel()
 
 	// Execute the query
 	var count int
