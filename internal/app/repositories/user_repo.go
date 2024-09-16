@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
-	"log"
 	"strings"
 	"time"
 )
@@ -237,8 +236,6 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 		"table":      "Users",
 		"conditions": "username = $1",
 	})
-
-	log.Println(query) // For debugging, ensure this shows the correct SQL
 
 	row := db.QueryRowContext(ctx, query, username)
 
