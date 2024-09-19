@@ -7,12 +7,10 @@ import (
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"strings"
-	"time"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -36,93 +34,6 @@ func NewUserService(userRepo interfaces.UserRepository, questionService interfac
 		LeetcodeAPI:     LeetcodeAPI,
 		//userWG:   &sync.WaitGroup{},
 	}
-}
-
-// Signup creates a new user account
-func (s *UserService) Signup(user *models.StandardUser) error {
-
-	// Change username to lowercase for consistency
-	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
-
-	// Change email to lower for consistency
-	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
-
-	// Change org and country name to proper format
-	user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
-	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
-
-	// Generate a new UUID for the user
-	userID := utils.GenerateUUID()
-	user.StandardUser.ID = userID
-
-	// Hash the user password
-	hashedPassword, err := HashString(user.StandardUser.Password)
-	if err != nil {
-		return fmt.Errorf("could not hash password")
-	}
-	user.StandardUser.Password = hashedPassword
-
-	// Set default role
-	user.StandardUser.Role = "user"
-
-	// Set default blocked status
-	user.StandardUser.IsBanned = false
-
-	// set question solved
-	user.QuestionsSolved = []string{}
-
-	// set last seen
-	user.LastSeen = time.Now().UTC()
-
-	// Register the user
-	err = s.userRepo.CreateUser(user)
-	if err != nil {
-		return fmt.Errorf("could not register user")
-	}
-	return nil
-}
-
-// Login authenticates a user
-func (s *UserService) Login(username, password string) error {
-	// Change username to lowercase for consistency
-	username = utils.CleanString(username)
-
-	// Retrieve the user by username
-	user, err := s.userRepo.FetchUserByUsername(username)
-	if err != nil {
-		// Check if the error is because the user was not found (PostgreSQL)
-		if errors.Is(err, sql.ErrNoRows) {
-			return ErrUserNotFound // Return error if user doesn't exist
-		}
-		return fmt.Errorf("error fetching user: %v", err)
-	}
-	// Verify the password
-	if !VerifyString(password, user.StandardUser.Password) {
-		return ErrInvalidCredentials
-	}
-	return nil
-}
-
-func (s *UserService) Logout() error {
-	// Get active user
-	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
-	if err != nil {
-		return errors.New("user not found")
-	}
-
-	//update last seen of user
-	user.LastSeen = time.Now().UTC()
-
-	// update data in db
-	err = s.userRepo.UpdateUserDetails(user)
-	if err != nil {
-		return errors.New("could not update user details")
-	}
-
-	// clear Active user id
-	globals.ActiveUserID = ""
-
-	return nil
 }
 
 func (s *UserService) GetAllUsers() (*[]models.StandardUser, error) {
@@ -187,8 +98,8 @@ func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, 
 
 	// Change userID to lowercase for consistency
 	username = utils.CleanString(username)
-
-	return s.userRepo.FetchUserByUsername(username)
+	ctx := context.TODO()
+	return s.userRepo.FetchUserByUsername(ctx, username)
 }
 
 func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
@@ -237,7 +148,8 @@ func (s *UserService) GetUserProgress(userID string) (*[]string, error) {
 }
 
 func (s *UserService) GetUserID(username string) (string, error) {
-	user, err := s.userRepo.FetchUserByUsername(username)
+	ctx := context.TODO()
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -245,8 +157,8 @@ func (s *UserService) GetUserID(username string) (string, error) {
 }
 
 func (s *UserService) BanUser(username string) (bool, error) {
-
-	user, err := s.userRepo.FetchUserByUsername(username)
+	ctx := context.TODO()
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
 		return false, err
 	}
@@ -278,8 +190,8 @@ func (s *UserService) BanUser(username string) (bool, error) {
 }
 
 func (s *UserService) UnbanUser(username string) (bool, error) {
-
-	user, err := s.userRepo.FetchUserByUsername(username)
+	ctx := context.TODO()
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
 		return false, err
 	}

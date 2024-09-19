@@ -6,9 +6,6 @@ import (
 )
 
 type UserService interface {
-	Signup(user *models.StandardUser) error
-	Login(username, password string) error
-	Logout() error
 	GetAllUsers() (*[]models.StandardUser, error)
 	ViewDashboard() error
 	UpdateUserProgress() error

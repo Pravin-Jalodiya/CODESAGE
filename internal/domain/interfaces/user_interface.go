@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"cli-project/internal/domain/models"
+	"context"
 	"github.com/google/uuid"
 )
 
@@ -10,7 +11,7 @@ type UserRepository interface {
 	UpdateUserProgress(userID uuid.UUID, questionID []string) error
 	FetchAllUsers() (*[]models.StandardUser, error)
 	FetchUserByID(string) (*models.StandardUser, error)
-	FetchUserByUsername(string) (*models.StandardUser, error)
+	FetchUserByUsername(context.Context, string) (*models.StandardUser, error)
 	FetchUserProgress(string) (*[]string, error)
 	UpdateUserDetails(*models.StandardUser) error
 	BanUser(string) error

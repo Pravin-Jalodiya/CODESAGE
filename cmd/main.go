@@ -1,12 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"cli-project/external/api"
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
-	"cli-project/internal/ui"
+	"cli-project/internal/config"
+	"cli-project/internal/server/handlers"
+	"cli-project/internal/server/routes"
+	"fmt"
+	"github.com/gorilla/mux"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -64,11 +68,18 @@ func main() {
 	}
 
 	// Initialize UI
-	newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
-	if newUI == nil {
-		log.Fatal("Failed to initialize UI")
-	}
+	//newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
+	//if newUI == nil {
+	//	log.Fatal("Failed to initialize UI")
+	//}
 
+	//http://lcoahhost:8080/auth
+	r := mux.NewRouter()
+	authHandler := handlers.NewAuthHandler(authService)
+	routes.InitialiseAuthRouter(r, authHandler)
+	http.Handle("/", r)
+	fmt.Println("server is running good")
+	log.Fatal(http.ListenAndServe(config.PORT, nil))
 	// Show Main Menu
-	newUI.ShowMainMenu()
+	//newUI.ShowMainMenu()
 }

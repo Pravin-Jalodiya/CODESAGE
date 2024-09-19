@@ -4,13 +4,13 @@ import (
 	"cli-project/internal/config/queries"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
-	"log"
 	"strings"
 	"time"
 )
@@ -223,9 +223,9 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 	return &user, nil
 }
 
-func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
+func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*models.StandardUser, error) {
+	//ctx, cancel := CreateContext()
+	//defer cancel()
 
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -237,8 +237,6 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 		"table":      "Users",
 		"conditions": "username = $1",
 	})
-
-	log.Println(query) // For debugging, ensure this shows the correct SQL
 
 	row := db.QueryRowContext(ctx, query, username)
 

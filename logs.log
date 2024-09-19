@@ -1,0 +1,5 @@
+{"level":"ERROR","time":"2024-09-18T17:00:46+05:30","msg":"Authentication failed","method":"POST","error":"error fetching user: could not fetch user: context deadline exceeded","username":"pravin","time":"2024-09-18T17:00:46+05:30"}
+{"level":"ERROR","time":"2024-09-18T17:01:50+05:30","msg":"Authentication failed","method":"POST","error":"error fetching user: could not fetch user: context deadline exceeded","username":"pravin","time":"2024-09-18T17:01:50+05:30"}
+{"level":"ERROR","time":"2024-09-18T17:05:57+05:30","msg":"Error fetching user from database","username":"pravin","error":"could not fetch user: context deadline exceeded"}
+{"level":"ERROR","time":"2024-09-18T17:05:57+05:30","msg":"Authentication failed","method":"POST","error":"error fetching user: could not fetch user: context deadline exceeded","username":"pravin","time":"2024-09-18T17:05:57+05:30"}
+{"level":"ERROR","time":"2024-09-18T17:09:29+05:30","msg":"Authentication failed","method":"POST","error":"error fetching user: could not fetch user: context deadline exceeded","username":"pravin","time":"2024-09-18T17:09:29+05:30"}
