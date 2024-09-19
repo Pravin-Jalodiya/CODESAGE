@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"cli-project/internal/domain/interfaces"
+	"cli-project/internal/domain/models"
 	"cli-project/pkg/errors"
 	"cli-project/pkg/logger"
 	"cli-project/pkg/utils"
@@ -25,7 +26,37 @@ func NewAuthHandler(authService interfaces.AuthService) *AuthHandler {
 }
 
 func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	// Signup logic here...
+	var user models.StandardUser
+
+	// Decode the request body
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		errs.NewInvalidBodyError("Invalid request body").ToJSON(w)
+		logger.Logger.Errorw("Error decoding request body", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	// Call the service layer for signup
+	err = a.authService.Signup(&user)
+	if err != nil {
+		errs.NewInternalServerError(err.Error()).ToJSON(w)
+		logger.Logger.Errorw("Signup failed", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	// Return a success message
+	w.Header().Set("Content-Type", "application/json")
+	// Return a success message with user information
+	jsonResponse := map[string]interface{}{
+		"message": "User successfully registered",
+		"user_info": map[string]string{
+			"username":     user.StandardUser.Username,
+			"organisation": user.StandardUser.Organisation,
+			"country":      user.StandardUser.Country,
+		},
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("Signup Successful", "method", r.Method, "username", user.StandardUser.Username, "time", time.Now())
 }
 
 func (a *AuthHandler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,5 +108,19 @@ func (a *AuthHandler) AdminLoginHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Logout logic here...
+	// Call the service layer for logout
+	err := a.authService.Logout()
+	if err != nil {
+		errs.NewInternalServerError(err.Error()).ToJSON(w)
+		logger.Logger.Errorw("Logout failed", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	// Invalidate the token (clear the token or blacklist it as needed)
+
+	// Return a success message
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]string{"message": "Logout successful"}
+	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("Logout Successful", "method", r.Method, "time", time.Now())
 }

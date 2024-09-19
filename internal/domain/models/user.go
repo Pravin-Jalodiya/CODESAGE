@@ -11,7 +11,7 @@ type User struct {
 	Email        string `json:"email"`
 	Organisation string `json:"organisation"`
 	Country      string `json:"country"`
-	IsBanned     bool   `json:"isBanned"`
+	IsBanned     bool   `json:"is_banned"`
 }
 
 type Admin struct {
@@ -20,7 +20,7 @@ type Admin struct {
 
 type StandardUser struct {
 	StandardUser    User      `json:",inline"`
-	LeetcodeID      string    `json:"Leetcode_id"`
+	LeetcodeID      string    `json:"leetcode_id"`
 	QuestionsSolved []string  `json:"questions_solved"`
 	LastSeen        time.Time `json:"last_seen"`
 }

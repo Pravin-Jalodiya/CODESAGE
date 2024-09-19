@@ -27,15 +27,54 @@ func NewAuthService(userRepo interfaces.UserRepository, LeetcodeAPI interfaces2.
 }
 
 // Signup creates a new user account
+// func (s *AuthService) Signup(user *models.StandardUser) error {
+//
+//		// Change username to lowercase for consistency
+//		user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
+//
+//		// Change email to lower for consistency
+//		user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
+//
+//		// Change org and country name to proper format
+//		user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
+//		user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
+//
+//		// Generate a new UUID for the user
+//		userID := utils.GenerateUUID()
+//		user.StandardUser.ID = userID
+//
+//		// Hash the user password
+//		hashedPassword, err := HashString(user.StandardUser.Password)
+//		if err != nil {
+//			return fmt.Errorf("could not hash password")
+//		}
+//		user.StandardUser.Password = hashedPassword
+//
+//		// Set default role
+//		user.StandardUser.Role = "user"
+//
+//		// Set default blocked status
+//		user.StandardUser.IsBanned = false
+//
+//		// set question solved
+//		user.QuestionsSolved = []string{}
+//
+//		// set last seen
+//		user.LastSeen = time.Now().UTC()
+//
+//		// Register the user
+//		err = s.userRepo.CreateUser(user)
+//		if err != nil {
+//			return fmt.Errorf("could not register user")
+//		}
+//		return nil
+//	}
+//
+// Signup creates a new user account
 func (s *AuthService) Signup(user *models.StandardUser) error {
-
-	// Change username to lowercase for consistency
+	// Normalize and sanitize user data
 	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
-
-	// Change email to lower for consistency
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
-
-	// Change org and country name to proper format
 	user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
 	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
 
@@ -50,16 +89,12 @@ func (s *AuthService) Signup(user *models.StandardUser) error {
 	}
 	user.StandardUser.Password = hashedPassword
 
-	// Set default role
+	// Set default role and status
 	user.StandardUser.Role = "user"
-
-	// Set default blocked status
 	user.StandardUser.IsBanned = false
 
-	// set question solved
+	// Initialize user-specific fields
 	user.QuestionsSolved = []string{}
-
-	// set last seen
 	user.LastSeen = time.Now().UTC()
 
 	// Register the user
@@ -67,16 +102,14 @@ func (s *AuthService) Signup(user *models.StandardUser) error {
 	if err != nil {
 		return fmt.Errorf("could not register user")
 	}
+
 	return nil
 }
 
 // Login authenticates a user
-// Login authenticates a user
 func (s *AuthService) Login(ctx context.Context, username, password string) (*models.StandardUser, error) {
 	// Change username to lowercase for consistency
-	fmt.Println("Login attempt started for username:", username)
 	username = utils.CleanString(username)
-	fmt.Println("Username after cleaning and converting to lowercase:", username)
 
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
@@ -86,18 +119,15 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*mo
 			fmt.Println("User not found:", username)
 			return nil, ErrUserNotFound // Return error if user doesn't exist
 		}
-		fmt.Println("Error fetching user from database:", err)
 		return nil, fmt.Errorf("error fetching user: %v", err)
 	}
-	fmt.Println("User fetched successfully for username:", username)
 
 	// Verify the password
 	if !VerifyString(password, user.StandardUser.Password) {
-		fmt.Println("Invalid password attempt for username:", username)
 		return nil, ErrInvalidCredentials
 	}
-	fmt.Println("User authenticated successfully for username:", username)
 
+	globals.ActiveUserID = user.StandardUser.ID
 	return user, nil
 }
 
@@ -108,16 +138,16 @@ func (s *AuthService) Logout() error {
 		return errors.New("user not found")
 	}
 
-	//update last seen of user
+	// Update last seen of the user
 	user.LastSeen = time.Now().UTC()
 
-	// update data in db
+	// Update user details in the database
 	err = s.userRepo.UpdateUserDetails(user)
 	if err != nil {
 		return errors.New("could not update user details")
 	}
 
-	// clear Active user id
+	// Clear active user ID
 	globals.ActiveUserID = ""
 
 	return nil

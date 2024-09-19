@@ -1,0 +1,6 @@
+{"level":"ERROR","time":"2024-09-19T07:39:02+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'd' looking for beginning of value","time":"2024-09-19T07:39:02+05:30"}
+{"level":"ERROR","time":"2024-09-19T07:45:21+05:30","msg":"Signup failed","method":"POST","error":"could not register user","time":"2024-09-19T07:45:21+05:30"}
+{"level":"ERROR","time":"2024-09-19T07:53:32+05:30","msg":"Logout failed","method":"POST","error":"user not found","time":"2024-09-19T07:53:32+05:30"}
+{"level":"ERROR","time":"2024-09-19T07:53:41+05:30","msg":"Logout failed","method":"POST","error":"user not found","time":"2024-09-19T07:53:41+05:30"}
+{"level":"ERROR","time":"2024-09-19T07:54:34+05:30","msg":"Logout failed","method":"POST","error":"user not found","time":"2024-09-19T07:54:34+05:30"}
+{"level":"ERROR","time":"2024-09-19T07:54:45+05:30","msg":"Logout failed","method":"POST","error":"user not found","time":"2024-09-19T07:54:45+05:30"}

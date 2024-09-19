@@ -72,6 +72,8 @@ func main() {
 	//if newUI == nil {
 	//	log.Fatal("Failed to initialize UI")
 	//}
+	// Show Main Menu
+	//newUI.ShowMainMenu()
 
 	//http://lcoahhost:8080/auth
 	r := mux.NewRouter()
@@ -80,6 +82,5 @@ func main() {
 	http.Handle("/", r)
 	fmt.Println("server is running good")
 	log.Fatal(http.ListenAndServe(config.PORT, nil))
-	// Show Main Menu
-	//newUI.ShowMainMenu()
+
 }
