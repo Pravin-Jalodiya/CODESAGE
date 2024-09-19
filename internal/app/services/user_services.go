@@ -2,15 +2,15 @@ package services
 
 import (
 	interfaces2 "cli-project/external/domain/interfaces"
+	"cli-project/internal/config/roles"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
-	"cli-project/pkg/utils/data_cleaning"
-	pwd "cli-project/pkg/utils/password"
+	"database/sql"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/google/uuid"
 	"strings"
 	"time"
 )
@@ -18,6 +18,8 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("username or password incorrect")
 	ErrUserNotFound       = errors.New("user not found")
+	HashString            = utils.HashString
+	VerifyString          = utils.VerifyString
 )
 
 type UserService struct {
@@ -46,15 +48,15 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
 
 	// Change org and country name to proper format
-	user.StandardUser.Organisation = data_cleaning.CapitalizeWords(user.StandardUser.Organisation)
-	user.StandardUser.Country = data_cleaning.CapitalizeWords(user.StandardUser.Country)
+	user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
+	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
 
 	// Generate a new UUID for the user
 	userID := utils.GenerateUUID()
 	user.StandardUser.ID = userID
 
 	// Hash the user password
-	hashedPassword, err := pwd.HashPassword(user.StandardUser.Password)
+	hashedPassword, err := HashString(user.StandardUser.Password)
 	if err != nil {
 		return fmt.Errorf("could not hash password")
 	}
@@ -77,31 +79,27 @@ func (s *UserService) Signup(user *models.StandardUser) error {
 	if err != nil {
 		return fmt.Errorf("could not register user")
 	}
-
 	return nil
 }
 
 // Login authenticates a user
 func (s *UserService) Login(username, password string) error {
-
 	// Change username to lowercase for consistency
-	username = data_cleaning.CleanString(username)
+	username = utils.CleanString(username)
 
 	// Retrieve the user by username
 	user, err := s.userRepo.FetchUserByUsername(username)
-
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
+		// Check if the error is because the user was not found (PostgreSQL)
+		if errors.Is(err, sql.ErrNoRows) {
 			return ErrUserNotFound // Return error if user doesn't exist
 		}
-		return fmt.Errorf("%v", err)
+		return fmt.Errorf("error fetching user: %v", err)
 	}
-
 	// Verify the password
-	if !pwd.VerifyPassword(password, user.StandardUser.Password) {
+	if !VerifyString(password, user.StandardUser.Password) {
 		return ErrInvalidCredentials
 	}
-
 	return nil
 }
 
@@ -112,7 +110,7 @@ func (s *UserService) Logout() error {
 		return errors.New("user not found")
 	}
 
-	// update last seen of user
+	//update last seen of user
 	user.LastSeen = time.Now().UTC()
 
 	// update data in db
@@ -121,7 +119,7 @@ func (s *UserService) Logout() error {
 		return errors.New("could not update user details")
 	}
 
-	// clear active user
+	// clear Active user id
 	globals.ActiveUserID = ""
 
 	return nil
@@ -138,34 +136,42 @@ func (s *UserService) ViewDashboard() error {
 }
 
 // UpdateUserProgress updates the user's progress by adding a solved question ID.
-func (s *UserService) UpdateUserProgress(solvedQuestionID string) (bool, error) {
-	// Fetch the current user from the repository
-	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
+func (s *UserService) UpdateUserProgress() error {
+	// Validate if the ActiveUserID is a valid UUID
+	userUUID, err := uuid.Parse(globals.ActiveUserID)
 	if err != nil {
-		return false, fmt.Errorf("could not fetch user: %v", err)
+		return fmt.Errorf("invalid user ID: %v", err)
 	}
+	// Fetch recent submissions from LeetCode API using GetStats
+	stats, err := s.GetUserLeetcodeStats(globals.ActiveUserID)
+	if err != nil {
+		return fmt.Errorf("could not fetch stats from LeetCode API: %v", err)
+	}
+	// Extract title slugs from recent submissions
+	recentSlugs := stats.RecentACSubmissionTitleSlugs
 
-	// Check if the question ID is already in the user's progress
-	for _, id := range user.QuestionsSolved {
-		if id == solvedQuestionID {
-			return false, nil // No need to update if the question ID is already in the list
+	// Check which of the recent slugs are in the questions table
+	var validSlugs []string
+	for _, slug := range recentSlugs {
+		exists, err := s.questionService.QuestionExistsByTitleSlug(slug)
+		if err != nil {
+			return fmt.Errorf("could not check if question exists: %v", err)
+		}
+		if exists {
+			validSlugs = append(validSlugs, slug)
 		}
 	}
-
-	// Check if the question ID exists in the questions repository
-	exists, err := s.questionService.QuestionExists(solvedQuestionID)
-	if err != nil {
-		return false, fmt.Errorf("could not check if question exists: %v", err)
+	// Update user's progress with valid slugs
+	if len(validSlugs) > 0 {
+		err := s.userRepo.UpdateUserProgress(userUUID, validSlugs)
+		if err != nil {
+			return fmt.Errorf("could not update user progress: %v", err)
+		}
 	}
-	if !exists {
-		return false, fmt.Errorf("question with ID %s does not exist", solvedQuestionID)
-	}
-
-	// Update the user's progress
-	return true, s.userRepo.UpdateUserProgress(solvedQuestionID)
+	return nil
 }
 
-func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
+func (s *UserService) CountActiveUserInLast24Hours() (int, error) {
 	count, err := s.userRepo.CountActiveUsersInLast24Hours()
 	if err != nil {
 		return count, err
@@ -180,7 +186,7 @@ func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, 
 	}
 
 	// Change userID to lowercase for consistency
-	username = data_cleaning.CleanString(username)
+	username = utils.CleanString(username)
 
 	return s.userRepo.FetchUserByUsername(username)
 }
@@ -191,27 +197,43 @@ func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
 	}
 
 	// Clean userID for consistency
-	userID = data_cleaning.CleanString(userID)
+	userID = utils.CleanString(userID)
 
 	// Fetch user by ID from the repository
 	return s.userRepo.FetchUserByID(userID)
 }
 
-func (s *UserService) GetUserRole(userID string) (string, error) {
+func (s *UserService) GetUserRole(userID string) (roles.Role, error) {
 
 	if userID == "" {
-		return "", errors.New("userID is empty")
+		return -1, errors.New("userID is empty")
 	}
 
 	// Change userID to lowercase for consistency
-	userID = data_cleaning.CleanString(userID)
+	userID = utils.CleanString(userID)
 
 	user, err := s.userRepo.FetchUserByID(userID)
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
-	return user.StandardUser.Role, nil
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return -1, err
+	}
+
+	return role, nil
+}
+
+func (s *UserService) GetUserProgress(userID string) (*[]string, error) {
+
+	userProgress, err := s.userRepo.FetchUserProgress(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userProgress, nil
+
 }
 
 func (s *UserService) GetUserID(username string) (string, error) {
@@ -223,6 +245,20 @@ func (s *UserService) GetUserID(username string) (string, error) {
 }
 
 func (s *UserService) BanUser(username string) (bool, error) {
+
+	user, err := s.userRepo.FetchUserByUsername(username)
+	if err != nil {
+		return false, err
+	}
+
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return false, err
+	}
+
+	if role == roles.ADMIN {
+		return false, errors.New("ban operation on admin not allowed")
+	}
 
 	userID, err := s.GetUserID(username)
 	if err != nil {
@@ -243,6 +279,20 @@ func (s *UserService) BanUser(username string) (bool, error) {
 
 func (s *UserService) UnbanUser(username string) (bool, error) {
 
+	user, err := s.userRepo.FetchUserByUsername(username)
+	if err != nil {
+		return false, err
+	}
+
+	role, err := roles.ParseRole(user.StandardUser.Role)
+	if err != nil {
+		return false, err
+	}
+
+	if role == roles.ADMIN {
+		return false, errors.New("unban operation on admin not allowed")
+	}
+
 	userID, err := s.GetUserID(username)
 	if err != nil {
 		return false, err
@@ -261,7 +311,6 @@ func (s *UserService) UnbanUser(username string) (bool, error) {
 }
 
 func (s *UserService) IsUserBanned(userID string) (bool, error) {
-
 	user, err := s.userRepo.FetchUserByID(userID)
 	if err != nil {
 		return false, err
@@ -270,7 +319,7 @@ func (s *UserService) IsUserBanned(userID string) (bool, error) {
 	return user.StandardUser.IsBanned, nil
 }
 
-func (s *UserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
+func (s *UserService) GetUserLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
 	user, err := s.GetUserByID(userID)
 	if err != nil {
 		return nil, err
@@ -279,6 +328,127 @@ func (s *UserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, er
 	LeetcodeID := user.LeetcodeID
 
 	return s.LeetcodeAPI.GetStats(LeetcodeID)
+}
+
+func (s *UserService) GetUserCodesageStats(userID string) (*models.CodesageStats, error) {
+	// Get user progress
+	userProgress, err := s.GetUserProgress(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user progress: %v", err)
+	}
+
+	// Calculate the total number of questions the user has done
+	totalQuestionsDoneCount := len(*userProgress)
+
+	// Get the total number of questions on the platform
+	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total questions count: %v", err)
+	}
+
+	// Initialize variables for difficulty counts and tag-wise stats
+	var easyDoneCount, mediumDoneCount, hardDoneCount int
+	topicWiseStats := make(map[string]int)
+	companyWiseStats := make(map[string]int)
+
+	// Loop through the user's completed questions
+	for _, titleSlug := range *userProgress {
+		// Get the question details by title_slug
+		question, err := s.questionService.GetQuestionByID(titleSlug)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get question details for %s: %v", titleSlug, err)
+		}
+
+		// Increment the difficulty count
+		switch question.Difficulty {
+		case "easy":
+			easyDoneCount++
+		case "medium":
+			mediumDoneCount++
+		case "hard":
+			hardDoneCount++
+		}
+
+		// Accumulate topic tags
+		for _, tag := range question.TopicTags {
+			topicWiseStats[tag]++
+		}
+
+		// Accumulate company tags
+		for _, company := range question.CompanyTags {
+			companyWiseStats[company]++
+		}
+	}
+
+	// Create the final CodesageStats struct
+	stats := &models.CodesageStats{
+		TotalQuestionsCount:     totalQuestionsCount,
+		TotalQuestionsDoneCount: totalQuestionsDoneCount,
+		TotalEasyCount:          easyDoneCount,
+		TotalMediumCount:        mediumDoneCount,
+		TotalHardCount:          hardDoneCount,
+		EasyDoneCount:           easyDoneCount,
+		MediumDoneCount:         mediumDoneCount,
+		HardDoneCount:           hardDoneCount,
+		CompanyWiseStats:        companyWiseStats,
+		TopicWiseStats:          topicWiseStats,
+	}
+
+	return stats, nil
+}
+
+func (s *UserService) GetPlatformStats() (*models.PlatformStats, error) {
+	// Get active users in the last 24 hours
+	activeUsersInLast24Hours, err := s.CountActiveUserInLast24Hours()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get total questions count
+	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all questions
+	allQuestions, err := s.questionService.GetAllQuestions()
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize maps to hold counts
+	difficultyWiseCount := make(map[string]int)
+	topicWiseCount := make(map[string]int)
+	companyWiseCount := make(map[string]int)
+
+	// Populate maps with counts from allQuestions
+	for _, question := range *allQuestions {
+		// Count difficulty-wise questions
+		difficultyWiseCount[question.Difficulty]++
+
+		// Count topic-wise questions
+		for _, topic := range question.TopicTags {
+			topicWiseCount[topic]++
+		}
+
+		// Count company-wise questions
+		for _, company := range question.CompanyTags {
+			companyWiseCount[company]++
+		}
+	}
+
+	// Generate platform stats
+	platformStats := &models.PlatformStats{
+		ActiveUserInLast24Hours:      activeUsersInLast24Hours,
+		TotalQuestionsCount:          totalQuestionsCount,
+		DifficultyWiseQuestionsCount: difficultyWiseCount,
+		TopicWiseQuestionsCount:      topicWiseCount,
+		CompanyWiseQuestionsCount:    companyWiseCount,
+	}
+
+	// make sure all three difficulties are there as keys in map or else set missing difficulty key with value 0
+
+	return platformStats, nil
 }
 
 //func (s *UserService) WaitForCompletion() {

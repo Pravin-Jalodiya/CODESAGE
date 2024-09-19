@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"strings"
 )
@@ -11,22 +11,22 @@ func (ui *UI) ShowAdminMenu() {
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("             ADMIN MENU             ", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("1. View platform stats", "", ""))
-		fmt.Println(formatting.Colorize("2. Add or remove questions", "", ""))
-		fmt.Println(formatting.Colorize("3. Manage users", "", ""))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("             ADMIN MENU             ", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("1. View platform stats", "", ""))
+		fmt.Println(utils.Colorize("2. Add or remove questions", "", ""))
+		fmt.Println(utils.Colorize("3. Manage users", "", ""))
 		//fmt.Println(formatting.Colorize("4. Post Announcement", "", ""))
-		fmt.Println(formatting.Colorize("4. Logout", "", ""))
+		fmt.Println(utils.Colorize("4. Logout", "", ""))
 
-		fmt.Print(formatting.Colorize("Enter your choice: ", "yellow", "bold"))
+		fmt.Print(utils.Colorize("Enter your choice: ", "yellow", "bold"))
 		choice, err := ui.reader.ReadString('\n')
 		choice = strings.TrimSuffix(choice, "\n")
 		choice = strings.TrimSpace(choice)
 
 		if err != nil {
-			fmt.Println(formatting.Colorize("Error reading input:", "red", "bold"), err)
+			fmt.Println(utils.Colorize("Error reading input:", "red", "bold"), err)
 			return
 		}
 
@@ -43,7 +43,7 @@ func (ui *UI) ShowAdminMenu() {
 		//case "4":
 		//	ui.PostAnnouncement()
 		default:
-			fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
+			fmt.Println(utils.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
 		}
 	}
 }

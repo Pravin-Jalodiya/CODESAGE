@@ -3,15 +3,15 @@ package models
 import "time"
 
 type User struct {
-	ID           string `bson:"id"`
-	Role         string `bson:"role"`
-	Username     string `bson:"username"`
-	Password     string `bson:"password"`
-	Name         string `bson:"name"`
-	Email        string `bson:"email"`
-	Organisation string `bson:"organisation"`
-	Country      string `bson:"country"`
-	IsBanned     bool   `bson:"isBanned"`
+	ID           string `json:"id"`
+	Role         string `json:"role"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	Organisation string `json:"organisation"`
+	Country      string `json:"country"`
+	IsBanned     bool   `json:"isBanned"`
 }
 
 type Admin struct {
@@ -19,8 +19,8 @@ type Admin struct {
 }
 
 type StandardUser struct {
-	StandardUser    User      `bson:",inline"`
-	LeetcodeID      string    `bson:"Leetcode_id"`
-	QuestionsSolved []string  `bson:"questions_solved"`
-	LastSeen        time.Time `bson:"last_seen"`
+	StandardUser    User      `json:",inline"`
+	LeetcodeID      string    `json:"Leetcode_id"`
+	QuestionsSolved []string  `json:"questions_solved"`
+	LastSeen        time.Time `json:"last_seen"`
 }
