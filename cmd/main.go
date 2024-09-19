@@ -78,7 +78,9 @@ func main() {
 	//http://lcoahhost:8080/auth
 	r := mux.NewRouter()
 	authHandler := handlers.NewAuthHandler(authService)
+	userHandler := handlers.NewUserHandler(userService)
 	routes.InitialiseAuthRouter(r, authHandler)
+	routes.InitialiseUserRouter(r, userHandler)
 	http.Handle("/", r)
 	fmt.Println("server is running good")
 	log.Fatal(http.ListenAndServe(config.PORT, nil))
