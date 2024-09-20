@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"cli-project/external/api"
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
-	"cli-project/internal/ui"
 	"log"
 	"os"
 	"os/signal"
@@ -63,12 +61,12 @@ func main() {
 		log.Fatal("Failed to initialize AuthService")
 	}
 
-	// Initialize UI
-	newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
-	if newUI == nil {
-		log.Fatal("Failed to initialize UI")
-	}
-
-	// Show Main Menu
-	newUI.ShowMainMenu()
+	//// Initialize UI
+	//newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
+	//if newUI == nil {
+	//	log.Fatal("Failed to initialize UI")
+	//}
+	//
+	//// Show Main Menu
+	//newUI.ShowMainMenu()
 }

@@ -4,6 +4,7 @@ import (
 	"cli-project/internal/config/queries"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -24,10 +25,7 @@ func (r *userRepo) getDBConnection() (*sql.DB, error) {
 	return dbClientGetter()
 }
 
-func (r *userRepo) CreateUser(user *models.StandardUser) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get DB connection: %v", err)
@@ -59,10 +57,7 @@ func (r *userRepo) CreateUser(user *models.StandardUser) error {
 	return nil
 }
 
-func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get database connection: %v", err)
@@ -128,10 +123,7 @@ func (r *userRepo) UpdateUserProgress(userID uuid.UUID, newSlugs []string) error
 	return tx.Commit()
 }
 
-func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) FetchAllUsers(ctx context.Context) (*[]models.StandardUser, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DB connection: %v", err)
@@ -181,10 +173,7 @@ func (r *userRepo) FetchAllUsers() (*[]models.StandardUser, error) {
 	return &users, nil
 }
 
-func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.StandardUser, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DB connection: %v", err)
@@ -222,10 +211,7 @@ func (r *userRepo) FetchUserByID(userID string) (*models.StandardUser, error) {
 	return &user, nil
 }
 
-func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*models.StandardUser, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DB connection: %v", err)
@@ -263,10 +249,7 @@ func (r *userRepo) FetchUserByUsername(username string) (*models.StandardUser, e
 	return &user, nil
 }
 
-func (r *userRepo) FetchUserProgress(userID string) (*[]string, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) FetchUserProgress(ctx context.Context, userID string) (*[]string, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DB connection: %v", err)
@@ -293,10 +276,7 @@ func (r *userRepo) FetchUserProgress(userID string) (*[]string, error) {
 	return &titleSlugList, nil
 }
 
-func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) UpdateUserDetails(ctx context.Context, user *models.StandardUser) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get DB connection: %v", err)
@@ -332,10 +312,7 @@ func (r *userRepo) UpdateUserDetails(user *models.StandardUser) error {
 	return nil
 }
 
-func (r *userRepo) BanUser(userID string) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) BanUser(ctx context.Context, userID string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get DB connection: %v", err)
@@ -367,10 +344,7 @@ func (r *userRepo) BanUser(userID string) error {
 	return nil
 }
 
-func (r *userRepo) UnbanUser(userID string) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) UnbanUser(ctx context.Context, userID string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get DB connection: %v", err)
@@ -402,10 +376,7 @@ func (r *userRepo) UnbanUser(userID string) error {
 	return nil
 }
 
-func (r *userRepo) CountActiveUsersInLast24Hours() (int, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) CountActiveUsersInLast24Hours(ctx context.Context) (int, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get DB connection: %v", err)
@@ -431,10 +402,7 @@ func (r *userRepo) CountActiveUsersInLast24Hours() (int, error) {
 	return count, nil
 }
 
-func (r *userRepo) IsEmailUnique(email string) (bool, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) IsEmailUnique(ctx context.Context, email string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get DB connection: %v", err)
@@ -457,10 +425,7 @@ func (r *userRepo) IsEmailUnique(email string) (bool, error) {
 	return count == 0, nil
 }
 
-func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get DB connection: %v", err)
@@ -483,10 +448,7 @@ func (r *userRepo) IsUsernameUnique(username string) (bool, error) {
 	return count == 0, nil
 }
 
-func (r *userRepo) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *userRepo) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get DB connection: %v", err)

@@ -6,6 +6,7 @@ import (
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -29,9 +30,7 @@ var (
 	ValidateTitleSlug          = validation.ValidateTitleSlug
 )
 
-func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, error) {
-
-	// Read the CSV file
+func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFilePath string) (bool, error) {
 	records, err := CSVReader(questionFilePath)
 	if err != nil {
 		return false, fmt.Errorf("error reading CSV file: %v", err)
@@ -40,18 +39,15 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 	var questions []models.Question
 	newQuestionsAdded := false
 
-	// Loop through the records (skip header row)
 	for i, record := range records {
 		if i == 0 {
-			continue // Skip the header
+			continue
 		}
 
-		// Ensure CSV has the correct number of fields (7 columns expected)
 		if len(record) != 7 {
 			return false, errors.New("invalid CSV format, expected 7 columns")
 		}
 
-		// Clean and validate the fields
 		titleSlug := utils.CleanString(record[0])
 		questionID := utils.CleanString(record[1])
 		questionTitle := utils.CleanString(record[2])
@@ -60,25 +56,21 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 		topicTags := utils.CleanTags(record[5])
 		companyTags := utils.CleanTags(record[6])
 
-		// Validate question ID
 		valid, err := ValidateQuestionID(questionID)
 		if !valid {
 			return false, fmt.Errorf("invalid question ID: %v", err)
 		}
 
-		// Validate difficulty
 		difficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
 			return false, fmt.Errorf("invalid difficulty: %v", err)
 		}
 
-		// Validate question link
 		questionLink, err = ValidateQuestionLink(questionLink)
 		if err != nil {
 			return false, fmt.Errorf("invalid question link: %v", err)
 		}
 
-		// Build the question struct
 		question := models.Question{
 			QuestionTitleSlug: titleSlug,
 			QuestionID:        questionID,
@@ -89,22 +81,19 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 			CompanyTags:       companyTags,
 		}
 
-		// Check if the question already exists
-		exists, err := s.QuestionExistsByID(questionID)
+		exists, err := s.QuestionExistsByID(ctx, questionID)
 		if err != nil {
 			return false, fmt.Errorf("error checking if question exists: %v", err)
 		}
 
-		// If the question doesn't exist, append to the questions slice
 		if !exists {
 			questions = append(questions, question)
 			newQuestionsAdded = true
 		}
 	}
 
-	// If new questions were added, insert them into the database
 	if newQuestionsAdded {
-		err = s.questionRepo.AddQuestions(&questions)
+		err = s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
 			return false, fmt.Errorf("error adding questions to the database: %v", err)
 		}
@@ -113,9 +102,8 @@ func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, e
 	return newQuestionsAdded, nil
 }
 
-func (s *QuestionService) RemoveQuestionByID(questionID string) error {
-	// Check if the question exists in the database
-	exists, err := s.QuestionExistsByID(questionID)
+func (s *QuestionService) RemoveQuestionByID(ctx context.Context, questionID string) error {
+	exists, err := s.QuestionExistsByID(ctx, questionID)
 	if err != nil {
 		return fmt.Errorf("error checking if question exists: %v", err)
 	}
@@ -124,13 +112,11 @@ func (s *QuestionService) RemoveQuestionByID(questionID string) error {
 		return fmt.Errorf("question with ID %s not found", questionID)
 	}
 
-	// Call repository to remove the question
-	return s.questionRepo.RemoveQuestionByID(questionID)
+	return s.questionRepo.RemoveQuestionByID(ctx, questionID)
 }
 
-func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
-	// Check if the question exists
-	exists, err := s.QuestionExistsByTitleSlug(questionID)
+func (s *QuestionService) GetQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
+	exists, err := s.QuestionExistsByTitleSlug(ctx, questionID)
 	if err != nil {
 		return nil, err
 	}
@@ -138,21 +124,14 @@ func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, 
 		return nil, fmt.Errorf("question with title slug %s not found", questionID)
 	}
 
-	// Fetch the question from the repository
-	question, err := s.questionRepo.FetchQuestionByID(questionID)
-	if err != nil {
-		return &models.Question{}, err
-	}
-
-	return question, nil
+	return s.questionRepo.FetchQuestionByID(ctx, questionID)
 }
 
-func (s *QuestionService) GetAllQuestions() (*[]dto.Question, error) {
-	return s.questionRepo.FetchAllQuestions()
+func (s *QuestionService) GetAllQuestions(ctx context.Context) (*[]dto.Question, error) {
+	return s.questionRepo.FetchAllQuestions(ctx)
 }
 
-func (s *QuestionService) GetQuestionsByFilters(difficulty, topic, company string) (*[]dto.Question, error) {
-	// Validate and clean the difficulty level
+func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
 	var validDifficulty string
 	var err error
 
@@ -163,34 +142,30 @@ func (s *QuestionService) GetQuestionsByFilters(difficulty, topic, company strin
 		}
 	}
 
-	// Clean company and topic strings
 	cleanCompany := utils.CleanString(company)
 	cleanTopic := utils.CleanString(topic)
 
-	// Fetch questions by filters from the repository
-	return s.questionRepo.FetchQuestionsByFilters(validDifficulty, cleanTopic, cleanCompany)
+	return s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
 }
 
-func (s *QuestionService) QuestionExistsByID(questionID string) (bool, error) {
-	// Validate the question ID
+func (s *QuestionService) QuestionExistsByID(ctx context.Context, questionID string) (bool, error) {
 	valid, err := validation.ValidateQuestionID(questionID)
 	if !valid {
 		return false, err
 	}
 
-	return s.questionRepo.QuestionExistsByID(questionID)
+	return s.questionRepo.QuestionExistsByID(ctx, questionID)
 }
 
-func (s *QuestionService) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
-	// Validate the title slug
+func (s *QuestionService) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
 	valid, err := ValidateTitleSlug(titleSlug)
 	if !valid {
 		return false, err
 	}
 
-	return s.questionRepo.QuestionExistsByTitleSlug(titleSlug)
+	return s.questionRepo.QuestionExistsByTitleSlug(ctx, titleSlug)
 }
 
-func (s *QuestionService) GetTotalQuestionsCount() (int, error) {
-	return s.questionRepo.CountQuestions()
+func (s *QuestionService) GetTotalQuestionsCount(ctx context.Context) (int, error) {
+	return s.questionRepo.CountQuestions(ctx)
 }

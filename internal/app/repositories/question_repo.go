@@ -1,4 +1,3 @@
-// repositories/questionRepo.go
 package repositories
 
 import (
@@ -6,6 +5,7 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -23,10 +23,7 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 	return dbClientGetter()
 }
 
-func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Question) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -67,10 +64,7 @@ func (r *questionRepo) AddQuestions(questions *[]models.Question) error {
 	return nil
 }
 
-func (r *questionRepo) RemoveQuestionByID(questionID string) error {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -98,10 +92,7 @@ func (r *questionRepo) RemoveQuestionByID(questionID string) error {
 	return nil
 }
 
-func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -140,10 +131,7 @@ func (r *questionRepo) FetchQuestionByID(questionID string) (*models.Question, e
 	return &question, nil
 }
 
-func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -194,10 +182,7 @@ func (r *questionRepo) FetchAllQuestions() (*[]dto.Question, error) {
 	return &questions, nil
 }
 
-func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string) (*[]dto.Question, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -269,10 +254,7 @@ func (r *questionRepo) FetchQuestionsByFilters(difficulty, topic, company string
 	return &questions, nil
 }
 
-func (r *questionRepo) CountQuestions() (int, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) CountQuestions(ctx context.Context) (int, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -292,10 +274,7 @@ func (r *questionRepo) CountQuestions() (int, error) {
 	return count, nil
 }
 
-func (r *questionRepo) QuestionExistsByID(questionID string) (bool, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) QuestionExistsByID(ctx context.Context, questionID string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
@@ -315,10 +294,7 @@ func (r *questionRepo) QuestionExistsByID(questionID string) (bool, error) {
 	return exists, nil
 }
 
-func (r *questionRepo) QuestionExistsByTitleSlug(titleSlug string) (bool, error) {
-	ctx, cancel := CreateContext()
-	defer cancel()
-
+func (r *questionRepo) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
