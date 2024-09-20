@@ -75,7 +75,7 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Logger.Infow("Signup Successful", "method", r.Method, "username", user.StandardUser.Username, "time", time.Now())
 }
 
-func (a *AuthHandler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Define the request body structure
 	var requestBody struct {
 		Username string `json:"username" validate:"required"`
@@ -110,7 +110,7 @@ func (a *AuthHandler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create a jwt
+	// Create a JWT token
 	token, err := utils.CreateJwtToken(user.StandardUser.Username, user.StandardUser.ID, user.StandardUser.Role)
 	if err != nil {
 		errs.NewInternalServerError("Failed to generate token").ToJSON(w)

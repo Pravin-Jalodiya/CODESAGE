@@ -6,3 +6,8 @@
 {"level":"ERROR","time":"2024-09-20T07:04:04+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy_user","time":"2024-09-20T07:04:04+05:30"}
 {"level":"ERROR","time":"2024-09-20T07:09:14+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy_user","time":"2024-09-20T07:09:14+05:30"}
 {"level":"ERROR","time":"2024-09-20T07:10:40+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-20T07:10:40+05:30"}
+{"level":"ERROR","time":"2024-09-20T08:17:20+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-20T08:17:20+05:30"}
+{"level":"ERROR","time":"2024-09-20T08:17:31+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-20T08:17:31+05:30"}
+{"level":"ERROR","time":"2024-09-20T08:29:14+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-20T08:29:14+05:30"}
+{"level":"ERROR","time":"2024-09-20T08:40:11+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-20T08:40:11+05:30"}
+{"level":"ERROR","time":"2024-09-20T08:46:47+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-20T08:46:47+05:30"}

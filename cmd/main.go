@@ -69,9 +69,9 @@ func main() {
 
 	r := mux.NewRouter()
 	authHandler := handlers.NewAuthHandler(authService)
-	//userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService)
 	routes.InitialiseAuthRouter(r, authHandler)
-	//routes.InitialiseUserRouter(r, userHandler)
+	routes.InitialiseUserRouter(r, userHandler)
 	http.Handle("/", r)
 	fmt.Println("server is running on port:", config.PORT)
 	log.Fatal(http.ListenAndServe(config.PORT, nil))

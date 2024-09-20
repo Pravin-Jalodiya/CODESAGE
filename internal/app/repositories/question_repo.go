@@ -102,7 +102,7 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
 		"columns":    "title_slug, id, title, difficulty, link, topic_tags, company_tags",
 		"table":      "questions",
-		"conditions": "id = $1",
+		"conditions": "title_slug = $1",
 	})
 
 	row := db.QueryRowContext(ctx, query, questionID)

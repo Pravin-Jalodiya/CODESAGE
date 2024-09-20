@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"cli-project/internal/config"
+	"cli-project/internal/config/roles"
 	"cli-project/pkg/logger"
 	"context"
 	"encoding/json"
@@ -13,12 +14,19 @@ import (
 	"time"
 )
 
+type UserMetaData struct {
+	Username string
+	UserId   uuid.UUID
+	Role     roles.Role
+}
+
 // Middleware to validate JWT
 func JWTAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get the token from the Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
+			logger.Logger.Errorw("Missing Authorization header", "error", nil, "time", time.Now())
 			unauthorized(w, "Missing Authorization header")
 			return
 		}
@@ -26,10 +34,13 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Extract the token from "Bearer <token>"
 		tokenParts := strings.Split(authHeader, "Bearer ")
 		if len(tokenParts) != 2 || tokenParts[1] == "" {
+			logger.Logger.Errorw("Missing token in Authorization header", "tokenParts", tokenParts, "time", time.Now())
 			unauthorized(w, "Missing token in Authorization header")
 			return
 		}
 		tokenString := tokenParts[1]
+
+		logger.Logger.Infow("Token String", "token", tokenString)
 
 		// Parse and validate the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -50,6 +61,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Extract the claims from the token {userId, role}
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
+			logger.Logger.Errorw("Invalid Token Claims", "token", tokenString, "claims", claims, "time", time.Now())
 			unauthorized(w, "Invalid Token")
 			return
 		}
@@ -57,36 +69,43 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Extract the userId from the token claims
 		userIdStr, ok := claims["userId"].(string)
 		if !ok {
+			logger.Logger.Errorw("userId not found in token claims", "claims", claims, "time", time.Now())
 			unauthorized(w, "Invalid Token")
 			return
 		}
 
 		userId, err := uuid.Parse(userIdStr)
 		if err != nil {
+			logger.Logger.Errorw("Invalid userId format", "userId", userIdStr, "error", err, "time", time.Now())
 			unauthorized(w, "Invalid Token")
 			return
 		}
 
 		// Extract the role from the token claims
-		role, ok := claims["role"].(string)
+		roleStr, ok := claims["role"].(string)
 		if !ok {
+			logger.Logger.Errorw("role not found in token claims", "claims", claims, "time", time.Now())
 			unauthorized(w, "Invalid Token")
+			return
+		}
+
+		role, err := roles.ParseRole(roleStr)
+		if err != nil {
+			logger.Logger.Errorw("Invalid role value", "role", roleStr, "error", err, "time", time.Now())
+			unauthorized(w, "Invalid Role")
 			return
 		}
 
 		// Extract the username from the token claims
 		username, ok := claims["username"].(string)
 		if !ok {
+			logger.Logger.Errorw("username not found in token claims", "claims", claims, "time", time.Now())
 			unauthorized(w, "Invalid Token")
 			return
 		}
 
 		// Create user metadata
-		userMetaData := struct {
-			Username string
-			UserId   uuid.UUID
-			Role     string
-		}{
+		userMetaData := UserMetaData{
 			Username: username,
 			UserId:   userId,
 			Role:     role,

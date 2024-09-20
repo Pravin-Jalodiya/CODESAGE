@@ -33,6 +33,13 @@ var (
 	ErrInternalServerError        = errors.New("internal server error")
 )
 
+func JSONError(w http.ResponseWriter, message string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	jsonResponse := map[string]string{"error": message}
+	json.NewEncoder(w).Encode(jsonResponse)
+}
+
 // AppError is a custom error type that includes an HTTP status code and a message
 type AppError struct {
 	error   `json:"error,omitempty"`

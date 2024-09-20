@@ -182,6 +182,7 @@ func (s *QuestionService) QuestionExistsByID(ctx context.Context, questionID str
 }
 
 func (s *QuestionService) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
+	fmt.Println("Here in question Exist by titleSlug!")
 	valid, err := ValidateTitleSlug(titleSlug)
 	if !valid {
 		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
