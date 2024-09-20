@@ -1,0 +1,8 @@
+{"level":"ERROR","time":"2024-09-20T06:53:13+05:30","msg":"Signup failed","method":"POST","error":"could not register user","time":"2024-09-20T06:53:13+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:01:02+05:30","msg":"Signup failed","method":"POST","error":"email already exists: dummy@outlook.com","time":"2024-09-20T07:01:02+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:01:20+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-20T07:01:20+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:01:40+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-20T07:01:40+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:03:51+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-20T07:03:51+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:04:04+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy_user","time":"2024-09-20T07:04:04+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:09:14+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy_user","time":"2024-09-20T07:09:14+05:30"}
+{"level":"ERROR","time":"2024-09-20T07:10:40+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-20T07:10:40+05:30"}

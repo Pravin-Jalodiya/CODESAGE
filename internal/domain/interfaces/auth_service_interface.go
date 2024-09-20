@@ -7,7 +7,7 @@ import (
 
 type AuthService interface {
 	Signup(ctx context.Context, user *models.StandardUser) error
-	Login(ctx context.Context, username, password string) error
+	Login(ctx context.Context, username, password string) (*models.StandardUser, error)
 	Logout(ctx context.Context) error
 	IsEmailUnique(ctx context.Context, email string) (bool, error)
 	IsUsernameUnique(ctx context.Context, username string) (bool, error)

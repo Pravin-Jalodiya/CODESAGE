@@ -5,6 +5,7 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"cli-project/pkg/errors"
 	"context"
 	"database/sql"
 	"errors"
@@ -26,7 +27,7 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Question) error {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseInsert, map[string]string{
@@ -37,7 +38,7 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("could not start transaction: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrTransactionStart, err)
 	}
 
 	for _, question := range *questions {
@@ -51,14 +52,14 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 			pq.Array(question.CompanyTags),
 		)
 		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("could not insert question: %v", err)
+			_ = tx.Rollback()
+			return fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("could not commit transaction: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrTransactionCommit, err)
 	}
 
 	return nil
@@ -67,7 +68,7 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseDelete, map[string]string{
@@ -77,16 +78,16 @@ func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string
 
 	result, err := db.ExecContext(ctx, query, questionID)
 	if err != nil {
-		return fmt.Errorf("could not delete question: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("could not get rows affected: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrCheckRowsAffected, err)
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("question with ID %s not found", questionID)
+		return fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, questionID)
 	}
 
 	return nil
@@ -95,13 +96,13 @@ func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string
 func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
 		"columns":    "title_slug, id, title, difficulty, link, topic_tags, company_tags",
 		"table":      "questions",
-		"conditions": "title_slug = $1",
+		"conditions": "id = $1",
 	})
 
 	row := db.QueryRowContext(ctx, query, questionID)
@@ -120,9 +121,9 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("question with ID %s not found", questionID)
+			return nil, fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, questionID)
 		}
-		return nil, fmt.Errorf("could not fetch question: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 
 	question.TopicTags = topicTags
@@ -134,7 +135,7 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
@@ -144,7 +145,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch questions: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 	defer rows.Close()
 
@@ -162,7 +163,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 
 		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
-			return nil, fmt.Errorf("could not scan question: %v", err)
+			return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 		}
 
 		questions = append(questions, dto.Question{
@@ -176,7 +177,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrRows, err)
 	}
 
 	return &questions, nil
@@ -185,7 +186,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
@@ -216,7 +217,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch questions by filters: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 	defer rows.Close()
 
@@ -234,7 +235,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 
 		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
-			return nil, fmt.Errorf("could not scan question: %v", err)
+			return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 		}
 
 		questions = append(questions, dto.Question{
@@ -248,7 +249,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %v", err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrRows, err)
 	}
 
 	return &questions, nil
@@ -257,7 +258,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 func (r *questionRepo) CountQuestions(ctx context.Context) (int, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return 0, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
@@ -268,7 +269,7 @@ func (r *questionRepo) CountQuestions(ctx context.Context) (int, error) {
 	var count int
 	err = db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
-		return 0, fmt.Errorf("could not count questions: %v", err)
+		return 0, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 
 	return count, nil
@@ -277,7 +278,7 @@ func (r *questionRepo) CountQuestions(ctx context.Context) (int, error) {
 func (r *questionRepo) QuestionExistsByID(ctx context.Context, questionID string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelectExistsWhere, map[string]string{
@@ -288,7 +289,7 @@ func (r *questionRepo) QuestionExistsByID(ctx context.Context, questionID string
 	var exists bool
 	err = db.QueryRowContext(ctx, query, questionID).Scan(&exists)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if question exists: %v", err)
+		return false, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 
 	return exists, nil
@@ -297,7 +298,7 @@ func (r *questionRepo) QuestionExistsByID(ctx context.Context, questionID string
 func (r *questionRepo) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return false, fmt.Errorf("failed to get PostgreSQL connection: %v", err)
+		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelectExistsWhere, map[string]string{
@@ -308,7 +309,7 @@ func (r *questionRepo) QuestionExistsByTitleSlug(ctx context.Context, titleSlug 
 	var exists bool
 	err = db.QueryRowContext(ctx, query, titleSlug).Scan(&exists)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if question exists by title slug: %v", err)
+		return false, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
 
 	return exists, nil

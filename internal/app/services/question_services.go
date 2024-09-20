@@ -4,10 +4,10 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
+	"cli-project/pkg/errors"
 	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -33,7 +33,7 @@ var (
 func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFilePath string) (bool, error) {
 	records, err := CSVReader(questionFilePath)
 	if err != nil {
-		return false, fmt.Errorf("error reading CSV file: %v", err)
+		return false, fmt.Errorf("%w: %v", errs.ErrInvalidBodyError, err)
 	}
 
 	var questions []models.Question
@@ -45,7 +45,7 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 		}
 
 		if len(record) != 7 {
-			return false, errors.New("invalid CSV format, expected 7 columns")
+			return false, fmt.Errorf("%w: invalid CSV format, expected 7 columns", errs.ErrInvalidBodyError)
 		}
 
 		titleSlug := utils.CleanString(record[0])
@@ -58,17 +58,17 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 
 		valid, err := ValidateQuestionID(questionID)
 		if !valid {
-			return false, fmt.Errorf("invalid question ID: %v", err)
+			return false, fmt.Errorf("%w: invalid question ID: %v", errs.ErrInvalidParameterError, err)
 		}
 
 		difficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			return false, fmt.Errorf("invalid difficulty: %v", err)
+			return false, fmt.Errorf("%w: invalid difficulty: %v", errs.ErrInvalidParameterError, err)
 		}
 
 		questionLink, err = ValidateQuestionLink(questionLink)
 		if err != nil {
-			return false, fmt.Errorf("invalid question link: %v", err)
+			return false, fmt.Errorf("%w: invalid question link: %v", errs.ErrInvalidParameterError, err)
 		}
 
 		question := models.Question{
@@ -83,7 +83,7 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 
 		exists, err := s.QuestionExistsByID(ctx, questionID)
 		if err != nil {
-			return false, fmt.Errorf("error checking if question exists: %v", err)
+			return false, fmt.Errorf("%w: error checking if question exists: %v", errs.ErrDbError, err)
 		}
 
 		if !exists {
@@ -95,7 +95,7 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 	if newQuestionsAdded {
 		err = s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
-			return false, fmt.Errorf("error adding questions to the database: %v", err)
+			return false, fmt.Errorf("%w: error adding questions to the database: %v", errs.ErrDbError, err)
 		}
 	}
 
@@ -105,30 +105,44 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 func (s *QuestionService) RemoveQuestionByID(ctx context.Context, questionID string) error {
 	exists, err := s.QuestionExistsByID(ctx, questionID)
 	if err != nil {
-		return fmt.Errorf("error checking if question exists: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
 	if !exists {
-		return fmt.Errorf("question with ID %s not found", questionID)
+		return fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, questionID)
 	}
 
-	return s.questionRepo.RemoveQuestionByID(ctx, questionID)
+	err = s.questionRepo.RemoveQuestionByID(ctx, questionID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return nil
 }
 
 func (s *QuestionService) GetQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
 	exists, err := s.QuestionExistsByTitleSlug(ctx, questionID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("question with title slug %s not found", questionID)
+		return nil, fmt.Errorf("%w: question with title slug %s not found", errs.ErrNoRows, questionID)
 	}
 
-	return s.questionRepo.FetchQuestionByID(ctx, questionID)
+	question, err := s.questionRepo.FetchQuestionByID(ctx, questionID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return question, nil
 }
 
 func (s *QuestionService) GetAllQuestions(ctx context.Context) (*[]dto.Question, error) {
-	return s.questionRepo.FetchAllQuestions(ctx)
+	questions, err := s.questionRepo.FetchAllQuestions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return questions, nil
 }
 
 func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
@@ -138,34 +152,53 @@ func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty,
 	if difficulty != "" && strings.ToLower(difficulty) != "any" {
 		validDifficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 		}
 	}
 
 	cleanCompany := utils.CleanString(company)
 	cleanTopic := utils.CleanString(topic)
 
-	return s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
+	questions, err := s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return questions, nil
 }
 
 func (s *QuestionService) QuestionExistsByID(ctx context.Context, questionID string) (bool, error) {
 	valid, err := validation.ValidateQuestionID(questionID)
 	if !valid {
-		return false, err
+		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
 
-	return s.questionRepo.QuestionExistsByID(ctx, questionID)
+	exists, err := s.questionRepo.QuestionExistsByID(ctx, questionID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return exists, nil
 }
 
 func (s *QuestionService) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
 	valid, err := ValidateTitleSlug(titleSlug)
 	if !valid {
-		return false, err
+		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
 
-	return s.questionRepo.QuestionExistsByTitleSlug(ctx, titleSlug)
+	exists, err := s.questionRepo.QuestionExistsByTitleSlug(ctx, titleSlug)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return exists, nil
 }
 
 func (s *QuestionService) GetTotalQuestionsCount(ctx context.Context) (int, error) {
-	return s.questionRepo.CountQuestions(ctx)
+	count, err := s.questionRepo.CountQuestions(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return count, nil
 }
