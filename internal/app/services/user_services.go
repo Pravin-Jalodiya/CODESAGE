@@ -3,10 +3,10 @@ package services
 import (
 	interfaces2 "cli-project/external/domain/interfaces"
 	"cli-project/internal/config/roles"
+	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/errors"
-	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
 	"context"
 	"errors"
@@ -39,12 +39,39 @@ func NewUserService(
 	}
 }
 
-func (s *UserService) GetAllUsers(ctx context.Context) (*[]models.StandardUser, error) {
+func (s *UserService) GetAllUsers(ctx context.Context) ([]dto.StandardUser, error) {
 	users, err := s.userRepo.FetchAllUsers(ctx)
+
+	var dtoUsers []dto.StandardUser
+
+	for _, user := range users {
+		role, _ := roles.ParseRole(user.StandardUser.Role)
+		if role == roles.ADMIN {
+			continue
+		}
+
+		dtoUser := dto.StandardUser{
+			StandardUser: dto.User{
+				Username:     user.StandardUser.Username,
+				Role:         user.StandardUser.Role,
+				Name:         user.StandardUser.Name,
+				Email:        user.StandardUser.Email,
+				Organisation: user.StandardUser.Organisation,
+				Country:      user.StandardUser.Country,
+				IsBanned:     user.StandardUser.IsBanned,
+			},
+			LeetcodeID: user.LeetcodeID,
+			LastSeen:   user.LastSeen,
+		}
+
+		dtoUsers = append(dtoUsers, dtoUser)
+
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
-	return users, nil
+	return dtoUsers, nil
 }
 
 // ViewDashboard retrieves the dashboard for the active user
@@ -54,13 +81,9 @@ func (s *UserService) ViewDashboard(ctx context.Context) error {
 }
 
 // UpdateUserProgress updates the user's progress by adding a solved question ID.
-func (s *UserService) UpdateUserProgress(ctx context.Context) error {
-	userUUID, err := uuid.Parse(globals.ActiveUserID)
-	if err != nil {
-		return fmt.Errorf("%w: invalid user ID", errs.ErrInvalidBodyError)
-	}
+func (s *UserService) UpdateUserProgress(ctx context.Context, userID uuid.UUID) error {
 
-	stats, err := s.GetUserLeetcodeStats(globals.ActiveUserID)
+	stats, err := s.GetUserLeetcodeStats(userID.String())
 	if err != nil {
 		return fmt.Errorf("%w: could not fetch stats from LeetCode API", err)
 	}
@@ -78,7 +101,7 @@ func (s *UserService) UpdateUserProgress(ctx context.Context) error {
 	}
 
 	if len(validSlugs) > 0 {
-		err = s.userRepo.UpdateUserProgress(ctx, userUUID, validSlugs)
+		err = s.userRepo.UpdateUserProgress(ctx, userID, validSlugs)
 		if err != nil {
 			return fmt.Errorf("%w: could not update user progress", err)
 		}
@@ -155,78 +178,51 @@ func (s *UserService) GetUserID(ctx context.Context, username string) (string, e
 	return user.StandardUser.ID, nil
 }
 
-func (s *UserService) BanUser(ctx context.Context, username string) (bool, error) {
+func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (string, error) {
+	// Fetch the user by username
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return "", fmt.Errorf("%w: %v", ErrUserNotFound, err)
 	}
 
+	// Check the role to ensure we're not operating on an admin
 	role, err := roles.ParseRole(user.StandardUser.Role)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
+		return "", fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
 
 	if role == roles.ADMIN {
-		return false, fmt.Errorf("%w: ban operation on admin not allowed", errs.ErrInvalidParameterError)
+		return "", fmt.Errorf("%w: ban/unban operation on admin not allowed", errs.ErrInvalidParameterError)
 	}
 
+	// Fetch user ID by username
 	userID, err := s.GetUserID(ctx, username)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
+	// Check if the user is already banned
 	alreadyBanned, err := s.IsUserBanned(ctx, userID)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
+	// If the user is banned, unban them
 	if alreadyBanned {
-		return true, nil
+		err = s.userRepo.UnbanUser(ctx, userID)
+		if err != nil {
+			return "", fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		}
+		return "User has been unbanned successfully", nil
 	}
 
+	// If the user is not banned, ban them
 	err = s.userRepo.BanUser(ctx, userID)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		return "", fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
-	return true, nil
-}
-
-func (s *UserService) UnbanUser(ctx context.Context, username string) (bool, error) {
-	user, err := s.userRepo.FetchUserByUsername(ctx, username)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", ErrUserNotFound, err)
-	}
-
-	role, err := roles.ParseRole(user.StandardUser.Role)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
-	}
-
-	if role == roles.ADMIN {
-		return false, fmt.Errorf("%w: unban operation on admin not allowed", errs.ErrInvalidParameterError)
-	}
-
-	userID, err := s.GetUserID(ctx, username)
-	if err != nil {
-		return false, err
-	}
-
-	alreadyBanned, err := s.IsUserBanned(ctx, userID)
-	if err != nil {
-		return false, err
-	}
-
-	if !alreadyBanned {
-		return true, nil
-	}
-
-	err = s.userRepo.UnbanUser(ctx, userID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
-	}
-
-	return true, nil
+	return "User has been banned successfully", nil
 }
 
 func (s *UserService) IsUserBanned(ctx context.Context, userID string) (bool, error) {
@@ -312,23 +308,25 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 func (s *UserService) GetPlatformStats(ctx context.Context) (*models.PlatformStats, error) {
 	activeUsersInLast24Hours, err := s.CountActiveUserInLast24Hours(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		return nil, fmt.Errorf("%w: failed to count active users in the last 24 hours: %v", errs.ErrDbError, err)
 	}
 
 	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		return nil, fmt.Errorf("%w: failed to get total questions count: %v", errs.ErrDbError, err)
 	}
 
 	allQuestions, err := s.questionService.GetAllQuestions(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		return nil, fmt.Errorf("%w: failed to fetch all questions: %v", errs.ErrDbError, err)
 	}
 
+	// Initialize counts
 	difficultyWiseCount := make(map[string]int)
 	topicWiseCount := make(map[string]int)
 	companyWiseCount := make(map[string]int)
 
+	// Count the questions by difficulty, topic, and company
 	for _, question := range *allQuestions {
 		difficultyWiseCount[question.Difficulty]++
 

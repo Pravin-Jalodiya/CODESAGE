@@ -123,7 +123,7 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 	return tx.Commit()
 }
 
-func (r *userRepo) FetchAllUsers(ctx context.Context) (*[]models.StandardUser, error) {
+func (r *userRepo) FetchAllUsers(ctx context.Context) ([]models.StandardUser, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -170,7 +170,7 @@ func (r *userRepo) FetchAllUsers(ctx context.Context) (*[]models.StandardUser, e
 		return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
 	}
 
-	return &users, nil
+	return users, nil
 }
 
 func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.StandardUser, error) {

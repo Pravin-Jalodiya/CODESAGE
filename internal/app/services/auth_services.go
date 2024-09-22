@@ -35,15 +35,6 @@ func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) err
 	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
 	user.StandardUser.ID = utils.GenerateUUID()
 
-	// Check if the email is unique
-	emailUnique, err := s.userRepo.IsEmailUnique(ctx, user.StandardUser.Email)
-	if err != nil {
-		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
-	}
-	if !emailUnique {
-		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.StandardUser.Email)
-	}
-
 	// Check if the username is unique
 	usernameUnique, err := s.userRepo.IsUsernameUnique(ctx, user.StandardUser.Username)
 	if err != nil {
@@ -51,6 +42,15 @@ func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) err
 	}
 	if !usernameUnique {
 		return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, user.StandardUser.Username)
+	}
+
+	// Check if the email is unique
+	emailUnique, err := s.userRepo.IsEmailUnique(ctx, user.StandardUser.Email)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	if !emailUnique {
+		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.StandardUser.Email)
 	}
 
 	// Check if the Leetcode ID is unique

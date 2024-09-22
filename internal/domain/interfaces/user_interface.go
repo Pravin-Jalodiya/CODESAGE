@@ -9,7 +9,7 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.StandardUser) error
 	UpdateUserProgress(ctx context.Context, userID uuid.UUID, questionID []string) error
-	FetchAllUsers(ctx context.Context) (*[]models.StandardUser, error)
+	FetchAllUsers(ctx context.Context) ([]models.StandardUser, error)
 	FetchUserByID(ctx context.Context, id string) (*models.StandardUser, error)
 	FetchUserByUsername(ctx context.Context, username string) (*models.StandardUser, error)
 	FetchUserProgress(ctx context.Context, userID string) (*[]string, error)

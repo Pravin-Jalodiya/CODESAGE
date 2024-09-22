@@ -145,14 +145,14 @@ func (s *QuestionService) GetAllQuestions(ctx context.Context) (*[]dto.Question,
 	return questions, nil
 }
 
-func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
+func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {
 	var validDifficulty string
 	var err error
 
 	if difficulty != "" && strings.ToLower(difficulty) != "any" {
 		validDifficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
+			return []dto.Question{}, fmt.Errorf("%w: invalid difficulty", errs.ErrInvalidParameterError)
 		}
 	}
 
@@ -161,7 +161,7 @@ func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty,
 
 	questions, err := s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		return []dto.Question{}, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
 	return questions, nil
@@ -182,7 +182,7 @@ func (s *QuestionService) QuestionExistsByID(ctx context.Context, questionID str
 }
 
 func (s *QuestionService) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
-	fmt.Println("Here in question Exist by titleSlug!")
+
 	valid, err := ValidateTitleSlug(titleSlug)
 	if !valid {
 		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)

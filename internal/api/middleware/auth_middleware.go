@@ -40,8 +40,6 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 		tokenString := tokenParts[1]
 
-		logger.Logger.Infow("Token String", "token", tokenString)
-
 		// Parse and validate the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// Validate the signing method

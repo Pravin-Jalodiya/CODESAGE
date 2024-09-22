@@ -13,7 +13,7 @@ var (
 	DB_NAME                 = "codesage"
 	DB_HOST                 = "localhost"
 	DB_PORT                 = "5432"
-	LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
+	LOG_FILE                = "C:\\go workspace\\CODESAGE\\logs.log"
 	SECRET_KEY              = []byte("secret-key")
 	PORT                    = ":8080"
 )

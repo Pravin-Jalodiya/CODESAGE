@@ -1,12 +1,12 @@
 package repositories
 
 import (
+	"cli-project/internal/config"
 	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"log"
-	"os"
 	"sync"
 	"time"
 )
@@ -17,7 +17,7 @@ var (
 	DbMutex             sync.Mutex // Mutex to handle connection expiration logic
 	ConnectedAt         time.Time
 	DbTTL               = 6 * time.Hour
-	ConnStr             = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
+	ConnStr             = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.DB_USER, config.DB_PASSWORD, config.DB_HOST, config.DB_PORT, config.DB_NAME)
 	MaxOpenConns        = 50
 	MaxIdleConns        = 10
 	ConnMaxLifetime     = 30 * time.Minute

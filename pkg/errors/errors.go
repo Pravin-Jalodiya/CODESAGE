@@ -36,7 +36,7 @@ var (
 func JSONError(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	jsonResponse := map[string]string{"error": message}
+	jsonResponse := map[string]any{"code": code, "message": message}
 	json.NewEncoder(w).Encode(jsonResponse)
 }
 

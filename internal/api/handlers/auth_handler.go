@@ -65,7 +65,8 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]interface{}{
 		"message": "User successfully registered",
-		"user_info": map[string]string{
+		"code":    http.StatusOK,
+		"user_info": map[string]any{
 			"username":     user.StandardUser.Username,
 			"organisation": user.StandardUser.Organisation,
 			"country":      user.StandardUser.Country,
@@ -102,7 +103,9 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := a.authService.Login(r.Context(), requestBody.Username, requestBody.Password)
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNotFound) || errors.Is(err, errs.ErrInvalidPassword) {
-			errs.NewAuthenticationError("Invalid username or password").ToJSON(w)
+			// Change to 400 Bad Request for invalid credentials
+			errs.NewInvalidRequestBodyError("Invalid username or password").ToJSON(w)
+			w.WriteHeader(http.StatusBadRequest)
 		} else {
 			errs.NewInternalServerError("Login failed").ToJSON(w)
 		}
@@ -121,7 +124,7 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Return the token as a JSON
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]string{"token": token, "role": user.StandardUser.Role}
+	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Login successful", "token": token, "role": user.StandardUser.Role}
 	json.NewEncoder(w).Encode(jsonResponse)
 	logger.Logger.Infow("Login Successful", "method", r.Method, "request", requestBody, "time", time.Now())
 }
@@ -140,7 +143,7 @@ func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Return a success message
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]string{"message": "Logout successful"}
+	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Logout successful"}
 	json.NewEncoder(w).Encode(jsonResponse)
 	logger.Logger.Infow("Logout Successful", "method", r.Method, "time", time.Now())
 }

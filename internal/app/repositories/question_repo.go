@@ -183,7 +183,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 	return &questions, nil
 }
 
-func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) (*[]dto.Question, error) {
+func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -252,7 +252,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 		return nil, fmt.Errorf("%w: %v", errs.ErrRows, err)
 	}
 
-	return &questions, nil
+	return questions, nil
 }
 
 func (r *questionRepo) CountQuestions(ctx context.Context) (int, error) {

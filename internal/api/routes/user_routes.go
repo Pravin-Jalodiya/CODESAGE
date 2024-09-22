@@ -7,9 +7,16 @@ import (
 )
 
 func InitialiseUserRouter(r *mux.Router, userHandler *handlers.UserHandler) {
-	authRouter := r.PathPrefix("/user").Subrouter()
-	authRouter.Use(middleware.JWTAuthMiddleware)
-	authRouter.Use(middleware.UserRoleMiddleware)
-	authRouter.HandleFunc("/profile/{username}", userHandler.GetUserByID).Methods("GET")
-	authRouter.HandleFunc("/progress", userHandler.GetUserProgress).Methods("GET")
+	userRouter := r.PathPrefix("/users").Subrouter()
+	adminRouter := r.PathPrefix("/").Subrouter()
+	userRouter.Use(middleware.JWTAuthMiddleware)
+	adminRouter.Use(middleware.JWTAuthMiddleware)
+	userRouter.Use(middleware.UserRoleMiddleware)
+	adminRouter.Use(middleware.AdminRoleMiddleware)
+	userRouter.HandleFunc("/profile/{username}", userHandler.GetUserByID).Methods("GET")
+	userRouter.HandleFunc("/progress/{username}", userHandler.GetUserProgress).Methods("GET")
+	userRouter.HandleFunc("/progress/{username}", userHandler.UpdateUserProgress).Methods("PATCH")
+	adminRouter.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
+	adminRouter.HandleFunc("/platform-stats", userHandler.GetPlatformStats).Methods("GET")
+	adminRouter.HandleFunc("/users/UpdateUserBanState", userHandler.UpdateUserBanState).Methods("PATCH")
 }
