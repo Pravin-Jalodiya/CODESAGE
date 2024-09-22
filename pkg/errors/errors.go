@@ -31,6 +31,14 @@ var (
 	ErrNoRows                     = errors.New("no rows found")
 	ErrRows                       = errors.New("rows error")
 	ErrInternalServerError        = errors.New("internal server error")
+	ErrInvalidCSVFormat           = errors.New("invalid CSV format, expected 7 columns")
+	ErrInvalidQuestionID          = errors.New("invalid question ID")
+	ErrInvalidQuestionDifficulty  = errors.New("invalid difficulty")
+	ErrInvalidQuestionLink        = errors.New("invalid question link")
+	ErrQuestionExists             = errors.New("question already exists in the database")
+	ErrReadingCSVFile             = errors.New("error reading CSV file")
+	ErrCSVFileOpening             = errors.New("error opening CSV file")
+	ErrDbOperation                = errors.New("error in database operations")
 )
 
 func JSONError(w http.ResponseWriter, message string, code int) {

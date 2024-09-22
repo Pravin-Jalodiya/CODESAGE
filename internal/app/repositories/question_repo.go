@@ -27,7 +27,7 @@ func (r *questionRepo) getDBConnection() (*sql.DB, error) {
 func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Question) error {
 	db, err := r.getDBConnection()
 	if err != nil {
-		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+		return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 	}
 
 	query := queries.QueryBuilder(queries.BaseInsert, map[string]string{
@@ -38,7 +38,7 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("%w: %v", errs.ErrTransactionStart, err)
+		return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 	}
 
 	for _, question := range *questions {
@@ -53,13 +53,13 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 		)
 		if err != nil {
 			_ = tx.Rollback()
-			return fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
+			return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("%w: %v", errs.ErrTransactionCommit, err)
+		return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 	}
 
 	return nil

@@ -10,7 +10,7 @@ func UserRoleMiddleware(next http.Handler) http.Handler {
 		userMetaData, ok := r.Context().Value("userMetaData").(UserMetaData)
 
 		if !ok || userMetaData.Role != roles.USER {
-			unauthorized(w, "You do not have permission to access this resource")
+			unauthorized(w, "Unauthorized access")
 			return
 		}
 

@@ -27,3 +27,7 @@
 {"level":"ERROR","time":"2024-09-20T16:44:16+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '\\n' in string literal","time":"2024-09-20T16:44:16+05:30"}
 {"level":"ERROR","time":"2024-09-20T16:44:23+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '}' looking for beginning of object key string","time":"2024-09-20T16:44:23+05:30"}
 {"level":"ERROR","time":"2024-09-20T16:44:30+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"pravi","time":"2024-09-20T16:44:30+05:30"}
+{"level":"ERROR","time":"2024-09-22T11:47:26+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T11:47:26+05:30"}
+{"level":"ERROR","time":"2024-09-22T11:47:35+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T11:47:35+05:30"}
+{"level":"ERROR","time":"2024-09-22T12:01:23+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-22T12:01:23+05:30"}
+{"level":"ERROR","time":"2024-09-22T12:03:51+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T12:03:51+05:30"}

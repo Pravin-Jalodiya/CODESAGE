@@ -8,7 +8,9 @@ import (
 	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"context"
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -30,10 +32,20 @@ var (
 	ValidateTitleSlug          = validation.ValidateTitleSlug
 )
 
+// AddQuestionsFromFile processes the CSV file and adds new questions to the database.
 func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFilePath string) (bool, error) {
-	records, err := CSVReader(questionFilePath)
+	// Open the CSV file
+	file, err := os.Open(questionFilePath)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrInvalidBodyError, err)
+		return false, fmt.Errorf("%w: %v", errs.ErrCSVFileOpening, err)
+	}
+	defer file.Close()
+
+	// Read the CSV content
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrReadingCSVFile, err)
 	}
 
 	var questions []models.Question
@@ -41,11 +53,11 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 
 	for i, record := range records {
 		if i == 0 {
-			continue
+			continue // Skip header row
 		}
 
 		if len(record) != 7 {
-			return false, fmt.Errorf("%w: invalid CSV format, expected 7 columns", errs.ErrInvalidBodyError)
+			return false, errs.ErrInvalidCSVFormat
 		}
 
 		titleSlug := utils.CleanString(record[0])
@@ -58,17 +70,17 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 
 		valid, err := ValidateQuestionID(questionID)
 		if !valid {
-			return false, fmt.Errorf("%w: invalid question ID: %v", errs.ErrInvalidParameterError, err)
+			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionID, err)
 		}
 
 		difficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			return false, fmt.Errorf("%w: invalid difficulty: %v", errs.ErrInvalidParameterError, err)
+			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionDifficulty, err)
 		}
 
 		questionLink, err = ValidateQuestionLink(questionLink)
 		if err != nil {
-			return false, fmt.Errorf("%w: invalid question link: %v", errs.ErrInvalidParameterError, err)
+			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionLink, err)
 		}
 
 		question := models.Question{
@@ -83,19 +95,21 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 
 		exists, err := s.QuestionExistsByID(ctx, questionID)
 		if err != nil {
-			return false, fmt.Errorf("%w: error checking if question exists: %v", errs.ErrDbError, err)
+			return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 
-		if !exists {
-			questions = append(questions, question)
-			newQuestionsAdded = true
+		if exists {
+			continue
 		}
+
+		questions = append(questions, question)
+		newQuestionsAdded = true
 	}
 
 	if newQuestionsAdded {
 		err = s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
-			return false, fmt.Errorf("%w: error adding questions to the database: %v", errs.ErrDbError, err)
+			return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 	}
 

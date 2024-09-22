@@ -18,5 +18,5 @@ func InitialiseUserRouter(r *mux.Router, userHandler *handlers.UserHandler) {
 	userRouter.HandleFunc("/progress/{username}", userHandler.UpdateUserProgress).Methods("PATCH")
 	adminRouter.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 	adminRouter.HandleFunc("/platform-stats", userHandler.GetPlatformStats).Methods("GET")
-	adminRouter.HandleFunc("/users/UpdateUserBanState", userHandler.UpdateUserBanState).Methods("PATCH")
+	adminRouter.HandleFunc("/users/update-user-ban-state", userHandler.UpdateUserBanState).Methods("PATCH")
 }

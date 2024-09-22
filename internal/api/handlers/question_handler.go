@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/go-playground/validator"
+	"io"
 	"net/http"
+	"os"
 )
 
 // QuestionHandler handles question-related requests.
@@ -22,6 +24,69 @@ func NewQuestionHandler(questionService interfaces.QuestionService) *QuestionHan
 		questionService: questionService,
 		validate:        validator.New(),
 	}
+}
+
+// AddQuestions handles the file upload for questions CSV.
+func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
+	// Parse the multipart form, specifying a max memory buffer
+	err := r.ParseMultipartForm(10 << 20) // 10 MB
+	if err != nil {
+		errs.JSONError(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the file from the form
+	file, _, err := r.FormFile("questions_file")
+	if err != nil {
+		errs.JSONError(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	// Create a temporary file on the server
+	tempFile, err := os.CreateTemp("", "upload-*.csv")
+	if err != nil {
+		errs.JSONError(w, "Error creating temporary file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer tempFile.Close()
+
+	// Read the file content into the temporary file
+	_, err = io.Copy(tempFile, file)
+	if err != nil {
+		errs.JSONError(w, "Error saving the file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get the file path
+	filePath := tempFile.Name()
+
+	// Call the service method to process the file
+	added, err := q.questionService.AddQuestionsFromFile(r.Context(), filePath)
+	if err != nil {
+		os.Remove(filePath) // Ensure the temporary file is deleted
+		errs.JSONError(w, "Error processing the file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the temporary file as it's no longer needed
+	os.Remove(filePath)
+
+	// Prepare the response message
+	var message string
+	if added {
+		message = "Questions added successfully"
+	} else {
+		message = "No new questions found"
+	}
+
+	// Send a success response
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]interface{}{
+		"code":    http.StatusOK,
+		"message": message,
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
 }
 
 func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {

@@ -3,7 +3,7 @@ package config
 var (
 	USER_COLLECTION         = "users"
 	QUESTION_COLLECTION     = "questions"
-	CSV_DIR                 = "C:\\go workspace\\CODESAGE\\csv"
+	CSV_DIR                 = "/Users/pravin/Desktop/CODESAGE/csv"
 	GPT_API_ENDPOINT        = "https://api.openai.com/v1/chat/completions"
 	GPT_MODEL               = "gpt-4o"
 	LEETCODE_API            = "https://Leetcode.com/graphql/"
@@ -13,7 +13,9 @@ var (
 	DB_NAME                 = "codesage"
 	DB_HOST                 = "localhost"
 	DB_PORT                 = "5432"
-	LOG_FILE                = "C:\\go workspace\\CODESAGE\\logs.log"
 	SECRET_KEY              = []byte("secret-key")
 	PORT                    = ":8080"
+	LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
+	//CSV_DIR                 = "C:\\go workspace\\CODESAGE\\csv"
+	//LOG_FILE              = "C:\\go workspace\\CODESAGE\\logs.log"
 )
