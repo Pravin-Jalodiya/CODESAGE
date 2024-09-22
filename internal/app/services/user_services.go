@@ -327,7 +327,7 @@ func (s *UserService) GetPlatformStats(ctx context.Context) (*models.PlatformSta
 	companyWiseCount := make(map[string]int)
 
 	// Count the questions by difficulty, topic, and company
-	for _, question := range *allQuestions {
+	for _, question := range allQuestions {
 		difficultyWiseCount[question.Difficulty]++
 
 		for _, topic := range question.TopicTags {

@@ -47,6 +47,7 @@ var validCountries = map[string]struct{}{
 }
 
 func ValidateCountryName(country string) (bool, error) {
+	country = strings.ToLower(country)
 	country = strings.ReplaceAll(country, " ", "")
 	if _, exists := validCountries[country]; !exists {
 		return false, errors.New("invalid country name")

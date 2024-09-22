@@ -7,11 +7,13 @@ import (
 	"cli-project/pkg/globals"
 	"cli-project/pkg/logger"
 	"cli-project/pkg/utils"
+	"cli-project/pkg/validation"
 	"encoding/json"
 	"errors"
-	"github.com/go-playground/validator"
 	"net/http"
 	"time"
+
+	"github.com/go-playground/validator"
 )
 
 var validate *validator.Validate
@@ -28,24 +30,71 @@ func NewAuthHandler(authService interfaces.AuthService) *AuthHandler {
 }
 
 func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	var user models.StandardUser
+	var input struct {
+		StandardUser struct {
+			Username     string `json:"username"`
+			Password     string `json:"password"`
+			Name         string `json:"name"`
+			Email        string `json:"email"`
+			Organization string `json:"organisation"`
+			Country      string `json:"country"`
+		} `json:"standard_user"`
+		LeetcodeID string `json:"leetcode_id"`
+	}
 
-	// Decode the request body
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		errs.NewInvalidRequestBodyError("Invalid request body").ToJSON(w)
 		logger.Logger.Errorw("Error decoding request body", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
 
-	// Validate the user information
-	if err := validate.Struct(user); err != nil {
-		errs.NewBadRequestError("Invalid request parameters").ToJSON(w)
-		logger.Logger.Errorw("Validation failed", "method", r.Method, "error", err, "time", time.Now())
+	user := models.StandardUser{
+		StandardUser: models.User{
+			Username:     input.StandardUser.Username,
+			Password:     input.StandardUser.Password,
+			Name:         input.StandardUser.Name,
+			Email:        input.StandardUser.Email,
+			Organisation: input.StandardUser.Organization,
+			Country:      input.StandardUser.Country,
+		},
+		LeetcodeID:      input.LeetcodeID,
+		QuestionsSolved: []string{},
+		LastSeen:        time.Time{},
+	}
+
+	// Perform custom validations
+	if !validation.ValidateUsername(user.StandardUser.Username) {
+		errs.NewBadRequestError("Invalid username").ToJSON(w)
+		return
+	}
+	if !validation.ValidatePassword(user.StandardUser.Password) {
+		errs.NewBadRequestError("Invalid password").ToJSON(w)
+		return
+	}
+	if !validation.ValidateName(user.StandardUser.Name) {
+		errs.NewBadRequestError("Invalid name").ToJSON(w)
+		return
+	}
+	isEmailValid, isReputable := validation.ValidateEmail(user.StandardUser.Email)
+	if !isEmailValid {
+		errs.NewBadRequestError("Invalid email format").ToJSON(w)
+		return
+	} else if !isReputable {
+		errs.NewBadRequestError("Email domain is not reputable").ToJSON(w)
+		return
+	}
+	isOrgValid, orgErr := validation.ValidateOrganizationName(user.StandardUser.Organisation)
+	if !isOrgValid {
+		errs.NewBadRequestError(orgErr.Error()).ToJSON(w)
+		return
+	}
+	isCountryValid, countryErr := validation.ValidateCountryName(user.StandardUser.Country)
+	if !isCountryValid {
+		errs.NewBadRequestError(countryErr.Error()).ToJSON(w)
 		return
 	}
 
-	// Call the service layer for signup
 	err = a.authService.Signup(r.Context(), &user)
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNameAlreadyExists) {
@@ -61,7 +110,6 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return a success message
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]interface{}{
 		"message": "User successfully registered",
@@ -77,13 +125,11 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// Define the request body structure
 	var requestBody struct {
 		Username string `json:"username" validate:"required"`
 		Password string `json:"password" validate:"required"`
 	}
 
-	// Decode the request body
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		errs.NewInvalidRequestBodyError("Invalid request body").ToJSON(w)
@@ -92,18 +138,18 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the request body
-	err = validate.Struct(requestBody)
-	if err != nil {
-		errs.NewInvalidRequestBodyError("Invalid request body").ToJSON(w)
-		logger.Logger.Errorw("Validation error", "method", r.Method, "error", err, "request", requestBody, "time", time.Now())
+	if !validation.ValidateUsername(requestBody.Username) {
+		errs.NewBadRequestError("Invalid username").ToJSON(w)
+		return
+	}
+	if !validation.ValidatePassword(requestBody.Password) {
+		errs.NewBadRequestError("Invalid password").ToJSON(w)
 		return
 	}
 
-	// Call the service layer for login
 	user, err := a.authService.Login(r.Context(), requestBody.Username, requestBody.Password)
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNotFound) || errors.Is(err, errs.ErrInvalidPassword) {
-			// Change to 400 Bad Request for invalid credentials
 			errs.NewInvalidRequestBodyError("Invalid username or password").ToJSON(w)
 			w.WriteHeader(http.StatusBadRequest)
 		} else {
@@ -113,7 +159,6 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a JWT token
 	token, err := utils.CreateJwtToken(user.StandardUser.Username, user.StandardUser.ID, user.StandardUser.Role)
 	if err != nil {
 		errs.NewInternalServerError("Failed to generate token").ToJSON(w)
@@ -122,7 +167,6 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	globals.ActiveUserID = user.StandardUser.ID
 
-	// Return the token as a JSON
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Login successful", "token": token, "role": user.StandardUser.Role}
 	json.NewEncoder(w).Encode(jsonResponse)
@@ -130,7 +174,6 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Call the service layer for logout
 	err := a.authService.Logout(r.Context())
 	if err != nil {
 		errs.NewInternalServerError(err.Error()).ToJSON(w)
@@ -138,10 +181,8 @@ func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Invalidate the token (clear the token or blacklist it as needed)
 	globals.ActiveUserID = ""
 
-	// Return a success message
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Logout successful"}
 	json.NewEncoder(w).Encode(jsonResponse)

@@ -132,7 +132,7 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 	return &question, nil
 }
 
-func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, error) {
+func (r *questionRepo) FetchAllQuestions(ctx context.Context) ([]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -180,7 +180,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) (*[]dto.Question, 
 		return nil, fmt.Errorf("%w: %v", errs.ErrRows, err)
 	}
 
-	return &questions, nil
+	return questions, nil
 }
 
 func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {

@@ -151,7 +151,7 @@ func (s *QuestionService) GetQuestionByID(ctx context.Context, questionID string
 	return question, nil
 }
 
-func (s *QuestionService) GetAllQuestions(ctx context.Context) (*[]dto.Question, error) {
+func (s *QuestionService) GetAllQuestions(ctx context.Context) ([]dto.Question, error) {
 	questions, err := s.questionRepo.FetchAllQuestions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)

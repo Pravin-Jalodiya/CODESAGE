@@ -7,10 +7,12 @@ import (
 )
 
 func InitialiseQuestionRouter(r *mux.Router, questionHandler *handlers.QuestionHandler) {
+	r.HandleFunc("/question/all", questionHandler.GetAllQuestions).Methods("GET")
 	r.HandleFunc("/question", questionHandler.GetQuestions).Methods("GET")
+	//get a specific question
 	questionRouter := r.PathPrefix("/question").Subrouter()
 	questionRouter.Use(middleware.JWTAuthMiddleware)
 	questionRouter.Use(middleware.AdminRoleMiddleware)
 	questionRouter.HandleFunc("", questionHandler.RemoveQuestionById).Methods("DELETE")
-	questionRouter.HandleFunc("/add-questions", questionHandler.AddQuestions).Methods("POST")
+	questionRouter.HandleFunc("", questionHandler.AddQuestions).Methods("POST")
 }

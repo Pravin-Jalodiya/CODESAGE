@@ -4,25 +4,26 @@ import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/pkg/errors"
+	"cli-project/pkg/logger"
+	"cli-project/pkg/validation"
 	"encoding/json"
 	"errors"
-	"github.com/go-playground/validator"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 )
 
 // QuestionHandler handles question-related requests.
 type QuestionHandler struct {
 	questionService interfaces.QuestionService
-	validate        *validator.Validate
 }
 
 // NewQuestionHandler creates a new QuestionHandler instance.
 func NewQuestionHandler(questionService interfaces.QuestionService) *QuestionHandler {
 	return &QuestionHandler{
 		questionService: questionService,
-		validate:        validator.New(),
 	}
 }
 
@@ -89,22 +90,16 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(jsonResponse)
 }
 
-func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
-	difficulty := r.URL.Query().Get("difficulty")
-	topic := r.URL.Query().Get("topic")
-	company := r.URL.Query().Get("company")
+func (q *QuestionHandler) GetAllQuestions(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-
-	var questions []dto.Question
-	var err error
-
-	if questions, err = q.questionService.GetQuestionsByFilters(ctx, difficulty, topic, company); err != nil {
+	questions, err := q.questionService.GetAllQuestions(ctx)
+	if err != nil {
 		errs.NewBadRequestError("Error fetching questions").ToJSON(w)
+		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
 
-	// Return JSON response on success
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]any{
 		"code":    http.StatusOK,
@@ -117,22 +112,98 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 		}(),
 	}
 	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("Fetched questions successfully", "method", r.Method, "questionsCount", len(questions), "time", time.Now())
 }
 
-// RemoveQuestionById handles the DELETE request to remove a question by its ID.
-func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Request) {
-	// Extract question ID from query parameters
-	questionID := r.URL.Query().Get("id")
+func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
 
-	if questionID == "" {
-		errs.NewBadRequestError("Question ID is required").ToJSON(w)
+	// Validate `limit` parameter since it's required
+	if limitStr == "" {
+		errs.NewBadRequestError("limit is a required query parameter").ToJSON(w)
+		logger.Logger.Errorw("Limit query parameter missing", "method", r.Method, "time", time.Now())
 		return
 	}
 
-	// Call service to remove the question
-	err := q.questionService.RemoveQuestionByID(r.Context(), questionID)
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+		logger.Logger.Errorw("Invalid limit value", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	var offset int
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			errs.NewBadRequestError("Invalid offset: must be a non-negative number").ToJSON(w)
+			logger.Logger.Errorw("Invalid offset value", "method", r.Method, "error", err, "time", time.Now())
+			return
+		}
+	}
+
+	difficulty := r.URL.Query().Get("difficulty")
+	company := r.URL.Query().Get("company")
+	topic := r.URL.Query().Get("topic")
+
+	if difficulty != "" {
+		difficulty, err = validation.ValidateQuestionDifficulty(difficulty)
+		if err != nil {
+			errs.NewBadRequestError(err.Error()).ToJSON(w)
+			logger.Logger.Errorw("Invalid difficulty level", "method", r.Method, "error", err, "time", time.Now())
+			return
+		}
+	}
+
+	ctx := r.Context()
+	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, company, topic)
 	if err != nil {
-		// Handle different errors with corresponding JSON responses
+		errs.NewBadRequestError("Error fetching questions").ToJSON(w)
+		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	// Handle slicing for pagination
+	totalQuestions := len(questions)
+	paginatedQuestions := make([]dto.Question, 0)
+
+	if offset < totalQuestions {
+		end := offset + limit
+		if end > totalQuestions {
+			end = totalQuestions
+		}
+		paginatedQuestions = questions[offset:end]
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]any{
+		"code":    http.StatusOK,
+		"message": "Fetched questions successfully",
+		"questions": func() []dto.Question {
+			if paginatedQuestions == nil {
+				return []dto.Question{}
+			}
+			return paginatedQuestions
+		}(),
+		"total": totalQuestions, // Include total count for client-side pagination handling
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("Fetched questions successfully", "method", r.Method, "questionsCount", len(paginatedQuestions), "time", time.Now())
+}
+
+func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Request) {
+	questionID := r.URL.Query().Get("id")
+
+	valid, err := validation.ValidateQuestionID(questionID)
+	if !valid {
+		errs.NewBadRequestError("Invalid question ID").ToJSON(w)
+		logger.Logger.Errorw("Invalid question ID", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	err = q.questionService.RemoveQuestionByID(r.Context(), questionID)
+	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
 			errs.NewNotFoundError("Question not found").ToJSON(w)
 		} else if errors.Is(err, errs.ErrDatabaseConnection) {
@@ -142,14 +213,15 @@ func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Requ
 		} else {
 			errs.NewInternalServerError("Internal server error").ToJSON(w)
 		}
+		logger.Logger.Errorw("Error removing question", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
 
-	// If successful, return success response
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]any{
 		"code":    http.StatusOK,
 		"message": "Question deleted successfully",
 	}
 	json.NewEncoder(w).Encode(response)
+	logger.Logger.Infow("Question deleted successfully", "method", r.Method, "questionID", questionID, "time", time.Now())
 }

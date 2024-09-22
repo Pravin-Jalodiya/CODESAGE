@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 type UserResponse struct {
@@ -194,6 +195,68 @@ func (u *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		"code":    http.StatusOK,
 		"message": "Fetched users successfully",
 		"users":   users,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(jsonResponse)
+}
+
+func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
+
+	// Validate `limit` parameter since it's required
+	if limitStr == "" {
+		errs.NewBadRequestError("limit is a required query parameter").ToJSON(w)
+		return
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+		return
+	}
+
+	var offset int
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			errs.NewBadRequestError("Invalid offset: must be a non-negative number").ToJSON(w)
+			return
+		}
+	}
+
+	ctx := r.Context()
+	users, err := u.userService.GetAllUsers(ctx)
+	if err != nil {
+		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if users == nil {
+		users = []dto.StandardUser{}
+	}
+
+	// Handle slicing for pagination
+	totalUsers := len(users)
+	var paginatedUsers []dto.StandardUser
+
+	if offset < totalUsers {
+		end := offset + limit
+		if end > totalUsers {
+			end = totalUsers
+		}
+		paginatedUsers = users[offset:end]
+	} else {
+		paginatedUsers = []dto.StandardUser{}
+	}
+
+	jsonResponse := map[string]any{
+		"code":               http.StatusOK,
+		"message":            "Fetched users successfully",
+		"users":              paginatedUsers,
+		"total":              totalUsers,          // Include total count for client-side pagination handling
+		"current_page_users": len(paginatedUsers), // Count of users returned in the current page
 	}
 
 	w.Header().Set("Content-Type", "application/json")
