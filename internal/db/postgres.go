@@ -42,7 +42,7 @@ func defaultGetPostgresClient() (*sql.DB, error) {
 func UseDBClient(getter func() (*sql.DB, error)) {
 	DbMutex.Lock()
 	defer DbMutex.Unlock()
-	dbClientGetter = getter
+	ClientGetter = getter
 }
 
 func GetPostgresClient() (*sql.DB, error) {
