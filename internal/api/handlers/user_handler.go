@@ -57,6 +57,12 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	username := vars["username"]
 
+	// Proceed only if the token username matches the requested username
+	if userMetaData.Username != username {
+		errs.JSONError(w, "Unauthorized access: token does not match requested user", http.StatusUnauthorized)
+		return
+	}
+
 	// Fetch user by ID from the service layer
 	user, err := u.userService.GetUserByID(r.Context(), userMetaData.UserId.String())
 	if err != nil {
@@ -66,12 +72,6 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		} else {
 			errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 		}
-		return
-	}
-
-	// Proceed only if the token username matches the requested username
-	if userMetaData.Username != username {
-		errs.JSONError(w, "Unauthorized access: token does not match requested user", http.StatusUnauthorized)
 		return
 	}
 

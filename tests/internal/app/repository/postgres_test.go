@@ -1,7 +1,7 @@
 package repositories_test
 
 import (
-	"cli-project/internal/app/repositories"
+	db2 "cli-project/internal/db"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"log"
@@ -34,16 +34,16 @@ func TestGetPostgresClient_NewConnection(t *testing.T) {
 
 	// If simulating the replacement of an expired or otherwise closed connection,
 	// you must ensure that your test scenario aligns with this:
-	if repositories.Db != nil {
+	if db2.Db != nil {
 		mock.ExpectClose() // Expect the old connection to close if it exists and being replaced
 	}
 
 	mock.ExpectPing().WillReturnError(nil) // Expect a successful ping for a new connection setup
 
-	repositories.Db = nil                                              // simulate no existing connection
-	repositories.ConnectedAt = time.Now().Add(-2 * repositories.DbTTL) // ensure expiration
+	db2.Db = nil                                     // simulate no existing connection
+	db2.ConnectedAt = time.Now().Add(-2 * db2.DbTTL) // ensure expiration
 
-	client, err := repositories.GetPostgresClient()
+	client, err := db2.GetPostgresClient()
 
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
@@ -54,10 +54,10 @@ func TestGetPostgresClient_ExistingConnection(t *testing.T) {
 
 	mock.ExpectPing().WillReturnError(nil) // Expect a successful ping if the connection is reused
 
-	repositories.Db = db
-	repositories.ConnectedAt = time.Now() // non-expired
+	db2.Db = db
+	db2.ConnectedAt = time.Now() // non-expired
 
-	client, err := repositories.GetPostgresClient()
+	client, err := db2.GetPostgresClient()
 
 	assert.NoError(t, err)
 	assert.Equal(t, db, client)
@@ -69,10 +69,10 @@ func TestClosePostgresClient(t *testing.T) {
 
 	mock.ExpectClose()
 
-	repositories.Db = db // set the mocked db
+	db2.Db = db // set the mocked db
 
-	repositories.ClosePostgresClient()
+	db2.ClosePostgresClient()
 
-	assert.Nil(t, repositories.Db)
+	assert.Nil(t, db2.Db)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

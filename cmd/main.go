@@ -7,6 +7,7 @@ import (
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
 	"cli-project/internal/config"
+	"cli-project/internal/db"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -18,7 +19,7 @@ import (
 
 func main() {
 
-	defer repositories.ClosePostgresClient()
+	defer db.ClosePostgresClient()
 
 	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -29,7 +30,7 @@ func main() {
 		log.Printf("Received signal: %s. Shutting down gracefully...", sig)
 
 		// Call the function to close Postgres client
-		repositories.ClosePostgresClient()
+		db.ClosePostgresClient()
 
 		os.Exit(0)
 	}()

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -32,6 +33,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form, specifying a max memory buffer
 	err := r.ParseMultipartForm(10 << 20) // 10 MB
 	if err != nil {
+		log.Printf("Error parsing form data: %v", err)
 		errs.JSONError(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -39,6 +41,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the file from the form
 	file, _, err := r.FormFile("questions_file")
 	if err != nil {
+		log.Printf("Error retrieving the file: %v", err)
 		errs.JSONError(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -47,6 +50,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Create a temporary file on the server
 	tempFile, err := os.CreateTemp("", "upload-*.csv")
 	if err != nil {
+		log.Printf("Error creating temporary file: %v", err)
 		errs.JSONError(w, "Error creating temporary file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -55,6 +59,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Read the file content into the temporary file
 	_, err = io.Copy(tempFile, file)
 	if err != nil {
+		log.Printf("Error saving the file: %v", err)
 		errs.JSONError(w, "Error saving the file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -66,6 +71,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	added, err := q.questionService.AddQuestionsFromFile(r.Context(), filePath)
 	if err != nil {
 		os.Remove(filePath) // Ensure the temporary file is deleted
+		log.Printf("Error processing the file: %v", err)
 		errs.JSONError(w, "Error processing the file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -87,7 +93,10 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 		"code":    http.StatusOK,
 		"message": message,
 	}
-	json.NewEncoder(w).Encode(jsonResponse)
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		errs.JSONError(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (q *QuestionHandler) GetAllQuestions(w http.ResponseWriter, r *http.Request) {

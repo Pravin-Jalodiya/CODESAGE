@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"cli-project/internal/config/queries"
+	database "cli-project/internal/db"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/errors"
@@ -22,7 +23,7 @@ func NewUserRepo() interfaces.UserRepository {
 }
 
 func (r *userRepo) getDBConnection() (*sql.DB, error) {
-	return dbClientGetter()
+	return database.ClientGetter()
 }
 
 func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) error {

@@ -1,7 +1,7 @@
 package repositories_test
 
 import (
-	"cli-project/internal/app/repositories"
+	db2 "cli-project/internal/db"
 	"cli-project/internal/domain/models"
 	"database/sql"
 	"fmt"
@@ -75,7 +75,7 @@ func TestUserRepo_CreateUser(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 3: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -144,7 +144,7 @@ func TestUserRepo_UpdateUserProgress(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 5: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -209,7 +209,7 @@ func TestUserRepo_FetchAllUsers(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 2: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -280,7 +280,7 @@ func TestUserRepo_FetchUserByID(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -351,7 +351,7 @@ func TestUserRepo_FetchUserByUsername(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -403,7 +403,7 @@ func TestUserRepo_FetchUserProgress(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -464,7 +464,7 @@ func TestUserRepo_UpdateUserDetails(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -514,7 +514,7 @@ func TestUserRepo_BanUser(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 5: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -564,7 +564,7 @@ func TestUserRepo_UnbanUser(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 5: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -604,7 +604,7 @@ func TestUserRepo_CountActiveUsersInLast24Hours(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 3: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -652,7 +652,7 @@ func TestUserRepo_IsEmailUnique(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -700,7 +700,7 @@ func TestUserRepo_IsUsernameUnique(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 
@@ -748,7 +748,7 @@ func TestUserRepo_IsLeetcodeIDUnique(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Case 4: Error when failing to get DB connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to get DB connection")
 	})
 

@@ -49,3 +49,147 @@
 {"level":"ERROR","time":"2024-09-22T19:26:32+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-22T19:26:32+05:30"}
 {"level":"ERROR","time":"2024-09-22T19:38:54+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-22T19:38:54+05:30"}
 {"level":"ERROR","time":"2024-09-22T19:39:25+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T19:39:25+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:05:46+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:05:46+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:06:01+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:06:01+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:15:06+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:15:06+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:21:24+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:21:24+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:21:32+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:21:32+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:21:32+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T20:21:32+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:21:32+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T20:21:32+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:23:54+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:23:54+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:24:34+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:24:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:27:31+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:27:31+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:31:02+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:31:02+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:31:03+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:31:03+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:31:03+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:31:03+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:32:49+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:32:49+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:34:34+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:34:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:34:34+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:34:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:34:35+05:30","msg":"Authentication failed","method":"POST","error":"db error: user not found: sql: no rows in result set","username":"testuser","time":"2024-09-22T20:34:35+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:37:08+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"testuser","time":"2024-09-22T20:37:08+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:38:59+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:38:59+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:40:43+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:40:43+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:41:43+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"testuser","time":"2024-09-22T20:41:43+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:44:19+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T20:44:19+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:45:23+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T20:45:23+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:45:26+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:45:26+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:45:51+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"testuser","time":"2024-09-22T20:45:51+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:47:20+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:47:20+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:52:01+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:56:58+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"testuser","time":"2024-09-22T20:56:58+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:58:06+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T20:58:06+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:58:53+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T20:58:53+05:30"}
+{"level":"ERROR","time":"2024-09-22T20:59:04+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T20:59:04+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:06:19+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:06:19+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:07:42+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:07:42+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:08:29+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:08:29+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:13:01+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:13:01+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:16:04+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:16:04+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:16:51+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:16:51+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:16:51+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:16:51+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:16:51+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:16:51+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:24:27+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:24:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:24:27+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:24:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:24:27+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:24:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:25:08+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:25:08+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:25:08+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:25:08+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:25:08+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:25:08+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:13+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:31:13+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:13+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:31:13+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:13+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:31:13+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:23+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:31:23+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:23+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:31:23+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:31:23+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:31:23+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:51:34+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:51:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:51:47+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:51:47+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:52:48+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:52:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:52:48+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:52:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:52:48+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:52:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:52:48+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:52:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:52:57+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:52:57+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:53:10+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:53:10+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:53:10+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T21:53:10+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:53:10+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T21:53:10+05:30"}
+{"level":"ERROR","time":"2024-09-22T21:53:10+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T21:53:10+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:09:00+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T22:09:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:09:00+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T22:09:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:09:00+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T22:09:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:09:00+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T22:09:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:09:33+05:30","msg":"Authentication failed","method":"POST","error":"invalid credentials","username":"pravin","time":"2024-09-22T22:09:33+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:11:17+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T22:11:17+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:11:27+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T22:11:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:11:27+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-22T22:11:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:11:27+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T22:11:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:11:27+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-22T22:11:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:14:28+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-22T22:14:28+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:14:28+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-22T22:14:28+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:19:13+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-22T22:19:13+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:19:13+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-22T22:19:13+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:19:19+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-22T22:19:19+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:19:19+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-22T22:19:19+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:38:31+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T22:38:31+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:46:21+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T22:46:21+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:46:21+05:30","msg":"Missing token in Authorization header","tokenParts":["Bearer"],"time":"2024-09-22T22:46:21+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:46:21+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T22:46:21+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:46:21+05:30","msg":"role not found in token claims","claims":{"exp":1727028981,"role":1,"userId":"e1f09630-4f3d-4f16-81bb-045c35daf6a2","username":"testuser"},"time":"2024-09-22T22:46:21+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:51:00+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T22:51:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:51:00+05:30","msg":"Missing token in Authorization header","tokenParts":["",""],"time":"2024-09-22T22:51:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:51:00+05:30","msg":"Invalid token","error":"invalid character '\\u008a' looking for beginning of value","time":"2024-09-22T22:51:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:51:00+05:30","msg":"Missing token in Authorization header","tokenParts":["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjcwMjkyNjAsInJvbGUiOiJ1c2VyUm9sZVZhbHVlIiwidXNlcklkIjoidXNlcklkVmFsdWUifQ.FuwPS8Slv17bL-BuGChdPmoh5JoBxtKMOBDA9un_2xo"],"time":"2024-09-22T22:51:00+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:51:59+05:30","msg":"role not found in token claims","claims":{"exp":1727029319,"role":1,"userId":"8f2931d0-613b-434f-b4ce-e4d3effcb1e9","username":"testuser"},"time":"2024-09-22T22:51:59+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:02+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T22:58:02+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:02+05:30","msg":"Missing token in Authorization header","tokenParts":["Bearer"],"time":"2024-09-22T22:58:02+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:02+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T22:58:02+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:12+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T22:58:12+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:12+05:30","msg":"Missing token in Authorization header","tokenParts":["Bearer"],"time":"2024-09-22T22:58:12+05:30"}
+{"level":"ERROR","time":"2024-09-22T22:58:12+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T22:58:12+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"userId not found in token claims","claims":{},"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"userId not found in token claims","claims":{"some":"claim"},"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"userId not found in token claims","claims":{"exp":1727026527,"role":"admin","username":"testuser"},"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"Invalid userId format","userId":"invalid-uuid","error":"invalid UUID length: 12","time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"role not found in token claims","claims":{"exp":1727026527,"userId":"0074985d-a567-4877-961b-70dfa8aa5055","username":"testuser"},"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"Invalid role value","role":"invalid-role","error":"invalid role: invalid-role","time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:27+05:30","msg":"username not found in token claims","claims":{"exp":1727026527,"role":"admin","userId":"94c80345-18a7-457c-9fa3-b27d769489b4"},"time":"2024-09-22T23:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"userId not found in token claims","claims":{},"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"userId not found in token claims","claims":{"some":"claim"},"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"userId not found in token claims","claims":{"exp":1727026534,"role":"admin","username":"testuser"},"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"Invalid userId format","userId":"invalid-uuid","error":"invalid UUID length: 12","time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"role not found in token claims","claims":{"exp":1727026534,"userId":"8cc7b486-69df-4120-b1cb-1ec49ef59f45","username":"testuser"},"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"Invalid role value","role":"invalid-role","error":"invalid role: invalid-role","time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:00:34+05:30","msg":"username not found in token claims","claims":{"exp":1727026534,"role":"admin","userId":"a8942dd7-07fc-4ca9-a556-569a5762589d"},"time":"2024-09-22T23:00:34+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"Missing Authorization header","error":null,"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"userId not found in token claims","claims":{},"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"userId not found in token claims","claims":{"some":"claim"},"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"userId not found in token claims","claims":{"exp":1727026989,"role":"admin","username":"testuser"},"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"Invalid userId format","userId":"invalid-uuid","error":"invalid UUID length: 12","time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"role not found in token claims","claims":{"exp":1727026989,"userId":"2670bced-96f4-49b6-9a09-dcd94abcd40a","username":"testuser"},"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"Invalid role value","role":"invalid-role","error":"invalid role: invalid-role","time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:08:09+05:30","msg":"username not found in token claims","claims":{"exp":1727026989,"role":"admin","userId":"f80dfc1f-02d8-4b35-a00a-cedcc9223449"},"time":"2024-09-22T23:08:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:10:09+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-22T23:10:09+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:18:40+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:18:40+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:18:48+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:18:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:19:48+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:19:48+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:20:05+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:20:05+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:20:44+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:20:44+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:21:10+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:21:10+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:21:19+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:21:19+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:22:35+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:22:35+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:23:47+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:23:47+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:23:58+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T23:23:58+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:24:03+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:24:03+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:24:16+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:24:16+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:24:21+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T23:24:21+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:24:26+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:24:26+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:25:05+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T23:25:05+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:25:20+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-22T23:25:20+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:34:58+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-22T23:34:58+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:35:42+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-22T23:35:42+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:42:52+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:42:52+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:44:08+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-22T23:44:08+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:49:29+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:49:29+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:49:45+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:49:45+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:52:14+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T23:52:14+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:53:55+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:53:55+05:30"}
+{"level":"ERROR","time":"2024-09-22T23:54:02+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:54:02+05:30"}

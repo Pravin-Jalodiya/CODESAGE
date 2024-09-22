@@ -6,6 +6,7 @@ package mocks
 
 import (
 	models "cli-project/internal/domain/models"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,191 +37,191 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // BanUser mocks base method.
-func (m *MockUserRepository) BanUser(arg0 string) error {
+func (m *MockUserRepository) BanUser(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BanUser", arg0)
+	ret := m.ctrl.Call(m, "BanUser", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BanUser indicates an expected call of BanUser.
-func (mr *MockUserRepositoryMockRecorder) BanUser(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) BanUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BanUser", reflect.TypeOf((*MockUserRepository)(nil).BanUser), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BanUser", reflect.TypeOf((*MockUserRepository)(nil).BanUser), ctx, userID)
 }
 
 // CountActiveUsersInLast24Hours mocks base method.
-func (m *MockUserRepository) CountActiveUsersInLast24Hours() (int, error) {
+func (m *MockUserRepository) CountActiveUsersInLast24Hours(ctx context.Context) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountActiveUsersInLast24Hours")
+	ret := m.ctrl.Call(m, "CountActiveUsersInLast24Hours", ctx)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountActiveUsersInLast24Hours indicates an expected call of CountActiveUsersInLast24Hours.
-func (mr *MockUserRepositoryMockRecorder) CountActiveUsersInLast24Hours() *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) CountActiveUsersInLast24Hours(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountActiveUsersInLast24Hours", reflect.TypeOf((*MockUserRepository)(nil).CountActiveUsersInLast24Hours))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountActiveUsersInLast24Hours", reflect.TypeOf((*MockUserRepository)(nil).CountActiveUsersInLast24Hours), ctx)
 }
 
 // CreateUser mocks base method.
-func (m *MockUserRepository) CreateUser(arg0 *models.StandardUser) error {
+func (m *MockUserRepository) CreateUser(ctx context.Context, user *models.StandardUser) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", arg0)
+	ret := m.ctrl.Call(m, "CreateUser", ctx, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateUser indicates an expected call of CreateUser.
-func (mr *MockUserRepositoryMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) CreateUser(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), ctx, user)
 }
 
 // FetchAllUsers mocks base method.
-func (m *MockUserRepository) FetchAllUsers() (*[]models.StandardUser, error) {
+func (m *MockUserRepository) FetchAllUsers(ctx context.Context) ([]models.StandardUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchAllUsers")
-	ret0, _ := ret[0].(*[]models.StandardUser)
+	ret := m.ctrl.Call(m, "FetchAllUsers", ctx)
+	ret0, _ := ret[0].([]models.StandardUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchAllUsers indicates an expected call of FetchAllUsers.
-func (mr *MockUserRepositoryMockRecorder) FetchAllUsers() *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FetchAllUsers(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAllUsers", reflect.TypeOf((*MockUserRepository)(nil).FetchAllUsers))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAllUsers", reflect.TypeOf((*MockUserRepository)(nil).FetchAllUsers), ctx)
 }
 
 // FetchUserByID mocks base method.
-func (m *MockUserRepository) FetchUserByID(arg0 string) (*models.StandardUser, error) {
+func (m *MockUserRepository) FetchUserByID(ctx context.Context, id string) (*models.StandardUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchUserByID", arg0)
+	ret := m.ctrl.Call(m, "FetchUserByID", ctx, id)
 	ret0, _ := ret[0].(*models.StandardUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchUserByID indicates an expected call of FetchUserByID.
-func (mr *MockUserRepositoryMockRecorder) FetchUserByID(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FetchUserByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserByID", reflect.TypeOf((*MockUserRepository)(nil).FetchUserByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserByID", reflect.TypeOf((*MockUserRepository)(nil).FetchUserByID), ctx, id)
 }
 
 // FetchUserByUsername mocks base method.
-func (m *MockUserRepository) FetchUserByUsername(arg0 string) (*models.StandardUser, error) {
+func (m *MockUserRepository) FetchUserByUsername(ctx context.Context, username string) (*models.StandardUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchUserByUsername", arg0)
+	ret := m.ctrl.Call(m, "FetchUserByUsername", ctx, username)
 	ret0, _ := ret[0].(*models.StandardUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchUserByUsername indicates an expected call of FetchUserByUsername.
-func (mr *MockUserRepositoryMockRecorder) FetchUserByUsername(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FetchUserByUsername(ctx, username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserByUsername", reflect.TypeOf((*MockUserRepository)(nil).FetchUserByUsername), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserByUsername", reflect.TypeOf((*MockUserRepository)(nil).FetchUserByUsername), ctx, username)
 }
 
 // FetchUserProgress mocks base method.
-func (m *MockUserRepository) FetchUserProgress(arg0 string) (*[]string, error) {
+func (m *MockUserRepository) FetchUserProgress(ctx context.Context, userID string) (*[]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchUserProgress", arg0)
+	ret := m.ctrl.Call(m, "FetchUserProgress", ctx, userID)
 	ret0, _ := ret[0].(*[]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchUserProgress indicates an expected call of FetchUserProgress.
-func (mr *MockUserRepositoryMockRecorder) FetchUserProgress(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FetchUserProgress(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserProgress", reflect.TypeOf((*MockUserRepository)(nil).FetchUserProgress), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserProgress", reflect.TypeOf((*MockUserRepository)(nil).FetchUserProgress), ctx, userID)
 }
 
 // IsEmailUnique mocks base method.
-func (m *MockUserRepository) IsEmailUnique(arg0 string) (bool, error) {
+func (m *MockUserRepository) IsEmailUnique(ctx context.Context, email string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsEmailUnique", arg0)
+	ret := m.ctrl.Call(m, "IsEmailUnique", ctx, email)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsEmailUnique indicates an expected call of IsEmailUnique.
-func (mr *MockUserRepositoryMockRecorder) IsEmailUnique(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) IsEmailUnique(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEmailUnique", reflect.TypeOf((*MockUserRepository)(nil).IsEmailUnique), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEmailUnique", reflect.TypeOf((*MockUserRepository)(nil).IsEmailUnique), ctx, email)
 }
 
 // IsLeetcodeIDUnique mocks base method.
-func (m *MockUserRepository) IsLeetcodeIDUnique(arg0 string) (bool, error) {
+func (m *MockUserRepository) IsLeetcodeIDUnique(ctx context.Context, leetcodeID string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", arg0)
+	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", ctx, leetcodeID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsLeetcodeIDUnique indicates an expected call of IsLeetcodeIDUnique.
-func (mr *MockUserRepositoryMockRecorder) IsLeetcodeIDUnique(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) IsLeetcodeIDUnique(ctx, leetcodeID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockUserRepository)(nil).IsLeetcodeIDUnique), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockUserRepository)(nil).IsLeetcodeIDUnique), ctx, leetcodeID)
 }
 
 // IsUsernameUnique mocks base method.
-func (m *MockUserRepository) IsUsernameUnique(arg0 string) (bool, error) {
+func (m *MockUserRepository) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsUsernameUnique", arg0)
+	ret := m.ctrl.Call(m, "IsUsernameUnique", ctx, username)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsUsernameUnique indicates an expected call of IsUsernameUnique.
-func (mr *MockUserRepositoryMockRecorder) IsUsernameUnique(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) IsUsernameUnique(ctx, username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUsernameUnique", reflect.TypeOf((*MockUserRepository)(nil).IsUsernameUnique), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUsernameUnique", reflect.TypeOf((*MockUserRepository)(nil).IsUsernameUnique), ctx, username)
 }
 
 // UnbanUser mocks base method.
-func (m *MockUserRepository) UnbanUser(arg0 string) error {
+func (m *MockUserRepository) UnbanUser(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnbanUser", arg0)
+	ret := m.ctrl.Call(m, "UnbanUser", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UnbanUser indicates an expected call of UnbanUser.
-func (mr *MockUserRepositoryMockRecorder) UnbanUser(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) UnbanUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnbanUser", reflect.TypeOf((*MockUserRepository)(nil).UnbanUser), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnbanUser", reflect.TypeOf((*MockUserRepository)(nil).UnbanUser), ctx, userID)
 }
 
 // UpdateUserDetails mocks base method.
-func (m *MockUserRepository) UpdateUserDetails(arg0 *models.StandardUser) error {
+func (m *MockUserRepository) UpdateUserDetails(ctx context.Context, user *models.StandardUser) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserDetails", arg0)
+	ret := m.ctrl.Call(m, "UpdateUserDetails", ctx, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateUserDetails indicates an expected call of UpdateUserDetails.
-func (mr *MockUserRepositoryMockRecorder) UpdateUserDetails(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) UpdateUserDetails(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDetails", reflect.TypeOf((*MockUserRepository)(nil).UpdateUserDetails), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDetails", reflect.TypeOf((*MockUserRepository)(nil).UpdateUserDetails), ctx, user)
 }
 
 // UpdateUserProgress mocks base method.
-func (m *MockUserRepository) UpdateUserProgress(userID uuid.UUID, questionID []string) error {
+func (m *MockUserRepository) UpdateUserProgress(ctx context.Context, userID uuid.UUID, questionID []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserProgress", userID, questionID)
+	ret := m.ctrl.Call(m, "UpdateUserProgress", ctx, userID, questionID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateUserProgress indicates an expected call of UpdateUserProgress.
-func (mr *MockUserRepositoryMockRecorder) UpdateUserProgress(userID, questionID interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) UpdateUserProgress(ctx, userID, questionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserProgress", reflect.TypeOf((*MockUserRepository)(nil).UpdateUserProgress), userID, questionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserProgress", reflect.TypeOf((*MockUserRepository)(nil).UpdateUserProgress), ctx, userID, questionID)
 }

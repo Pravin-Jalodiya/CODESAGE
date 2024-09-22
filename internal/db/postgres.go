@@ -1,4 +1,4 @@
-package repositories
+package db
 
 import (
 	"cli-project/internal/config"
@@ -22,8 +22,7 @@ var (
 	MaxIdleConns        = 10
 	ConnMaxLifetime     = 30 * time.Minute
 	IdleConnMaxLifetime = 10 * time.Minute
-	dbClientGetter      = defaultGetPostgresClient
-	ctx, _              = CreateContext()
+	ClientGetter        = defaultGetPostgresClient
 )
 
 // CreateContext creates a context with a timeout for database operations.

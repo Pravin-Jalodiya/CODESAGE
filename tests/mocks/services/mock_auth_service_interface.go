@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	models "cli-project/internal/domain/models"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,48 +36,91 @@ func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 }
 
 // IsEmailUnique mocks base method.
-func (m *MockAuthService) IsEmailUnique(email string) (bool, error) {
+func (m *MockAuthService) IsEmailUnique(ctx context.Context, email string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsEmailUnique", email)
+	ret := m.ctrl.Call(m, "IsEmailUnique", ctx, email)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsEmailUnique indicates an expected call of IsEmailUnique.
-func (mr *MockAuthServiceMockRecorder) IsEmailUnique(email interface{}) *gomock.Call {
+func (mr *MockAuthServiceMockRecorder) IsEmailUnique(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEmailUnique", reflect.TypeOf((*MockAuthService)(nil).IsEmailUnique), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEmailUnique", reflect.TypeOf((*MockAuthService)(nil).IsEmailUnique), ctx, email)
 }
 
 // IsLeetcodeIDUnique mocks base method.
-func (m *MockAuthService) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
+func (m *MockAuthService) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", LeetcodeID)
+	ret := m.ctrl.Call(m, "IsLeetcodeIDUnique", ctx, LeetcodeID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsLeetcodeIDUnique indicates an expected call of IsLeetcodeIDUnique.
-func (mr *MockAuthServiceMockRecorder) IsLeetcodeIDUnique(LeetcodeID interface{}) *gomock.Call {
+func (mr *MockAuthServiceMockRecorder) IsLeetcodeIDUnique(ctx, LeetcodeID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockAuthService)(nil).IsLeetcodeIDUnique), LeetcodeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLeetcodeIDUnique", reflect.TypeOf((*MockAuthService)(nil).IsLeetcodeIDUnique), ctx, LeetcodeID)
 }
 
 // IsUsernameUnique mocks base method.
-func (m *MockAuthService) IsUsernameUnique(username string) (bool, error) {
+func (m *MockAuthService) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsUsernameUnique", username)
+	ret := m.ctrl.Call(m, "IsUsernameUnique", ctx, username)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsUsernameUnique indicates an expected call of IsUsernameUnique.
-func (mr *MockAuthServiceMockRecorder) IsUsernameUnique(username interface{}) *gomock.Call {
+func (mr *MockAuthServiceMockRecorder) IsUsernameUnique(ctx, username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUsernameUnique", reflect.TypeOf((*MockAuthService)(nil).IsUsernameUnique), username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUsernameUnique", reflect.TypeOf((*MockAuthService)(nil).IsUsernameUnique), ctx, username)
+}
+
+// Login mocks base method.
+func (m *MockAuthService) Login(ctx context.Context, username, password string) (*models.StandardUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Login", ctx, username, password)
+	ret0, _ := ret[0].(*models.StandardUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Login indicates an expected call of Login.
+func (mr *MockAuthServiceMockRecorder) Login(ctx, username, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthService)(nil).Login), ctx, username, password)
+}
+
+// Logout mocks base method.
+func (m *MockAuthService) Logout(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Logout", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Logout indicates an expected call of Logout.
+func (mr *MockAuthServiceMockRecorder) Logout(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockAuthService)(nil).Logout), ctx)
+}
+
+// Signup mocks base method.
+func (m *MockAuthService) Signup(ctx context.Context, user *models.StandardUser) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Signup", ctx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Signup indicates an expected call of Signup.
+func (mr *MockAuthServiceMockRecorder) Signup(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Signup", reflect.TypeOf((*MockAuthService)(nil).Signup), ctx, user)
 }
 
 // ValidateLeetcodeUsername mocks base method.

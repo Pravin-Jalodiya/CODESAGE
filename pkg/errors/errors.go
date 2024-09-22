@@ -55,6 +55,13 @@ type AppError struct {
 	Message string `json:"message"`
 }
 
+func NewDebugError(message string) *AppError {
+	return &AppError{
+		Code:    http.StatusExpectationFailed,
+		Message: message,
+	}
+}
+
 // Error constructors
 func NewNotFoundError(message string) *AppError {
 	return &AppError{

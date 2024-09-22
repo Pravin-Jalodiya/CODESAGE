@@ -2,6 +2,7 @@ package repositories_test
 
 import (
 	"cli-project/internal/app/repositories"
+	db2 "cli-project/internal/db"
 	"cli-project/internal/domain/interfaces"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -23,7 +24,7 @@ func setup(t *testing.T) func() {
 	}
 
 	// Inject the mock database connection
-	repositories.UseDBClient(func() (*sql.DB, error) {
+	db2.UseDBClient(func() (*sql.DB, error) {
 		return db, nil
 	})
 

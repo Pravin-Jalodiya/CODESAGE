@@ -7,6 +7,7 @@ package mocks
 import (
 	dto "cli-project/internal/domain/dto"
 	models "cli-project/internal/domain/models"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,133 +37,119 @@ func (m *MockQuestionRepository) EXPECT() *MockQuestionRepositoryMockRecorder {
 }
 
 // AddQuestions mocks base method.
-func (m *MockQuestionRepository) AddQuestions(arg0 *[]models.Question) error {
+func (m *MockQuestionRepository) AddQuestions(arg0 context.Context, arg1 *[]models.Question) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddQuestions", arg0)
+	ret := m.ctrl.Call(m, "AddQuestions", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddQuestions indicates an expected call of AddQuestions.
-func (mr *MockQuestionRepositoryMockRecorder) AddQuestions(arg0 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) AddQuestions(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).AddQuestions), arg0)
-}
-
-// AddQuestionsByID mocks base method.
-func (m *MockQuestionRepository) AddQuestionsByID(arg0 *[]string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddQuestionsByID", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddQuestionsByID indicates an expected call of AddQuestionsByID.
-func (mr *MockQuestionRepositoryMockRecorder) AddQuestionsByID(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddQuestionsByID", reflect.TypeOf((*MockQuestionRepository)(nil).AddQuestionsByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).AddQuestions), arg0, arg1)
 }
 
 // CountQuestions mocks base method.
-func (m *MockQuestionRepository) CountQuestions() (int, error) {
+func (m *MockQuestionRepository) CountQuestions(arg0 context.Context) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountQuestions")
+	ret := m.ctrl.Call(m, "CountQuestions", arg0)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountQuestions indicates an expected call of CountQuestions.
-func (mr *MockQuestionRepositoryMockRecorder) CountQuestions() *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) CountQuestions(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).CountQuestions))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).CountQuestions), arg0)
 }
 
 // FetchAllQuestions mocks base method.
-func (m *MockQuestionRepository) FetchAllQuestions() (*[]dto.Question, error) {
+func (m *MockQuestionRepository) FetchAllQuestions(arg0 context.Context) ([]dto.Question, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchAllQuestions")
-	ret0, _ := ret[0].(*[]dto.Question)
+	ret := m.ctrl.Call(m, "FetchAllQuestions", arg0)
+	ret0, _ := ret[0].([]dto.Question)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchAllQuestions indicates an expected call of FetchAllQuestions.
-func (mr *MockQuestionRepositoryMockRecorder) FetchAllQuestions() *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) FetchAllQuestions(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAllQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).FetchAllQuestions))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAllQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).FetchAllQuestions), arg0)
 }
 
 // FetchQuestionByID mocks base method.
-func (m *MockQuestionRepository) FetchQuestionByID(arg0 string) (*models.Question, error) {
+func (m *MockQuestionRepository) FetchQuestionByID(arg0 context.Context, arg1 string) (*models.Question, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchQuestionByID", arg0)
+	ret := m.ctrl.Call(m, "FetchQuestionByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.Question)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchQuestionByID indicates an expected call of FetchQuestionByID.
-func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionByID(arg0 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionByID", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionByID", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionByID), arg0, arg1)
 }
 
 // FetchQuestionsByFilters mocks base method.
-func (m *MockQuestionRepository) FetchQuestionsByFilters(arg0, arg1, arg2 string) (*[]dto.Question, error) {
+func (m *MockQuestionRepository) FetchQuestionsByFilters(arg0 context.Context, arg1, arg2, arg3 string) ([]dto.Question, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchQuestionsByFilters", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*[]dto.Question)
+	ret := m.ctrl.Call(m, "FetchQuestionsByFilters", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]dto.Question)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchQuestionsByFilters indicates an expected call of FetchQuestionsByFilters.
-func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionsByFilters(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionsByFilters(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionsByFilters", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionsByFilters), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionsByFilters", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionsByFilters), arg0, arg1, arg2, arg3)
 }
 
 // QuestionExistsByID mocks base method.
-func (m *MockQuestionRepository) QuestionExistsByID(arg0 string) (bool, error) {
+func (m *MockQuestionRepository) QuestionExistsByID(arg0 context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "QuestionExistsByID", arg0)
+	ret := m.ctrl.Call(m, "QuestionExistsByID", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // QuestionExistsByID indicates an expected call of QuestionExistsByID.
-func (mr *MockQuestionRepositoryMockRecorder) QuestionExistsByID(arg0 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) QuestionExistsByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuestionExistsByID", reflect.TypeOf((*MockQuestionRepository)(nil).QuestionExistsByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuestionExistsByID", reflect.TypeOf((*MockQuestionRepository)(nil).QuestionExistsByID), arg0, arg1)
 }
 
 // QuestionExistsByTitleSlug mocks base method.
-func (m *MockQuestionRepository) QuestionExistsByTitleSlug(arg0 string) (bool, error) {
+func (m *MockQuestionRepository) QuestionExistsByTitleSlug(arg0 context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "QuestionExistsByTitleSlug", arg0)
+	ret := m.ctrl.Call(m, "QuestionExistsByTitleSlug", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // QuestionExistsByTitleSlug indicates an expected call of QuestionExistsByTitleSlug.
-func (mr *MockQuestionRepositoryMockRecorder) QuestionExistsByTitleSlug(arg0 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) QuestionExistsByTitleSlug(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuestionExistsByTitleSlug", reflect.TypeOf((*MockQuestionRepository)(nil).QuestionExistsByTitleSlug), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuestionExistsByTitleSlug", reflect.TypeOf((*MockQuestionRepository)(nil).QuestionExistsByTitleSlug), arg0, arg1)
 }
 
 // RemoveQuestionByID mocks base method.
-func (m *MockQuestionRepository) RemoveQuestionByID(arg0 string) error {
+func (m *MockQuestionRepository) RemoveQuestionByID(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveQuestionByID", arg0)
+	ret := m.ctrl.Call(m, "RemoveQuestionByID", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveQuestionByID indicates an expected call of RemoveQuestionByID.
-func (mr *MockQuestionRepositoryMockRecorder) RemoveQuestionByID(arg0 interface{}) *gomock.Call {
+func (mr *MockQuestionRepositoryMockRecorder) RemoveQuestionByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveQuestionByID", reflect.TypeOf((*MockQuestionRepository)(nil).RemoveQuestionByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveQuestionByID", reflect.TypeOf((*MockQuestionRepository)(nil).RemoveQuestionByID), arg0, arg1)
 }

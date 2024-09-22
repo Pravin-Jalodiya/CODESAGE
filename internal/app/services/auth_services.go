@@ -8,7 +8,6 @@ import (
 	"cli-project/pkg/globals"
 	"cli-project/pkg/utils"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -85,7 +84,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*mo
 
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, errs.ErrUserNotFound) {
 			return nil, errs.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)

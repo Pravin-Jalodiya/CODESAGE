@@ -10,6 +10,7 @@ import (
 	"cli-project/pkg/validation"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -143,14 +144,18 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !validation.ValidatePassword(requestBody.Password) {
-		errs.NewBadRequestError("Invalid password").ToJSON(w)
+		errs.NewBadRequestError("Invalid username or password").ToJSON(w)
 		return
 	}
 
 	user, err := a.authService.Login(r.Context(), requestBody.Username, requestBody.Password)
 	if err != nil {
-		if errors.Is(err, errs.ErrUserNotFound) || errors.Is(err, errs.ErrInvalidPassword) {
+		fmt.Println(err)
+		if errors.Is(err, errs.ErrInvalidPassword) {
 			errs.NewInvalidRequestBodyError("Invalid username or password").ToJSON(w)
+			w.WriteHeader(http.StatusBadRequest)
+		} else if errors.Is(err, errs.ErrUserNotFound) {
+			errs.NewNotFoundError("User not found").ToJSON(w)
 			w.WriteHeader(http.StatusBadRequest)
 		} else {
 			errs.NewInternalServerError("Login failed").ToJSON(w)
