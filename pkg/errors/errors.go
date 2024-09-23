@@ -26,6 +26,7 @@ var (
 	ErrDatabaseConnection         = errors.New("failed to connect to database")
 	ErrLeetcodeValidationFailed   = errors.New("Leetcode validation failed")
 	ErrLeetcodeUsernameInvalid    = errors.New("Leetcode username is invalid")
+	ErrFetchingQuestion           = errors.New("error fetching question")
 	ErrTransactionStart           = errors.New("could not start transaction")
 	ErrTransactionCommit          = errors.New("could not commit transaction")
 	ErrQueryExecution             = errors.New("could not execute query")

@@ -295,3 +295,75 @@
 {"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T07:52:05+05:30"}
 {"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Authentication failed","method":"POST","error":"internal error","username":"testuser","time":"2024-09-23T07:52:05+05:30"}
 {"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error fetching questions","method":"GET","error":"internal error","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Invalid limit value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Invalid offset value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error fetching questions","method":"GET","error":"fetching error","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:56:44+05:30","msg":"Error removing question","method":"DELETE","error":"internal server error","time":"2024-09-23T07:56:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:00:27+05:30","msg":"Error fetching questions","method":"GET","error":"internal server error","time":"2024-09-23T08:00:27+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:00:51+05:30","msg":"Error fetching questions","method":"GET","error":"internal server error","time":"2024-09-23T08:00:51+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:01+05:30","msg":"Error fetching questions","method":"GET","error":"bad request","time":"2024-09-23T08:02:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error fetching questions","method":"GET","error":"bad request","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Invalid limit value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Invalid offset value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error fetching questions","method":"GET","error":"fetching error","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:09+05:30","msg":"Error removing question","method":"DELETE","error":"internal server error","time":"2024-09-23T08:02:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:43+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-23T08:02:43+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:02:47+05:30","msg":"Error fetching questions","method":"GET","error":"fetching error","time":"2024-09-23T08:02:47+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:05:37+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:05:37+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:05:57+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T08:05:57+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:06:38+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T08:06:38+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:06:44+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:06:44+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:07:05+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:07:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:07:18+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:07:18+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:09:27+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:09:27+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:10:22+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:10:22+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:10:30+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T08:10:30+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:10:47+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T08:10:47+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:10:51+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T08:10:51+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:03+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T08:11:03+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error fetching questions","method":"GET","error":"bad request","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Invalid limit value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Invalid offset value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:09+05:30","msg":"Error removing question","method":"DELETE","error":"internal server error","time":"2024-09-23T08:11:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error fetching questions","method":"GET","error":"bad request","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Invalid limit value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Invalid offset value","method":"GET","error":"strconv.Atoi: parsing \"invalid\": invalid syntax","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Invalid difficulty level","method":"GET","error":"invalid difficulty level: must be 'easy', 'medium', or 'hard'","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error fetching questions","method":"GET","error":"error fetching question","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error removing question","method":"DELETE","error":"database connection error","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error removing question","method":"DELETE","error":"query execution error","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:14+05:30","msg":"Error removing question","method":"DELETE","error":"internal server error","time":"2024-09-23T08:11:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Signup failed","method":"POST","error":"username already exists","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Signup failed","method":"POST","error":"email already exists","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Signup failed","method":"POST","error":"leetcode ID already exists","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Signup failed","method":"POST","error":"internal error","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Authentication failed","method":"POST","error":"internal error","username":"testuser","time":"2024-09-23T08:11:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T08:11:21+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T08:11:21+05:30"}
