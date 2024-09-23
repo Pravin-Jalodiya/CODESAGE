@@ -193,3 +193,60 @@
 {"level":"ERROR","time":"2024-09-22T23:52:14+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-22T23:52:14+05:30"}
 {"level":"ERROR","time":"2024-09-22T23:53:55+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:53:55+05:30"}
 {"level":"ERROR","time":"2024-09-22T23:54:02+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-22T23:54:02+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:21:43+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '}' looking for beginning of value","time":"2024-09-23T00:21:43+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:22:33+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '}' looking for beginning of value","time":"2024-09-23T00:22:33+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:23:02+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'P' looking for beginning of value","time":"2024-09-23T00:23:02+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:23:13+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'P' looking for beginning of value","time":"2024-09-23T00:23:13+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:32:40+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'P' looking for beginning of value","time":"2024-09-23T00:32:40+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:32:48+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'P' looking for beginning of value","time":"2024-09-23T00:32:48+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:35:41+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:35:41+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:36:14+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:36:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:39:06+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:39:06+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:39:42+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:39:42+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:39:57+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:39:57+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:40:46+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:40:46+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:41:39+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:41:39+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:42:12+05:30","msg":"Logout failed","method":"POST","error":"user not found: failed to fetch user: ERROR: invalid input syntax for type uuid: \"\" (SQLSTATE 22P02)","time":"2024-09-23T00:42:12+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:42:36+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:42:36+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:43:04+05:30","msg":"Invalid token","error":"token contains an invalid number of segments","time":"2024-09-23T00:43:04+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:43:34+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:43:34+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:43:40+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:43:40+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:44:18+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:44:18+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:45:12+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 202 not found","time":"2024-09-23T00:45:12+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:46:58+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:46:58+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:47:21+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:47:21+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:47:46+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:47:46+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:48:19+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:48:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:48:27+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:48:27+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:49:18+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:49:18+05:30"}
+{"level":"ERROR","time":"2024-09-23T00:50:07+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T00:50:07+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:18:11+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:18:11+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:18:27+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '\\n' in string literal","time":"2024-09-23T01:18:27+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:18:33+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:18:33+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:18:57+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: ","time":"2024-09-23T01:18:57+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:25:09+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: ","time":"2024-09-23T01:25:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:25:14+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: ","time":"2024-09-23T01:25:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:25:25+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: rabbit1","time":"2024-09-23T01:25:25+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:26:36+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: ","time":"2024-09-23T01:26:36+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:31:40+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: ","time":"2024-09-23T01:31:40+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:32:17+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: rabbit1","time":"2024-09-23T01:32:17+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:32:35+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: bhalu22","time":"2024-09-23T01:32:35+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:33:40+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid: anish_sharma22","time":"2024-09-23T01:33:40+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:36:34+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:36:34+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:36:50+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character '{' looking for beginning of object key string","time":"2024-09-23T01:36:50+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:37:42+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character ',' looking for beginning of value","time":"2024-09-23T01:37:42+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:39:26+05:30","msg":"Error decoding request body","method":"POST","error":"invalid character 'd' looking for beginning of value","time":"2024-09-23T01:39:26+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:39:43+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"dummy","time":"2024-09-23T01:39:43+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:45:25+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:45:25+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:48:09+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:48:09+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:48:39+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:48:39+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:49:45+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:49:45+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:49:55+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:49:55+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:50:10+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:50:10+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:52:47+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:52:47+05:30"}
+{"level":"ERROR","time":"2024-09-23T01:56:14+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T01:56:14+05:30"}
+{"level":"ERROR","time":"2024-09-23T02:03:54+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T02:03:54+05:30"}
+{"level":"ERROR","time":"2024-09-23T02:23:02+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T02:23:02+05:30"}
+{"level":"ERROR","time":"2024-09-23T06:57:10+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T06:57:10+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:06:10+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T07:06:10+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:11:07+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-23T07:11:07+05:30"}

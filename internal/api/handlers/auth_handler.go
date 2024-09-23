@@ -77,19 +77,22 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		errs.NewBadRequestError("Invalid name").ToJSON(w)
 		return
 	}
+
 	isEmailValid, isReputable := validation.ValidateEmail(user.StandardUser.Email)
 	if !isEmailValid {
 		errs.NewBadRequestError("Invalid email format").ToJSON(w)
 		return
 	} else if !isReputable {
-		errs.NewBadRequestError("Email domain is not reputable").ToJSON(w)
+		errs.NewBadRequestError("Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud").ToJSON(w)
 		return
 	}
+
 	isOrgValid, orgErr := validation.ValidateOrganizationName(user.StandardUser.Organisation)
 	if !isOrgValid {
 		errs.NewBadRequestError(orgErr.Error()).ToJSON(w)
 		return
 	}
+
 	isCountryValid, countryErr := validation.ValidateCountryName(user.StandardUser.Country)
 	if !isCountryValid {
 		errs.NewBadRequestError(countryErr.Error()).ToJSON(w)
@@ -104,6 +107,8 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 			errs.NewConflictError("Email already registered").ToJSON(w)
 		} else if errors.Is(err, errs.ErrLeetcodeIDAlreadyExists) {
 			errs.NewConflictError("LeetcodeID already registered").ToJSON(w)
+		} else if errors.Is(err, errs.ErrLeetcodeUsernameInvalid) {
+			errs.NewBadRequestError("Invalid leetcode id").ToJSON(w)
 		} else {
 			errs.NewInternalServerError("Signup failed").ToJSON(w)
 		}

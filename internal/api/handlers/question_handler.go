@@ -31,7 +31,7 @@ func NewQuestionHandler(questionService interfaces.QuestionService) *QuestionHan
 // AddQuestions handles the file upload for questions CSV.
 func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form, specifying a max memory buffer
-	err := r.ParseMultipartForm(10 << 20) // 10 MB
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		log.Printf("Error parsing form data: %v", err)
 		errs.JSONError(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)

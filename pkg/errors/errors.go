@@ -24,6 +24,8 @@ var (
 	ErrBanningUserFailed          = errors.New("failed to ban user")
 	ErrUnbanningUserFailed        = errors.New("failed to unban user")
 	ErrDatabaseConnection         = errors.New("failed to connect to database")
+	ErrLeetcodeValidationFailed   = errors.New("Leetcode validation failed")
+	ErrLeetcodeUsernameInvalid    = errors.New("Leetcode username is invalid")
 	ErrTransactionStart           = errors.New("could not start transaction")
 	ErrTransactionCommit          = errors.New("could not commit transaction")
 	ErrQueryExecution             = errors.New("could not execute query")

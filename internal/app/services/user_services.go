@@ -100,11 +100,9 @@ func (s *UserService) UpdateUserProgress(ctx context.Context, userID uuid.UUID) 
 		}
 	}
 
-	if len(validSlugs) > 0 {
-		err = s.userRepo.UpdateUserProgress(ctx, userID, validSlugs)
-		if err != nil {
-			return fmt.Errorf("%w: could not update user progress", err)
-		}
+	err = s.userRepo.UpdateUserProgress(ctx, userID, validSlugs)
+	if err != nil {
+		return fmt.Errorf("%w: could not update user progress", err)
 	}
 	return nil
 }

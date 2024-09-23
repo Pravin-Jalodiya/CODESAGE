@@ -52,6 +52,15 @@ func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) err
 		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.StandardUser.Email)
 	}
 
+	// Check if Leetcode ID exists on Leetcode or not
+	isLeetcodeUsernameValid, leetcodeErr := s.LeetcodeAPI.ValidateLeetcodeUsername(user.LeetcodeID)
+	if leetcodeErr != nil {
+		return fmt.Errorf("%w: %v", errs.ErrLeetcodeValidationFailed, leetcodeErr)
+	}
+	if !isLeetcodeUsernameValid {
+		return fmt.Errorf("%w: %v", errs.ErrLeetcodeUsernameInvalid, user.LeetcodeID)
+	}
+
 	// Check if the Leetcode ID is unique
 	leetcodeIDUnique, err := s.userRepo.IsLeetcodeIDUnique(ctx, user.LeetcodeID)
 	if err != nil {
@@ -139,7 +148,7 @@ func (s *AuthService) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string)
 
 // ValidateLeetcodeUsername checks if the provided Leetcode username exists
 func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
-	valid, err := s.LeetcodeAPI.ValidateUsername(username)
+	valid, err := s.LeetcodeAPI.ValidateLeetcodeUsername(username)
 	if err != nil {
 		return false, fmt.Errorf("%w: %v", errs.ErrExternalAPI, err)
 	}

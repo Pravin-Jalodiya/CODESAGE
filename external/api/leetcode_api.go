@@ -189,7 +189,7 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 	return stats, nil
 }
 
-func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
+func (api *LeetcodeAPI) ValidateLeetcodeUsername(username string) (bool, error) {
 	const userQuery = `
 	query getUserProfile($username: String!) {
   	matchedUser(username: $username) {
