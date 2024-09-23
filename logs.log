@@ -250,3 +250,48 @@
 {"level":"ERROR","time":"2024-09-23T06:57:10+05:30","msg":"Signup failed","method":"POST","error":"username already exists: dummy","time":"2024-09-23T06:57:10+05:30"}
 {"level":"ERROR","time":"2024-09-23T07:06:10+05:30","msg":"Error removing question","method":"DELETE","error":"no rows found: question with ID 1 not found","time":"2024-09-23T07:06:10+05:30"}
 {"level":"ERROR","time":"2024-09-23T07:11:07+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-23T07:11:07+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:31:40+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-23T07:31:40+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:33:55+05:30","msg":"Limit query parameter missing","method":"GET","time":"2024-09-23T07:33:55+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:33:55+05:30","msg":"Invalid question ID","method":"DELETE","error":"invalid question ID : must be a positive number","time":"2024-09-23T07:33:55+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:35:17+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:35:17+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:35:17+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:35:17+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:35:17+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T07:35:17+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:35:17+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:35:17+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:47:53+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:47:53+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:47:53+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:47:53+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:47:53+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T07:47:53+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:47:53+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:47:53+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Signup failed","method":"POST","error":"username already exists","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Signup failed","method":"POST","error":"email already exists","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Signup failed","method":"POST","error":"leetcode ID already exists","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Signup failed","method":"POST","error":"internal error","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Authentication failed","method":"POST","error":"internal error","username":"testuser","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:19+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:51:19+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:51:53+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T07:51:53+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Signup failed","method":"POST","error":"username already exists","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Signup failed","method":"POST","error":"email already exists","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Signup failed","method":"POST","error":"leetcode ID already exists","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Signup failed","method":"POST","error":"internal error","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Authentication failed","method":"POST","error":"internal error","username":"testuser","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:01+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:52:01+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Signup failed","method":"POST","error":"username already exists","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Signup failed","method":"POST","error":"email already exists","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Signup failed","method":"POST","error":"leetcode ID already exists","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Signup failed","method":"POST","error":"Leetcode username is invalid","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Signup failed","method":"POST","error":"internal error","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Error decoding request body","method":"POST","error":"unexpected EOF","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Authentication failed","method":"POST","error":"invalid password","username":"pravin","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Authentication failed","method":"POST","error":"user not found","username":"unknownuser","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Authentication failed","method":"POST","error":"internal error","username":"testuser","time":"2024-09-23T07:52:05+05:30"}
+{"level":"ERROR","time":"2024-09-23T07:52:05+05:30","msg":"Logout failed","method":"POST","error":"logout failure","time":"2024-09-23T07:52:05+05:30"}

@@ -105,6 +105,165 @@ func TestSignupHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
 	})
+
+	// New test case for invalid password
+	t.Run("Invalid Password", func(t *testing.T) {
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "short",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+	})
+
+	// New test case for invalid email
+	t.Run("Invalid Email", func(t *testing.T) {
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@invalid.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+	})
+
+	// New test case for already existing username
+	t.Run("Username Already Exists", func(t *testing.T) {
+		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).Return(fmt.Errorf("%w", errs.ErrUserNameAlreadyExists))
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusConflict, rr.Code)
+	})
+
+	// New test case for already existing email
+	t.Run("Email Already Exists", func(t *testing.T) {
+		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).Return(fmt.Errorf("%w", errs.ErrEmailAlreadyExists))
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusConflict, rr.Code)
+	})
+
+	// New test case for already existing LeetcodeID
+	t.Run("LeetcodeID Already Exists", func(t *testing.T) {
+		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).Return(fmt.Errorf("%w", errs.ErrLeetcodeIDAlreadyExists))
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusConflict, rr.Code)
+	})
+
+	// New test case for invalid LeetcodeID
+	t.Run("Invalid LeetcodeID", func(t *testing.T) {
+		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).Return(fmt.Errorf("%w", errs.ErrLeetcodeUsernameInvalid))
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "InvalidLeetcodeID"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+	})
+
+	// New test case for internal server error
+	t.Run("Internal Server Error", func(t *testing.T) {
+		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).Return(errors.New("internal error"))
+		payload := `{
+		    "standard_user": {
+		        "username": "Dummy",
+		        "password": "Dummy@123",
+		        "name": "Dummy User",
+		        "email": "dummy@gmail.com",
+		        "organisation": "Dummy Org",
+		        "country": "India"
+		    },
+		    "leetcode_id": "rabbit1"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.SignupHandler(rr, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	})
 }
 
 func TestLoginHandler(t *testing.T) {
@@ -170,6 +329,33 @@ func TestLoginHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
 	})
 
+	// New test case for user not found
+	t.Run("User Not Found", func(t *testing.T) {
+		mockAuthService.EXPECT().Login(gomock.Any(), "unknownuser", "Unknown@123").Return(nil, fmt.Errorf("%w", errs.ErrUserNotFound))
+
+		payload := `{"username": "unknownuser", "password": "Unknown@123"}`
+		req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.LoginHandler(rr, req)
+
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
+	// New test case for internal server error during login
+	t.Run("Internal Server Error", func(t *testing.T) {
+		mockAuthService.EXPECT().Login(gomock.Any(), "testuser", "Password@123").Return(nil, errors.New("internal error"))
+
+		payload := `{"username": "testuser", "password": "Password@123"}`
+		req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewReader([]byte(payload)))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		handler.LoginHandler(rr, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	})
 }
 
 func TestLogoutHandler(t *testing.T) {
