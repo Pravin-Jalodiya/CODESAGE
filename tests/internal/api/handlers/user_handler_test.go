@@ -348,62 +348,25 @@ func TestUpdateUserProgress(t *testing.T) {
 	})
 }
 
-func TestGetAllUsers(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserService := mocks.NewMockUserService(ctrl)
-	userHandler := handlers.NewUserHandler(mockUserService)
-
-	t.Run("Success", func(t *testing.T) {
-		users := []dto.StandardUser{{
-			StandardUser: dto.User{
-				Username:     "testuser",
-				Name:         "Test User",
-				Email:        "testuser@example.com",
-				Organisation: "TestOrg",
-				Country:      "TestCountry",
-			},
-			LeetcodeID: "leetcodeTest",
-			LastSeen:   time.Now(),
-		}}
-		mockUserService.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil).Times(1)
-
-		r := mux.NewRouter()
-		r.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
-
-		req := httptest.NewRequest("GET", "/users", nil)
-		w := httptest.NewRecorder()
-
-		r.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-		var response map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Fetched users successfully", response["message"])
-	})
-}
-
 func TestGetUsers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserService := mocks.NewMockUserService(ctrl)
 	userHandler := handlers.NewUserHandler(mockUserService)
 
-	t.Run("Success", func(t *testing.T) {
-		users := []dto.StandardUser{{
-			StandardUser: dto.User{
-				Username:     "testuser",
-				Name:         "Test User",
-				Email:        "testuser@example.com",
-				Organisation: "TestOrg",
-				Country:      "TestCountry",
-			},
-			LeetcodeID: "leetcodeTest",
-			LastSeen:   time.Now(),
-		}}
+	users := []dto.StandardUser{{
+		StandardUser: dto.User{
+			Username:     "testuser",
+			Name:         "Test User",
+			Email:        "testuser@example.com",
+			Organisation: "TestOrg",
+			Country:      "TestCountry",
+		},
+		LeetcodeID: "leetcodeTest",
+		LastSeen:   time.Now(),
+	}}
 
+	t.Run("Success with limit and offset", func(t *testing.T) {
 		mockUserService.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil).Times(1)
 
 		r := mux.NewRouter()
@@ -420,9 +383,94 @@ func TestGetUsers(t *testing.T) {
 		err := json.NewDecoder(w.Body).Decode(&response)
 		assert.NoError(t, err)
 		assert.Equal(t, "Fetched users successfully", response["message"])
+		assert.Equal(t, 1, int(response["total"].(float64)))
+		assert.Equal(t, 1, int(response["current_page_users"].(float64)))
+	})
+
+	t.Run("Success without limit and offset", func(t *testing.T) {
+		mockUserService.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil).Times(1)
+
+		r := mux.NewRouter()
+		r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
+
+		req := httptest.NewRequest("GET", "/users", nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+		var response map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+
+		// Check for the existence of the keys and appropriate types
+		if total, ok := response["total"].(float64); ok {
+			assert.Equal(t, 1, int(total))
+		} else {
+			t.Errorf("Expected total to be a float64, got %v", response["total"])
+		}
+		if usersList, ok := response["users"].([]interface{}); ok {
+			assert.Equal(t, 1, len(usersList))
+		} else {
+			t.Errorf("Expected users to be a list, got %v", response["users"])
+		}
+		assert.Equal(t, "Fetched users successfully", response["message"])
+	})
+
+	t.Run("Invalid limit parameter", func(t *testing.T) {
+		r := mux.NewRouter()
+		r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
+
+		req := httptest.NewRequest("GET", "/users?limit=invalid", nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+
+		var response map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Invalid limit: must be a positive number", response["message"])
+	})
+
+	t.Run("Invalid offset parameter", func(t *testing.T) {
+		r := mux.NewRouter()
+		r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
+
+		req := httptest.NewRequest("GET", "/users?limit=10&offset=invalid", nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+
+		var response map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Invalid offset: must be a non-negative number", response["message"])
+	})
+
+	t.Run("Error fetching users", func(t *testing.T) {
+		mockUserService.EXPECT().GetAllUsers(gomock.Any()).Return(nil, errors.New("internal error")).Times(1)
+
+		r := mux.NewRouter()
+		r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
+
+		req := httptest.NewRequest("GET", "/users?limit=10&offset=0", nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+
+		var response map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, "internal error", response["message"])
 	})
 }
-
 func TestUpdateUserBanState(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

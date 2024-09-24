@@ -99,50 +99,27 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (q *QuestionHandler) GetAllQuestions(w http.ResponseWriter, r *http.Request) {
-
-	ctx := r.Context()
-	questions, err := q.questionService.GetAllQuestions(ctx)
-	if err != nil {
-		errs.NewBadRequestError("Error fetching questions").ToJSON(w)
-		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]any{
-		"code":    http.StatusOK,
-		"message": "Fetched questions successfully",
-		"questions": func() []dto.Question {
-			if questions == nil {
-				return []dto.Question{}
-			}
-			return questions
-		}(),
-	}
-	json.NewEncoder(w).Encode(jsonResponse)
-	logger.Logger.Infow("Fetched questions successfully", "method", r.Method, "questionsCount", len(questions), "time", time.Now())
-}
-
 func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
+	difficulty := r.URL.Query().Get("difficulty")
+	company := r.URL.Query().Get("company")
+	topic := r.URL.Query().Get("topic")
 
-	// Validate `limit` parameter since it's required
-	if limitStr == "" {
-		errs.NewBadRequestError("limit is a required query parameter").ToJSON(w)
-		logger.Logger.Errorw("Limit query parameter missing", "method", r.Method, "time", time.Now())
-		return
+	var limit, offset int
+	var err error
+
+	// Parse and validate limit if provided
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+			logger.Logger.Errorw("Invalid limit value", "method", r.Method, "error", err, "time", time.Now())
+			return
+		}
 	}
 
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
-		logger.Logger.Errorw("Invalid limit value", "method", r.Method, "error", err, "time", time.Now())
-		return
-	}
-
-	var offset int
+	// Parse and validate offset if provided
 	if offsetStr != "" {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil || offset < 0 {
@@ -152,10 +129,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	difficulty := r.URL.Query().Get("difficulty")
-	company := r.URL.Query().Get("company")
-	topic := r.URL.Query().Get("topic")
-
+	// Validate difficulty level if provided
 	if difficulty != "" {
 		difficulty, err = validation.ValidateQuestionDifficulty(difficulty)
 		if err != nil {
@@ -168,7 +142,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, company, topic)
 	if err != nil {
-		errs.NewBadRequestError("Error fetching questions").ToJSON(w)
+		errs.JSONError(w, "Error fetching questions: "+err.Error(), http.StatusInternalServerError)
 		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
@@ -177,12 +151,16 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	totalQuestions := len(questions)
 	paginatedQuestions := make([]dto.Question, 0)
 
-	if offset < totalQuestions {
-		end := offset + limit
-		if end > totalQuestions {
-			end = totalQuestions
+	if limitStr != "" { // If limit is provided, do pagination
+		if offset < totalQuestions {
+			end := offset + limit
+			if end > totalQuestions {
+				end = totalQuestions
+			}
+			paginatedQuestions = questions[offset:end]
 		}
-		paginatedQuestions = questions[offset:end]
+	} else { // If no limit is provided, return all questions
+		paginatedQuestions = questions
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -197,7 +175,10 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 		}(),
 		"total": totalQuestions, // Include total count for client-side pagination handling
 	}
-	json.NewEncoder(w).Encode(jsonResponse)
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		logger.Logger.Errorw("Error encoding response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
 	logger.Logger.Infow("Fetched questions successfully", "method", r.Method, "questionsCount", len(paginatedQuestions), "time", time.Now())
 }
 

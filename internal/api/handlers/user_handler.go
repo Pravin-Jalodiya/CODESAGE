@@ -177,44 +177,18 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// GetAllUsers returns all users.
-func (u *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	users, err := u.userService.GetAllUsers(ctx)
-	if err != nil {
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if users == nil {
-		users = []dto.StandardUser{}
-	}
-
-	jsonResponse := map[string]any{
-		"code":    http.StatusOK,
-		"message": "Fetched users successfully",
-		"users":   users,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(jsonResponse)
-}
-
 func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 
-	// Validate `limit` parameter since it's required
-	if limitStr == "" {
-		errs.NewBadRequestError("limit is a required query parameter").ToJSON(w)
-		return
-	}
-
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
-		return
+	var limit int
+	var err error
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+			return
+		}
 	}
 
 	var offset int
@@ -227,6 +201,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
+
 	users, err := u.userService.GetAllUsers(ctx)
 	if err != nil {
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
@@ -237,8 +212,24 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		users = []dto.StandardUser{}
 	}
 
-	// Handle slicing for pagination
 	totalUsers := len(users)
+
+	// If no limit is provided, return all users
+	if limitStr == "" {
+		jsonResponse := map[string]any{
+			"code":    http.StatusOK,
+			"message": "Fetched users successfully",
+			"users":   users,
+			"total":   totalUsers,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(jsonResponse)
+		return
+	}
+
+	// Handle slicing for pagination
+	totalUsers = len(users)
 	var paginatedUsers []dto.StandardUser
 
 	if offset < totalUsers {
