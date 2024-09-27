@@ -134,7 +134,7 @@ func TestAddQuestions_InsertFailure(t *testing.T) {
 	}
 }
 
-func TestFetchQuestionByID(t *testing.T) {
+func TestFetchQuestionByTitleSlug(t *testing.T) {
 	defer setup(t)()
 
 	questionID := "1"
@@ -163,7 +163,7 @@ func TestFetchQuestionByID(t *testing.T) {
 
 	mock.ExpectQuery(query).WithArgs(questionID).WillReturnRows(rows)
 
-	question, err := questionRepo.FetchQuestionByID(questionID)
+	question, err := questionRepo.FetchQuestionByTitleSlug(questionID)
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
@@ -212,7 +212,7 @@ func TestRemoveQuestionByIDNotFound(t *testing.T) {
 	}
 }
 
-func TestFetchQuestionByIDNoResult(t *testing.T) {
+func TestFetchQuestionByTitleSlugNoResult(t *testing.T) {
 	defer setup(t)()
 
 	questionID := "1"
@@ -220,7 +220,7 @@ func TestFetchQuestionByIDNoResult(t *testing.T) {
 		WithArgs(questionID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := questionRepo.FetchQuestionByID(questionID)
+	_, err := questionRepo.FetchQuestionByTitleSlug(questionID)
 	if err == nil || !strings.Contains(err.Error(), "not found") {
 		t.Errorf("expected not found error, did not receive it")
 	}

@@ -80,19 +80,19 @@ func (mr *MockQuestionRepositoryMockRecorder) FetchAllQuestions(arg0 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAllQuestions", reflect.TypeOf((*MockQuestionRepository)(nil).FetchAllQuestions), arg0)
 }
 
-// FetchQuestionByID mocks base method.
-func (m *MockQuestionRepository) FetchQuestionByID(arg0 context.Context, arg1 string) (*models.Question, error) {
+// FetchQuestionByTitleSlug mocks base method.
+func (m *MockQuestionRepository) FetchQuestionByTitleSlug(arg0 context.Context, arg1 string) (*models.Question, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchQuestionByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "FetchQuestionByTitleSlug", arg0, arg1)
 	ret0, _ := ret[0].(*models.Question)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FetchQuestionByID indicates an expected call of FetchQuestionByID.
-func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionByID(arg0, arg1 interface{}) *gomock.Call {
+// FetchQuestionByTitleSlug indicates an expected call of FetchQuestionByTitleSlug.
+func (mr *MockQuestionRepositoryMockRecorder) FetchQuestionByTitleSlug(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionByID", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchQuestionByTitleSlug", reflect.TypeOf((*MockQuestionRepository)(nil).FetchQuestionByTitleSlug), arg0, arg1)
 }
 
 // FetchQuestionsByFilters mocks base method.

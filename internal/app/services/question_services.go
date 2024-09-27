@@ -82,6 +82,25 @@ func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [
 		}
 
 		if exists {
+			// Fetch existing question details
+			existingQuestion, err := s.questionRepo.FetchQuestionByTitleSlug(ctx, titleSlug)
+			if err != nil {
+				return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+			}
+
+			// Merge existing tags with new tags
+			mergedTopicTags := utils.MergeTags(existingQuestion.TopicTags, topicTags)
+			mergedCompanyTags := utils.MergeTags(existingQuestion.CompanyTags, companyTags)
+
+			// Update the question with merged tags
+			existingQuestion.TopicTags = mergedTopicTags
+			existingQuestion.CompanyTags = mergedCompanyTags
+
+			// Update the question in the repository
+			err = s.questionRepo.UpdateQuestion(ctx, existingQuestion)
+			if err != nil {
+				return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+			}
 			continue
 		}
 
@@ -126,7 +145,7 @@ func (s *QuestionService) GetQuestionByID(ctx context.Context, questionID string
 		return nil, fmt.Errorf("%w: question with title slug %s not found", errs.ErrNoRows, questionID)
 	}
 
-	question, err := s.questionRepo.FetchQuestionByID(ctx, questionID)
+	question, err := s.questionRepo.FetchQuestionByTitleSlug(ctx, questionID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}

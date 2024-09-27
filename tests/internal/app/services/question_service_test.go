@@ -250,7 +250,7 @@ func TestQuestionService_GetQuestionByID(t *testing.T) {
 
 		mockQuestionRepo.EXPECT().QuestionExistsByTitleSlug("slug1").Return(true, nil)
 
-		mockQuestionRepo.EXPECT().FetchQuestionByID("slug1").Return(question, nil)
+		mockQuestionRepo.EXPECT().FetchQuestionByTitleSlug("slug1").Return(question, nil)
 
 		result, err := questionService.GetQuestionByID("slug1")
 		assert.NoError(t, err)

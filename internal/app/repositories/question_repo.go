@@ -66,6 +66,21 @@ func (r *questionRepo) AddQuestions(ctx context.Context, questions *[]models.Que
 	return nil
 }
 
+func (r *questionRepo) UpdateQuestion(ctx context.Context, question *models.Question) error {
+	db, err := r.getDBConnection()
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+	}
+
+	query := `UPDATE questions SET topic_tags = $1, company_tags = $2 WHERE id = $3`
+	_, err = db.ExecContext(ctx, query, pq.Array(question.TopicTags), pq.Array(question.CompanyTags), question.QuestionID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+	}
+
+	return nil
+}
+
 func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string) error {
 	db, err := r.getDBConnection()
 	if err != nil {
@@ -94,7 +109,7 @@ func (r *questionRepo) RemoveQuestionByID(ctx context.Context, questionID string
 	return nil
 }
 
-func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
+func (r *questionRepo) FetchQuestionByTitleSlug(ctx context.Context, titleSlug string) (*models.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -106,7 +121,7 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 		"conditions": "title_slug = $1",
 	})
 
-	row := db.QueryRowContext(ctx, query, questionID)
+	row := db.QueryRowContext(ctx, query, titleSlug)
 
 	var question models.Question
 	var topicTags, companyTags []string
@@ -122,7 +137,7 @@ func (r *questionRepo) FetchQuestionByID(ctx context.Context, questionID string)
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, questionID)
+			return nil, fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, titleSlug)
 		}
 		return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 	}
