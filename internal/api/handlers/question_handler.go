@@ -6,12 +6,11 @@ import (
 	"cli-project/pkg/errors"
 	"cli-project/pkg/logger"
 	"cli-project/pkg/validation"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
@@ -47,37 +46,22 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Create a temporary file on the server
-	tempFile, err := os.CreateTemp("", "upload-*.csv")
+	// Read the CSV content directly from the uploaded file
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("Error creating temporary file: %v", err)
-		errs.JSONError(w, "Error creating temporary file: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer tempFile.Close()
-
-	// Read the file content into the temporary file
-	_, err = io.Copy(tempFile, file)
-	if err != nil {
-		log.Printf("Error saving the file: %v", err)
-		errs.JSONError(w, "Error saving the file: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Error reading the CSV file: %v", err)
+		errs.JSONError(w, "Error reading the CSV file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Get the file path
-	filePath := tempFile.Name()
-
-	// Call the service method to process the file
-	added, err := q.questionService.AddQuestionsFromFile(r.Context(), filePath)
+	// Call the service method to process the records
+	added, err := q.questionService.AddQuestionsFromRecords(r.Context(), records)
 	if err != nil {
-		os.Remove(filePath) // Ensure the temporary file is deleted
-		log.Printf("Error processing the file: %v", err)
-		errs.JSONError(w, "Error processing the file: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Error processing the records: %v", err)
+		errs.JSONError(w, "Error processing the records: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	// Delete the temporary file as it's no longer needed
-	os.Remove(filePath)
 
 	// Prepare the response message
 	var message string
@@ -140,7 +124,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, company, topic)
+	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, topic, company)
 	if err != nil {
 		errs.JSONError(w, "Error fetching questions: "+err.Error(), http.StatusInternalServerError)
 		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())

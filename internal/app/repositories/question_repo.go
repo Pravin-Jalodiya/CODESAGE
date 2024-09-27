@@ -234,7 +234,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 			companyTags []string
 		)
 
-		err := rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
+		err = rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 		}
@@ -249,7 +249,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 		})
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrRows, err)
 	}
 

@@ -8,9 +8,7 @@ import (
 	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"context"
-	"encoding/csv"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -32,22 +30,7 @@ var (
 	ValidateTitleSlug          = validation.ValidateTitleSlug
 )
 
-// AddQuestionsFromFile processes the CSV file and adds new questions to the database.
-func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFilePath string) (bool, error) {
-	// Open the CSV file
-	file, err := os.Open(questionFilePath)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrCSVFileOpening, err)
-	}
-	defer file.Close()
-
-	// Read the CSV content
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrReadingCSVFile, err)
-	}
-
+func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [][]string) (bool, error) {
 	var questions []models.Question
 	newQuestionsAdded := false
 
@@ -107,7 +90,7 @@ func (s *QuestionService) AddQuestionsFromFile(ctx context.Context, questionFile
 	}
 
 	if newQuestionsAdded {
-		err = s.questionRepo.AddQuestions(ctx, &questions)
+		err := s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
 			return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}

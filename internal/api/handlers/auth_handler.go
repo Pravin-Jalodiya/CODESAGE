@@ -31,19 +31,17 @@ func NewAuthHandler(authService interfaces.AuthService) *AuthHandler {
 }
 
 func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		StandardUser struct {
-			Username     string `json:"username"`
-			Password     string `json:"password"`
-			Name         string `json:"name"`
-			Email        string `json:"email"`
-			Organization string `json:"organisation"`
-			Country      string `json:"country"`
-		} `json:"standard_user"`
-		LeetcodeID string `json:"leetcode_id"`
+	var RequestBody struct {
+		Username     string `json:"username"`
+		Password     string `json:"password"`
+		Name         string `json:"name"`
+		Email        string `json:"email"`
+		Organization string `json:"organisation"`
+		Country      string `json:"country"`
+		LeetcodeID   string `json:"leetcode_id"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := json.NewDecoder(r.Body).Decode(&RequestBody)
 	if err != nil {
 		errs.NewInvalidRequestBodyError("Invalid request body").ToJSON(w)
 		logger.Logger.Errorw("Error decoding request body", "method", r.Method, "error", err, "time", time.Now())
@@ -52,14 +50,14 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := models.StandardUser{
 		StandardUser: models.User{
-			Username:     input.StandardUser.Username,
-			Password:     input.StandardUser.Password,
-			Name:         input.StandardUser.Name,
-			Email:        input.StandardUser.Email,
-			Organisation: input.StandardUser.Organization,
-			Country:      input.StandardUser.Country,
+			Username:     RequestBody.Username,
+			Password:     RequestBody.Password,
+			Name:         RequestBody.Name,
+			Email:        RequestBody.Email,
+			Organisation: RequestBody.Organization,
+			Country:      RequestBody.Country,
 		},
-		LeetcodeID:      input.LeetcodeID,
+		LeetcodeID:      RequestBody.LeetcodeID,
 		QuestionsSolved: []string{},
 		LastSeen:        time.Time{},
 	}
@@ -121,9 +119,7 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		"message": "User successfully registered",
 		"code":    http.StatusOK,
 		"user_info": map[string]any{
-			"username":     user.StandardUser.Username,
-			"organisation": user.StandardUser.Organisation,
-			"country":      user.StandardUser.Country,
+			"username": user.StandardUser.Username,
 		},
 	}
 	json.NewEncoder(w).Encode(jsonResponse)
