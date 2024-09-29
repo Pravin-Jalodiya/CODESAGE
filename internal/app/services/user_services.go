@@ -223,6 +223,8 @@ func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (
 
 // DeleteUser deletes a user by the given ID
 func (s *UserService) DeleteUser(ctx context.Context, username string) error {
+
+	username = utils.CleanString(username)
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNotFound) {
@@ -238,6 +240,36 @@ func (s *UserService) DeleteUser(ctx context.Context, username string) error {
 		}
 		return fmt.Errorf("delete user failed: %w", err)
 	}
+	return nil
+}
+
+// UpdateUser updates the user's profile.
+func (s *UserService) UpdateUser(ctx context.Context, userID string, updates map[string]interface{}) error {
+	if username, ok := updates["username"].(string); ok {
+		exists, err := s.userRepo.IsUsernameUnique(ctx, username)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, err)
+		}
+	}
+
+	if email, ok := updates["email"].(string); ok {
+		exists, err := s.userRepo.IsEmailUnique(ctx, email)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, err)
+		}
+	}
+
+	err := s.userRepo.UpdateUserProfile(ctx, userID, updates)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

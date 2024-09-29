@@ -24,4 +24,5 @@ type UserService interface {
 	GetUserCodesageStats(ctx context.Context, userID string) (*models.CodesageStats, error)
 	GetPlatformStats(ctx context.Context) (*models.PlatformStats, error)
 	DeleteUser(ctx context.Context, username string) error
+	UpdateUser(ctx context.Context, userID string, updates map[string]interface{}) error
 }

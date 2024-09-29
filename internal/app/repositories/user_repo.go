@@ -87,6 +87,35 @@ func (r *userRepo) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
+// UpdateUserProfile updates the user's information in the database.
+func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates map[string]interface{}) error {
+	db, err := r.getDBConnection()
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+	// This is a rough example, you may need to adapt this query to your needs, or use an ORM like GORM or Ent
+	updateFields := []string{}
+	args := []interface{}{}
+	argID := 1
+
+	for key, value := range updates {
+		updateFields = append(updateFields, fmt.Sprintf("%s = $%d", key, argID))
+		args = append(args, value)
+		argID++
+	}
+	args = append(args, userID)
+
+	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d",
+		fmt.Sprintf(strings.Join(updateFields, ", ")), argID)
+
+	_, err = db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
 	db, err := r.getDBConnection()
 	if err != nil {

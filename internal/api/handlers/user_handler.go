@@ -7,11 +7,13 @@ import (
 	"cli-project/internal/domain/models"
 	errs "cli-project/pkg/errors"
 	"cli-project/pkg/logger"
+	"cli-project/pkg/validation"
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -140,6 +142,158 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(progressResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// UpdateUserProfile updates the user's profile.
+func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
+	if !ok {
+		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
+		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the update request
+	var updateReq map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+		logger.Logger.Errorw("Failed to decode request body", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Failed to decode request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the body is empty
+	if len(updateReq) == 0 {
+		logger.Logger.Warnw("Empty request body", "method", r.Method, "time", time.Now())
+		errs.JSONError(w, "Empty request body", http.StatusBadRequest)
+		return
+	}
+
+	// Prepare allowable updates
+	allowedUpdates := map[string]bool{
+		"username":     true,
+		"password":     true,
+		"name":         true,
+		"email":        true,
+		"organisation": true,
+		"country":      true,
+	}
+
+	// Prepare restricted fields
+	restrictedFieldsMap := map[string]bool{
+		"id":          true,
+		"role":        true,
+		"last_seen":   true,
+		"leetcode_id": true,
+		"is_banned":   true,
+	}
+
+	// Collect updates
+	updates := map[string]interface{}{}
+	restrictedFields := []string{}
+	invalidFields := []string{}
+
+	for key, value := range updateReq {
+		if allowedUpdates[key] {
+			updates[key] = value
+		} else if restrictedFieldsMap[key] {
+			restrictedFields = append(restrictedFields, key)
+		} else {
+			invalidFields = append(invalidFields, key)
+		}
+	}
+
+	// If there are invalid fields, return a bad request error
+	if len(invalidFields) > 0 {
+		message := "Found invalid field(s): " + strings.Join(invalidFields, ", ")
+		logger.Logger.Warnw(message, "method", r.Method, "time", time.Now())
+		errs.JSONError(w, message, http.StatusBadRequest)
+		return
+	}
+
+	// If there are restricted fields, return a forbidden error
+	if len(restrictedFields) > 0 {
+		message := "Cannot update restricted field(s): " + strings.Join(restrictedFields, ", ")
+		logger.Logger.Warnw(message, "method", r.Method, "user", userMetaData.Username, "time", time.Now())
+		errs.JSONError(w, message, http.StatusForbidden)
+		return
+	}
+
+	// Perform custom validations
+	if username, ok := updates["username"].(string); ok {
+		if !validation.ValidateUsername(username) {
+			errs.NewBadRequestError("Invalid username").ToJSON(w)
+			logger.Logger.Errorw("Invalid username", "method", r.Method, "username", username, "time", time.Now())
+			return
+		}
+	}
+	if password, ok := updates["password"].(string); ok {
+		if !validation.ValidatePassword(password) {
+			errs.NewBadRequestError("Invalid password").ToJSON(w)
+			logger.Logger.Errorw("Invalid password", "method", r.Method, "time", time.Now())
+			return
+		}
+	}
+	if name, ok := updates["name"].(string); ok {
+		if !validation.ValidateName(name) {
+			errs.NewBadRequestError("Invalid name").ToJSON(w)
+			logger.Logger.Errorw("Invalid name", "method", r.Method, "time", time.Now())
+			return
+		}
+	}
+	if email, ok := updates["email"].(string); ok {
+		isEmailValid, isReputable := validation.ValidateEmail(email)
+		if !isEmailValid {
+			errs.NewBadRequestError("Invalid email format").ToJSON(w)
+			logger.Logger.Errorw("Invalid email format", "method", r.Method, "email", email, "time", time.Now())
+			return
+		} else if !isReputable {
+			errs.NewBadRequestError("Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud)").ToJSON(w)
+			logger.Logger.Errorw("Unsupported email domain", "method", r.Method, "email", email, "time", time.Now())
+			return
+		}
+	}
+	if organisation, ok := updates["organisation"].(string); ok {
+		isOrgValid, orgErr := validation.ValidateOrganizationName(organisation)
+		if !isOrgValid {
+			errs.NewBadRequestError(orgErr.Error()).ToJSON(w)
+			logger.Logger.Errorw("Invalid organization name", "method", r.Method, "organisation", organisation, "time", time.Now())
+			return
+		}
+	}
+	if country, ok := updates["country"].(string); ok {
+		isCountryValid, countryErr := validation.ValidateCountryName(country)
+		if !isCountryValid {
+			errs.NewBadRequestError(countryErr.Error()).ToJSON(w)
+			logger.Logger.Errorw("Invalid country name", "method", r.Method, "country", country, "time", time.Now())
+			return
+		}
+	}
+
+	// Ensure there is at least one valid field to update
+	if len(updates) == 0 {
+		logger.Logger.Warnw("No valid fields to update", "method", r.Method, "time", time.Now())
+		errs.JSONError(w, "No valid fields to update", http.StatusBadRequest)
+		return
+	}
+
+	// Perform the update
+	err := u.userService.UpdateUser(r.Context(), userMetaData.UserId.String(), updates)
+	if err != nil {
+		logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Failed to update user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"code":    http.StatusOK,
+		"message": "User profile updated successfully",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 	}

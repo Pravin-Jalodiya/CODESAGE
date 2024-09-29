@@ -21,4 +21,5 @@ type UserRepository interface {
 	IsUsernameUnique(ctx context.Context, username string) (bool, error)
 	IsEmailUnique(ctx context.Context, email string) (bool, error)
 	IsLeetcodeIDUnique(ctx context.Context, leetcodeID string) (bool, error)
+	UpdateUserProfile(ctx context.Context, userID string, updates map[string]interface{}) error
 }

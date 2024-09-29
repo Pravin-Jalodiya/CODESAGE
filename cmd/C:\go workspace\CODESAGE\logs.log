@@ -16,3 +16,6 @@
 {"level":"ERROR","time":"2024-09-29T10:18:22+05:30","msg":"Missing username parameter","method":"DELETE","time":"2024-09-29T10:18:22+05:30"}
 {"level":"ERROR","time":"2024-09-29T10:18:27+05:30","msg":"Failed to delete user","method":"DELETE","error":"delete user failed: failed to delete question: ERROR: column \"user_id\" does not exist (SQLSTATE 42703)","time":"2024-09-29T10:18:27+05:30"}
 {"level":"ERROR","time":"2024-09-29T10:20:37+05:30","msg":"Failed to delete user","method":"DELETE","error":"user not found: user not found: sql: no rows in result set","time":"2024-09-29T10:20:37+05:30"}
+{"level":"ERROR","time":"2024-09-29T11:31:46+05:30","msg":"Invalid password","method":"POST","username":"pravin","time":"2024-09-29T11:31:46+05:30"}
+{"level":"ERROR","time":"2024-09-29T11:32:16+05:30","msg":"Invalid country name","method":"PATCH","country":"USA","time":"2024-09-29T11:32:16+05:30"}
+{"level":"ERROR","time":"2024-09-29T11:42:48+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-29T11:42:48+05:30"}
