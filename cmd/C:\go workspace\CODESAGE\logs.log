@@ -19,3 +19,5 @@
 {"level":"ERROR","time":"2024-09-29T11:31:46+05:30","msg":"Invalid password","method":"POST","username":"pravin","time":"2024-09-29T11:31:46+05:30"}
 {"level":"ERROR","time":"2024-09-29T11:32:16+05:30","msg":"Invalid country name","method":"PATCH","country":"USA","time":"2024-09-29T11:32:16+05:30"}
 {"level":"ERROR","time":"2024-09-29T11:42:48+05:30","msg":"Invalid token","error":"Token is expired","time":"2024-09-29T11:42:48+05:30"}
+{"level":"ERROR","time":"2024-09-29T11:57:48+05:30","msg":"Unauthorized access: token does not match requested user","method":"GET","user":"dummy","time":"2024-09-29T11:57:48+05:30"}
+{"level":"ERROR","time":"2024-09-29T11:58:06+05:30","msg":"Unauthorized access: token does not match requested user","method":"GET","user":"dummy","time":"2024-09-29T11:58:06+05:30"}

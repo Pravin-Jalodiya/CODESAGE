@@ -172,7 +172,7 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.CreateJwtToken(user.StandardUser.Username, user.StandardUser.ID, user.StandardUser.Role)
+	token, err := utils.CreateJwtToken(user.StandardUser.Username, user.StandardUser.ID, user.StandardUser.Role, user.StandardUser.IsBanned)
 	if err != nil {
 		errs.NewInternalServerError("Failed to generate token").ToJSON(w)
 		logger.Logger.Errorw("Failed to generate token", "method", r.Method, "username", requestBody.Username, "error", err, "time", time.Now())

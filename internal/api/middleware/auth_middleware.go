@@ -18,6 +18,7 @@ type UserMetaData struct {
 	Username string
 	UserId   uuid.UUID
 	Role     roles.Role
+	BanState bool
 }
 
 // Middleware to validate JWT
@@ -102,11 +103,20 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Extract the banState from the token claims
+		banState, ok := claims["banState"].(bool)
+		if !ok {
+			logger.Logger.Errorw("banState not found in token claims", "claims", claims, "time", time.Now())
+			unauthorized(w, "Invalid Token")
+			return
+		}
+
 		// Create user metadata
 		userMetaData := UserMetaData{
 			Username: username,
 			UserId:   userId,
 			Role:     role,
+			BanState: banState,
 		}
 
 		// Attach user metadata to the request context

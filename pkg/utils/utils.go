@@ -2,6 +2,7 @@ package utils
 
 import (
 	"cli-project/internal/config"
+	"cli-project/pkg/logger"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -141,12 +142,13 @@ func VerifyString(password, hash string) bool {
 }
 
 // CreateJwtToken generates a JWT token for the given user ID and role
-func CreateJwtToken(username string, userId string, role string) (string, error) {
+func CreateJwtToken(username string, userId string, role string, banState bool) (string, error) {
 	// Define JWT claims
 	claims := jwt.MapClaims{
 		"username": username,
 		"userId":   userId,
 		"role":     role,
+		"banState": banState,
 		"exp":      time.Now().Add(5 * time.Minute).Unix(), // Token expiry time (1 minute)
 	}
 
@@ -156,8 +158,7 @@ func CreateJwtToken(username string, userId string, role string) (string, error)
 	// Sign the token with the secret key
 	tokenString, err := token.SignedString(config.SECRET_KEY)
 	if err != nil {
-		// Log the error if needed (uncomment the line below)
-		// logger.Logger.Errorw("Error signing token", "error", err, "time", time.Now())
+		logger.Logger.Errorw("Error signing token", "error", err, "time", time.Now())
 		return "", errors.New("error creating jwt token")
 	}
 
