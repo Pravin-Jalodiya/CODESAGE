@@ -30,9 +30,10 @@ var (
 	ValidateTitleSlug          = validation.ValidateTitleSlug
 )
 
-func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [][]string) (bool, error) {
+func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [][]string) (bool, bool, error) {
 	var questions []models.Question
 	newQuestionsAdded := false
+	existingQuestionsUpdated := false
 
 	for i, record := range records {
 		if i == 0 {
@@ -40,7 +41,7 @@ func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [
 		}
 
 		if len(record) != 7 {
-			return false, errs.ErrInvalidCSVFormat
+			return false, false, errs.ErrInvalidCSVFormat
 		}
 
 		titleSlug := utils.CleanString(record[0])
@@ -53,17 +54,17 @@ func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [
 
 		valid, err := ValidateQuestionID(questionID)
 		if !valid {
-			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionID, err)
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionID, err)
 		}
 
 		difficulty, err = ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionDifficulty, err)
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionDifficulty, err)
 		}
 
 		questionLink, err = ValidateQuestionLink(questionLink)
 		if err != nil {
-			return false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionLink, err)
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionLink, err)
 		}
 
 		question := models.Question{
@@ -78,29 +79,33 @@ func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [
 
 		exists, err := s.QuestionExistsByID(ctx, questionID)
 		if err != nil {
-			return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+			return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 
 		if exists {
 			// Fetch existing question details
 			existingQuestion, err := s.questionRepo.FetchQuestionByTitleSlug(ctx, titleSlug)
 			if err != nil {
-				return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+				return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 			}
 
-			// Merge existing tags with new tags
+			// Check if tags need to be updated
 			mergedTopicTags := utils.MergeTags(existingQuestion.TopicTags, topicTags)
 			mergedCompanyTags := utils.MergeTags(existingQuestion.CompanyTags, companyTags)
 
-			// Update the question with merged tags
-			existingQuestion.TopicTags = mergedTopicTags
-			existingQuestion.CompanyTags = mergedCompanyTags
+			if !utils.AreSlicesEqual(existingQuestion.TopicTags, mergedTopicTags) || !utils.AreSlicesEqual(existingQuestion.CompanyTags, mergedCompanyTags) {
+				// Update the question with merged tags
+				existingQuestion.TopicTags = mergedTopicTags
+				existingQuestion.CompanyTags = mergedCompanyTags
 
-			// Update the question in the repository
-			err = s.questionRepo.UpdateQuestion(ctx, existingQuestion)
-			if err != nil {
-				return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+				// Update the question in the repository
+				err = s.questionRepo.UpdateQuestion(ctx, existingQuestion)
+				if err != nil {
+					return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+				}
+				existingQuestionsUpdated = true
 			}
+
 			continue
 		}
 
@@ -111,11 +116,11 @@ func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [
 	if newQuestionsAdded {
 		err := s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
-			return false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+			return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 	}
 
-	return newQuestionsAdded, nil
+	return newQuestionsAdded, existingQuestionsUpdated, nil
 }
 
 func (s *QuestionService) RemoveQuestionByID(ctx context.Context, questionID string) error {

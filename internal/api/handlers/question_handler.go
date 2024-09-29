@@ -56,7 +56,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the service method to process the records
-	added, err := q.questionService.AddQuestionsFromRecords(r.Context(), records)
+	newQuestionsAdded, existingQuestionsUpdated, err := q.questionService.AddQuestionsFromRecords(r.Context(), records)
 	if err != nil {
 		log.Printf("Error processing the records: %v", err)
 		errs.JSONError(w, "Error processing the records: "+err.Error(), http.StatusInternalServerError)
@@ -65,9 +65,14 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare the response message
 	var message string
-	if added {
+	switch {
+	case newQuestionsAdded && existingQuestionsUpdated:
+		message = "Questions added and updated successfully"
+	case newQuestionsAdded:
 		message = "Questions added successfully"
-	} else {
+	case existingQuestionsUpdated:
+		message = "Questions updated successfully"
+	default:
 		message = "No new questions found"
 	}
 

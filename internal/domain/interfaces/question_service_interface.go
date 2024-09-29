@@ -7,7 +7,7 @@ import (
 )
 
 type QuestionService interface {
-	AddQuestionsFromRecords(context.Context, [][]string) (bool, error)
+	AddQuestionsFromRecords(context.Context, [][]string) (bool, bool, error)
 	RemoveQuestionByID(ctx context.Context, questionID string) error
 	GetQuestionByID(ctx context.Context, questionID string) (*models.Question, error)
 	GetAllQuestions(context.Context) ([]dto.Question, error)
