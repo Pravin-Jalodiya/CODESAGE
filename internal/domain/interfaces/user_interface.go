@@ -17,6 +17,7 @@ type UserRepository interface {
 	BanUser(ctx context.Context, userID string) error
 	UnbanUser(ctx context.Context, userID string) error
 	CountActiveUsersInLast24Hours(ctx context.Context) (int, error)
+	DeleteUser(ctx context.Context, userID string) error
 	IsUsernameUnique(ctx context.Context, username string) (bool, error)
 	IsEmailUnique(ctx context.Context, email string) (bool, error)
 	IsLeetcodeIDUnique(ctx context.Context, leetcodeID string) (bool, error)

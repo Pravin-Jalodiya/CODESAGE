@@ -58,6 +58,35 @@ func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) er
 	return nil
 }
 
+// DeleteUser deletes a user by the given ID
+func (r *userRepo) DeleteUser(ctx context.Context, userID string) error {
+	db, err := r.getDBConnection()
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	deleteQuery := queries.QueryBuilder(queries.BaseDelete, map[string]string{
+		"table":      "users",
+		"conditions": "id = $1",
+	})
+
+	result, err := db.ExecContext(ctx, deleteQuery, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDeletingUserFailed, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDeletingUserFailed, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%w: user ID %s", errs.ErrUserNotFound, userID)
+	}
+
+	return nil
+}
+
 func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
 	db, err := r.getDBConnection()
 	if err != nil {

@@ -6,12 +6,13 @@ import (
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	errs "cli-project/pkg/errors"
+	"cli-project/pkg/logger"
 	"encoding/json"
 	"errors"
-	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UserResponse struct {
@@ -33,40 +34,36 @@ type UserProgressResponse struct {
 // UserHandler handles user-related requests.
 type UserHandler struct {
 	userService interfaces.UserService
-	validate    *validator.Validate
 }
 
 // NewUserHandler creates a new instance of UserHandler.
 func NewUserHandler(userService interfaces.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
-		validate:    validator.New(),
 	}
 }
 
 // GetUserByID returns the user's profile.
 func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	// Extract user metadata from the request context
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
+		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
 		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
 		return
 	}
 
-	// Extract the username from the request parameters
 	vars := mux.Vars(r)
 	username := vars["username"]
 
-	// Proceed only if the token username matches the requested username
 	if userMetaData.Username != username {
+		logger.Logger.Errorw("Unauthorized access: token does not match requested user", "method", r.Method, "user", username, "time", time.Now())
 		errs.JSONError(w, "Unauthorized access: token does not match requested user", http.StatusUnauthorized)
 		return
 	}
 
-	// Fetch user by ID from the service layer
 	user, err := u.userService.GetUserByID(r.Context(), userMetaData.UserId.String())
 	if err != nil {
-		// If user is not found, return the appropriate error
+		logger.Logger.Errorw("Failed to fetch user by ID", "method", r.Method, "error", err, "time", time.Now())
 		if errors.Is(err, errs.ErrUserNotFound) {
 			errs.JSONError(w, "User not found", http.StatusNotFound)
 		} else {
@@ -75,7 +72,6 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create the user response object
 	userResponse := UserResponse{
 		Username:     user.StandardUser.Username,
 		Name:         user.StandardUser.Name,
@@ -85,7 +81,6 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		Country:      user.StandardUser.Country,
 	}
 
-	// Create a response wrapper
 	response := struct {
 		Code        int          `json:"code"`
 		Message     string       `json:"message"`
@@ -96,9 +91,9 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		UserProfile: userResponse,
 	}
 
-	// Respond with the user profile data in JSON format
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -107,6 +102,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
+		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
 		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
 		return
 	}
@@ -115,6 +111,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	username := vars["username"]
 
 	if userMetaData.Username != username {
+		logger.Logger.Errorw("Unauthorized access", "method", r.Method, "user", username, "time", time.Now())
 		errs.JSONError(w, "Unauthorized access", http.StatusUnauthorized)
 		return
 	}
@@ -122,12 +119,14 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	leetcodeStats, err := u.userService.GetUserLeetcodeStats(userMetaData.UserId.String())
 	if err != nil {
+		logger.Logger.Errorw("Error fetching Leetcode stats", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, "Error fetching Leetcode stats: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	codesageStats, err := u.userService.GetUserCodesageStats(ctx, userMetaData.UserId.String())
 	if err != nil {
+		logger.Logger.Errorw("Error fetching Codesage stats", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, "Error fetching Codesage stats: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -141,6 +140,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(progressResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -149,6 +149,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request) {
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
+		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
 		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
 		return
 	}
@@ -156,6 +157,7 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 	userID := userMetaData.UserId
 	err := u.userService.UpdateUserProgress(r.Context(), userID)
 	if err != nil {
+		logger.Logger.Errorw("Failed to update user progress", "method", r.Method, "error", err, "time", time.Now())
 		switch {
 		case errors.Is(err, errs.ErrInvalidBodyError):
 			errs.JSONError(w, "Invalid user ID", http.StatusBadRequest)
@@ -173,6 +175,7 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -186,6 +189,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
+			logger.Logger.Errorw("Invalid limit parameter", "method", r.Method, "limit", limitStr, "error", err, "time", time.Now())
 			errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
 			return
 		}
@@ -195,6 +199,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if offsetStr != "" {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil || offset < 0 {
+			logger.Logger.Errorw("Invalid offset parameter", "method", r.Method, "offset", offsetStr, "error", err, "time", time.Now())
 			errs.NewBadRequestError("Invalid offset: must be a non-negative number").ToJSON(w)
 			return
 		}
@@ -204,6 +209,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := u.userService.GetAllUsers(ctx)
 	if err != nil {
+		logger.Logger.Errorw("Failed to fetch all users", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -214,7 +220,6 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	totalUsers := len(users)
 
-	// If no limit is provided, return all users
 	if limitStr == "" {
 		jsonResponse := map[string]any{
 			"code":    http.StatusOK,
@@ -224,11 +229,13 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jsonResponse)
+		if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+			logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+			errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
-	// Handle slicing for pagination
 	totalUsers = len(users)
 	var paginatedUsers []dto.StandardUser
 
@@ -246,12 +253,15 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		"code":               http.StatusOK,
 		"message":            "Fetched users successfully",
 		"users":              paginatedUsers,
-		"total":              totalUsers,          // Include total count for client-side pagination handling
-		"current_page_users": len(paginatedUsers), // Count of users returned in the current page
+		"total":              totalUsers,
+		"current_page_users": len(paginatedUsers),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(jsonResponse)
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // GetPlatformStats returns platform stats.
@@ -260,6 +270,7 @@ func (u *UserHandler) GetPlatformStats(w http.ResponseWriter, r *http.Request) {
 
 	platformStats, err := u.userService.GetPlatformStats(ctx)
 	if err != nil {
+		logger.Logger.Errorw("Failed to fetch platform stats", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, "Failed to fetch platform stats", http.StatusInternalServerError)
 		return
 	}
@@ -272,6 +283,7 @@ func (u *UserHandler) GetPlatformStats(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
@@ -281,12 +293,14 @@ func (u *UserHandler) UpdateUserBanState(w http.ResponseWriter, r *http.Request)
 	username := r.URL.Query().Get("username")
 
 	if username == "" {
+		logger.Logger.Errorw("Missing 'username' query parameter", "method", r.Method, "time", time.Now())
 		errs.JSONError(w, "Bad Request: 'username' query parameter is required", http.StatusBadRequest)
 		return
 	}
 
 	message, err := u.userService.UpdateUserBanState(r.Context(), username)
 	if err != nil {
+		logger.Logger.Errorw("Failed to update user ban state", "method", r.Method, "error", err, "time", time.Now())
 		switch {
 		case errors.Is(err, errs.ErrUserNotFound):
 			errs.JSONError(w, "User not found", http.StatusNotFound)
@@ -304,5 +318,40 @@ func (u *UserHandler) UpdateUserBanState(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(jsonResponse)
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+// DeleteUser handles the HTTP request for deleting a user
+func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		logger.Logger.Errorw("Missing username parameter", "method", r.Method, "time", time.Now())
+		errs.JSONError(w, "Missing username parameter", http.StatusBadRequest)
+		return
+	}
+
+	err := u.userService.DeleteUser(r.Context(), username)
+	if err != nil {
+		logger.Logger.Errorw("Failed to delete user", "method", r.Method, "error", err, "time", time.Now())
+		if errors.Is(err, errs.ErrUserNotFound) {
+			errs.JSONError(w, "User not found", http.StatusNotFound)
+		} else {
+			errs.JSONError(w, "Failed to delete user", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := map[string]interface{}{
+		"code":    http.StatusOK,
+		"message": "User deleted successfully",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }

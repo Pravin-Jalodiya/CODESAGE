@@ -15,10 +15,8 @@ import (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("username or password incorrect")
-	ErrUserNotFound       = errors.New("user not found")
-	HashString            = utils.HashString
-	VerifyString          = utils.VerifyString
+	HashString   = utils.HashString
+	VerifyString = utils.VerifyString
 )
 
 type UserService struct {
@@ -123,7 +121,7 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 	username = utils.CleanString(username)
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 	return user, nil
 }
@@ -136,7 +134,7 @@ func (s *UserService) GetUserByID(ctx context.Context, userID string) (*models.S
 	userID = utils.CleanString(userID)
 	user, err := s.userRepo.FetchUserByID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 	return user, nil
 }
@@ -149,7 +147,7 @@ func (s *UserService) GetUserRole(ctx context.Context, userID string) (roles.Rol
 	userID = utils.CleanString(userID)
 	user, err := s.userRepo.FetchUserByID(ctx, userID)
 	if err != nil {
-		return -1, fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return -1, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 
 	role, err := roles.ParseRole(user.StandardUser.Role)
@@ -171,7 +169,7 @@ func (s *UserService) GetUserProgress(ctx context.Context, userID string) (*[]st
 func (s *UserService) GetUserID(ctx context.Context, username string) (string, error) {
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return "", fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 	return user.StandardUser.ID, nil
 }
@@ -180,7 +178,7 @@ func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (
 	// Fetch the user by username
 	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return "", fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 
 	// Check the role to ensure we're not operating on an admin
@@ -223,10 +221,30 @@ func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (
 	return "User has been banned successfully", nil
 }
 
+// DeleteUser deletes a user by the given ID
+func (s *UserService) DeleteUser(ctx context.Context, username string) error {
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrUserNotFound) {
+			return fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+		} else {
+			return fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+		}
+	}
+	err = s.userRepo.DeleteUser(ctx, user.StandardUser.ID)
+	if err != nil {
+		if errors.Is(err, errs.ErrUserNotFound) {
+			return fmt.Errorf("delete user failed: %w", errs.ErrUserNotFound)
+		}
+		return fmt.Errorf("delete user failed: %w", err)
+	}
+	return nil
+}
+
 func (s *UserService) IsUserBanned(ctx context.Context, userID string) (bool, error) {
 	user, err := s.userRepo.FetchUserByID(ctx, userID)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", ErrUserNotFound, err)
+		return false, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 
 	return user.StandardUser.IsBanned, nil

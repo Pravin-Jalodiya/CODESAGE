@@ -9,7 +9,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -32,7 +31,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form, specifying a max memory buffer
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		log.Printf("Error parsing form data: %v", err)
+		logger.Logger.Errorw("Error parsing form data", "error", err, "time", time.Now())
 		errs.JSONError(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -40,7 +39,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the file from the form
 	file, _, err := r.FormFile("questions_file")
 	if err != nil {
-		log.Printf("Error retrieving the file: %v", err)
+		logger.Logger.Errorw("Error retrieving the file", "error", err, "time", time.Now())
 		errs.JSONError(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -50,7 +49,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("Error reading the CSV file: %v", err)
+		logger.Logger.Errorw("Error reading the CSV file", "error", err, "time", time.Now())
 		errs.JSONError(w, "Error reading the CSV file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -58,7 +57,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	// Call the service method to process the records
 	newQuestionsAdded, existingQuestionsUpdated, err := q.questionService.AddQuestionsFromRecords(r.Context(), records)
 	if err != nil {
-		log.Printf("Error processing the records: %v", err)
+		logger.Logger.Errorw("Error processing the records", "error", err, "time", time.Now())
 		errs.JSONError(w, "Error processing the records: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -83,7 +82,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 		"message": message,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		log.Printf("Error encoding response: %v", err)
+		logger.Logger.Errorw("Error encoding response", "error", err, "time", time.Now())
 		errs.JSONError(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -201,6 +200,6 @@ func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Requ
 		"code":    http.StatusOK,
 		"message": "Question deleted successfully",
 	}
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 	logger.Logger.Infow("Question deleted successfully", "method", r.Method, "questionID", questionID, "time", time.Now())
 }
