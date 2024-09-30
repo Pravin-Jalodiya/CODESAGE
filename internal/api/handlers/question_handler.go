@@ -3,7 +3,7 @@ package handlers
 import (
 	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
-	"cli-project/pkg/errors"
+	errs "cli-project/pkg/errors"
 	"cli-project/pkg/logger"
 	"cli-project/pkg/validation"
 	"encoding/csv"
@@ -32,7 +32,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		logger.Logger.Errorw("Error parsing form data", "error", err, "time", time.Now())
-		errs.JSONError(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
+		errs.JSONError(w, "Error parsing form data: "+err.Error(), errs.CodeInvalidRequest)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("questions_file")
 	if err != nil {
 		logger.Logger.Errorw("Error retrieving the file", "error", err, "time", time.Now())
-		errs.JSONError(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error retrieving the file: "+err.Error(), errs.CodeInvalidRequest)
 		return
 	}
 	defer file.Close()
@@ -50,7 +50,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	records, err := reader.ReadAll()
 	if err != nil {
 		logger.Logger.Errorw("Error reading the CSV file", "error", err, "time", time.Now())
-		errs.JSONError(w, "Error reading the CSV file: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error reading the CSV file: "+err.Error(), errs.CodeInvalidRequest)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	newQuestionsAdded, existingQuestionsUpdated, err := q.questionService.AddQuestionsFromRecords(r.Context(), records)
 	if err != nil {
 		logger.Logger.Errorw("Error processing the records", "error", err, "time", time.Now())
-		errs.JSONError(w, "Error processing the records: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error processing the records: "+err.Error(), errs.CodeDbError)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (q *QuestionHandler) AddQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		logger.Logger.Errorw("Error encoding response", "error", err, "time", time.Now())
-		errs.JSONError(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error encoding response: "+err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -101,7 +101,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
-			errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+			errs.NewAppError(errs.CodeInvalidRequest, "Invalid limit: must be a positive number").ToJSON(w)
 			logger.Logger.Errorw("Invalid limit value", "method", r.Method, "error", err, "time", time.Now())
 			return
 		}
@@ -111,7 +111,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	if offsetStr != "" {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil || offset < 0 {
-			errs.NewBadRequestError("Invalid offset: must be a non-negative number").ToJSON(w)
+			errs.NewAppError(errs.CodeInvalidRequest, "Invalid offset: must be a non-negative number").ToJSON(w)
 			logger.Logger.Errorw("Invalid offset value", "method", r.Method, "error", err, "time", time.Now())
 			return
 		}
@@ -119,9 +119,9 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 
 	// Validate difficulty level if provided
 	if difficulty != "" {
-		difficulty, err = validation.ValidateQuestionDifficulty(difficulty)
+		_, err = validation.ValidateQuestionDifficulty(difficulty)
 		if err != nil {
-			errs.NewBadRequestError(err.Error()).ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, err.Error()).ToJSON(w)
 			logger.Logger.Errorw("Invalid difficulty level", "method", r.Method, "error", err, "time", time.Now())
 			return
 		}
@@ -130,7 +130,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, topic, company)
 	if err != nil {
-		errs.JSONError(w, "Error fetching questions: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error fetching questions: "+err.Error(), errs.CodeDbError)
 		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
@@ -152,7 +152,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]any{
+	jsonResponse := map[string]interface{}{
 		"code":    http.StatusOK,
 		"message": "Fetched questions successfully",
 		"questions": func() []dto.Question {
@@ -165,7 +165,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		logger.Logger.Errorw("Error encoding response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error encoding response: "+err.Error(), errs.CodeUnexpectedError)
 	}
 	logger.Logger.Infow("Fetched questions successfully", "method", r.Method, "questionsCount", len(paginatedQuestions), "time", time.Now())
 }
@@ -175,7 +175,7 @@ func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Requ
 
 	valid, err := validation.ValidateQuestionID(questionID)
 	if !valid {
-		errs.NewBadRequestError("Invalid question ID").ToJSON(w)
+		errs.NewAppError(errs.CodeInvalidRequest, "Invalid question ID").ToJSON(w)
 		logger.Logger.Errorw("Invalid question ID", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
@@ -183,20 +183,20 @@ func (q *QuestionHandler) RemoveQuestionById(w http.ResponseWriter, r *http.Requ
 	err = q.questionService.RemoveQuestionByID(r.Context(), questionID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
-			errs.NewNotFoundError("Question not found").ToJSON(w)
+			errs.NewAppError(errs.CodeInvalidRequest, "Question not found").ToJSON(w)
 		} else if errors.Is(err, errs.ErrDatabaseConnection) {
-			errs.NewInternalServerError("Failed to connect to database").ToJSON(w)
+			errs.NewAppError(errs.CodeDbError, "Failed to connect to database").ToJSON(w)
 		} else if errors.Is(err, errs.ErrQueryExecution) {
-			errs.NewInternalServerError("Failed to execute query").ToJSON(w)
+			errs.NewAppError(errs.CodeDbError, "Failed to execute query").ToJSON(w)
 		} else {
-			errs.NewInternalServerError("Internal server error").ToJSON(w)
+			errs.NewAppError(errs.CodeUnexpectedError, "Internal server error").ToJSON(w)
 		}
 		logger.Logger.Errorw("Error removing question", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	response := map[string]any{
+	response := map[string]interface{}{
 		"code":    http.StatusOK,
 		"message": "Question deleted successfully",
 	}

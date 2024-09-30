@@ -45,80 +45,56 @@ var (
 	ErrDbOperation                = errors.New("error in database operations")
 )
 
-func JSONError(w http.ResponseWriter, message string, code int) {
+var (
+	CodeInvalidRequest   = 1100
+	CodePermissionDenied = 2200
+	CodeValidationError  = 3300
+	CodeDbError          = 4400
+	CodeUnexpectedError  = 9900
+)
+
+// JSONError creates a JSON error response
+func JSONError(w http.ResponseWriter, message string, errorCode int) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	jsonResponse := map[string]any{"code": code, "message": message}
+	w.WriteHeader(getHttpStatus(errorCode))
+	jsonResponse := map[string]interface{}{"error_code": errorCode, "message": message}
 	json.NewEncoder(w).Encode(jsonResponse)
+}
+
+// getHttpStatus maps custom error codes to HTTP status codes
+func getHttpStatus(errorCode int) int {
+	switch errorCode {
+	case CodeInvalidRequest:
+		return http.StatusBadRequest
+	case CodePermissionDenied:
+		return http.StatusForbidden
+	case CodeValidationError:
+		return http.StatusUnprocessableEntity
+	case CodeDbError:
+		return http.StatusInternalServerError
+	case CodeUnexpectedError:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
 }
 
 // AppError is a custom error type that includes an HTTP status code and a message
 type AppError struct {
-	error   `json:"error,omitempty"`
-	Code    int    `json:"code,omitempty"`
-	Message string `json:"message"`
+	ErrorCode int    `json:"error_code"`
+	Message   string `json:"message"`
 }
 
-func NewDebugError(message string) *AppError {
+func NewAppError(errorCode int, message string) *AppError {
 	return &AppError{
-		Code:    http.StatusExpectationFailed,
-		Message: message,
-	}
-}
-
-// Error constructors
-func NewNotFoundError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusNotFound,
-		Message: message,
-	}
-}
-
-func NewBadRequestError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusBadRequest,
-		Message: message,
-	}
-}
-
-func NewConflictError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusConflict,
-		Message: message,
-	}
-}
-
-func NewInternalServerError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusInternalServerError,
-		Message: message,
-	}
-}
-
-func NewUnauthorizedError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusUnauthorized,
-		Message: message,
-	}
-}
-
-func NewAuthenticationError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusUnauthorized,
-		Message: message,
-	}
-}
-
-func NewInvalidRequestBodyError(message string) *AppError {
-	return &AppError{
-		Code:    http.StatusBadRequest,
-		Message: message,
+		ErrorCode: errorCode,
+		Message:   message,
 	}
 }
 
 // ToJSON sends the AppError as a JSON response with the appropriate HTTP status code
 func (e *AppError) ToJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(e.Code)
+	w.WriteHeader(getHttpStatus(e.ErrorCode))
 	json.NewEncoder(w).Encode(e)
 }

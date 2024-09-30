@@ -50,7 +50,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
 		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
+		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	if userMetaData.Username != username {
 		logger.Logger.Errorw("Unauthorized access: token does not match requested user", "method", r.Method, "user", username, "time", time.Now())
-		errs.JSONError(w, "Unauthorized access: token does not match requested user", http.StatusUnauthorized)
+		errs.JSONError(w, "Unauthorized access: token does not match requested user", errs.CodePermissionDenied)
 		return
 	}
 
@@ -67,9 +67,9 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Logger.Errorw("Failed to fetch user by ID", "method", r.Method, "error", err, "time", time.Now())
 		if errors.Is(err, errs.ErrUserNotFound) {
-			errs.JSONError(w, "User not found", http.StatusNotFound)
+			errs.JSONError(w, "User not found", errs.CodeInvalidRequest)
 		} else {
-			errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+			errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 		}
 		return
 	}
@@ -96,7 +96,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -105,7 +105,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
 		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
+		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 
 	if userMetaData.Username != username {
 		logger.Logger.Errorw("Unauthorized access", "method", r.Method, "user", username, "time", time.Now())
-		errs.JSONError(w, "Unauthorized access", http.StatusUnauthorized)
+		errs.JSONError(w, "Unauthorized access", errs.CodePermissionDenied)
 		return
 	}
 
@@ -122,14 +122,14 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	leetcodeStats, err := u.userService.GetUserLeetcodeStats(userMetaData.UserId.String())
 	if err != nil {
 		logger.Logger.Errorw("Error fetching Leetcode stats", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Error fetching Leetcode stats: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error fetching Leetcode stats: "+err.Error(), errs.CodeDbError)
 		return
 	}
 
 	codesageStats, err := u.userService.GetUserCodesageStats(ctx, userMetaData.UserId.String())
 	if err != nil {
 		logger.Logger.Errorw("Error fetching Codesage stats", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Error fetching Codesage stats: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Error fetching Codesage stats: "+err.Error(), errs.CodeDbError)
 		return
 	}
 
@@ -143,7 +143,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(progressResponse); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -152,7 +152,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
 		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
+		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -160,14 +160,14 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	var updateReq map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
 		logger.Logger.Errorw("Invalid request body", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Invalid request body", http.StatusBadRequest)
+		errs.JSONError(w, "Invalid request body", errs.CodeInvalidRequest)
 		return
 	}
 
 	// Check if the body is empty
 	if len(updateReq) == 0 {
 		logger.Logger.Warnw("Empty request body", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Empty request body", http.StatusBadRequest)
+		errs.JSONError(w, "Empty request body", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -209,7 +209,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	if len(invalidFields) > 0 {
 		message := "Found invalid field(s): " + strings.Join(invalidFields, ", ")
 		logger.Logger.Warnw(message, "method", r.Method, "time", time.Now())
-		errs.JSONError(w, message, http.StatusBadRequest)
+		errs.JSONError(w, message, errs.CodeInvalidRequest)
 		return
 	}
 
@@ -217,28 +217,28 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	if len(restrictedFields) > 0 {
 		message := "Cannot update restricted field(s): " + strings.Join(restrictedFields, ", ")
 		logger.Logger.Warnw(message, "method", r.Method, "user", userMetaData.Username, "time", time.Now())
-		errs.JSONError(w, message, http.StatusForbidden)
+		errs.JSONError(w, message, errs.CodePermissionDenied)
 		return
 	}
 
 	// Perform custom validations
 	if username, ok := updates["username"].(string); ok {
 		if !validation.ValidateUsername(username) {
-			errs.NewBadRequestError("Invalid username").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Invalid username").ToJSON(w)
 			logger.Logger.Errorw("Invalid username", "method", r.Method, "username", username, "time", time.Now())
 			return
 		}
 	}
 	if password, ok := updates["password"].(string); ok {
 		if !validation.ValidatePassword(password) {
-			errs.NewBadRequestError("Invalid password").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Invalid password").ToJSON(w)
 			logger.Logger.Errorw("Invalid password", "method", r.Method, "time", time.Now())
 			return
 		}
 	}
 	if name, ok := updates["name"].(string); ok {
 		if !validation.ValidateName(name) {
-			errs.NewBadRequestError("Invalid name").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Invalid name").ToJSON(w)
 			logger.Logger.Errorw("Invalid name", "method", r.Method, "time", time.Now())
 			return
 		}
@@ -246,11 +246,11 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	if email, ok := updates["email"].(string); ok {
 		isEmailValid, isReputable := validation.ValidateEmail(email)
 		if !isEmailValid {
-			errs.NewBadRequestError("Invalid email format").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Invalid email format").ToJSON(w)
 			logger.Logger.Errorw("Invalid email format", "method", r.Method, "email", email, "time", time.Now())
 			return
 		} else if !isReputable {
-			errs.NewBadRequestError("Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud)").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud)").ToJSON(w)
 			logger.Logger.Errorw("Unsupported email domain", "method", r.Method, "email", email, "time", time.Now())
 			return
 		}
@@ -258,7 +258,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	if organisation, ok := updates["organisation"].(string); ok {
 		isOrgValid, orgErr := validation.ValidateOrganizationName(organisation)
 		if !isOrgValid {
-			errs.NewBadRequestError(orgErr.Error()).ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, orgErr.Error()).ToJSON(w)
 			logger.Logger.Errorw("Invalid organization name", "method", r.Method, "organisation", organisation, "time", time.Now())
 			return
 		}
@@ -266,7 +266,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	if country, ok := updates["country"].(string); ok {
 		isCountryValid, countryErr := validation.ValidateCountryName(country)
 		if !isCountryValid {
-			errs.NewBadRequestError(countryErr.Error()).ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, countryErr.Error()).ToJSON(w)
 			logger.Logger.Errorw("Invalid country name", "method", r.Method, "country", country, "time", time.Now())
 			return
 		}
@@ -275,7 +275,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	// Ensure there is at least one valid field to update
 	if len(updates) == 0 {
 		logger.Logger.Warnw("No valid fields to update", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "No valid fields to update", http.StatusBadRequest)
+		errs.JSONError(w, "No valid fields to update", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -283,7 +283,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	err := u.userService.UpdateUser(r.Context(), userMetaData.UserId.String(), updates)
 	if err != nil {
 		logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to update user: "+err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, "Failed to update user: "+err.Error(), errs.CodeDbError)
 		return
 	}
 
@@ -295,7 +295,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -304,7 +304,7 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
 		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Could not retrieve user metadata", http.StatusUnauthorized)
+		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -314,23 +314,23 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 		logger.Logger.Errorw("Failed to update user progress", "method", r.Method, "error", err, "time", time.Now())
 		switch {
 		case errors.Is(err, errs.ErrInvalidBodyError):
-			errs.JSONError(w, "Invalid user ID", http.StatusBadRequest)
+			errs.JSONError(w, "Invalid user ID", errs.CodeValidationError)
 		case errors.Is(err, errs.ErrExternalAPI):
-			errs.JSONError(w, "Error fetching data from LeetCode API", http.StatusInternalServerError)
+			errs.JSONError(w, "Error fetching data from LeetCode API", errs.CodeUnexpectedError)
 		case errors.Is(err, errs.ErrDbError):
-			errs.JSONError(w, "Database error updating user progress", http.StatusInternalServerError)
+			errs.JSONError(w, "Database error updating user progress", errs.CodeDbError)
 		default:
-			errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+			errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 		}
 		return
 	}
 
-	response := map[string]any{"code": http.StatusOK, "message": "User progress updated successfully"}
+	response := map[string]interface{}{"code": http.StatusOK, "message": "User progress updated successfully"}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -344,7 +344,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
 			logger.Logger.Errorw("Invalid limit parameter", "method", r.Method, "limit", limitStr, "error", err, "time", time.Now())
-			errs.NewBadRequestError("Invalid limit: must be a positive number").ToJSON(w)
+			errs.NewAppError(errs.CodeInvalidRequest, "Invalid limit: must be a positive number").ToJSON(w)
 			return
 		}
 	}
@@ -354,7 +354,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil || offset < 0 {
 			logger.Logger.Errorw("Invalid offset parameter", "method", r.Method, "offset", offsetStr, "error", err, "time", time.Now())
-			errs.NewBadRequestError("Invalid offset: must be a non-negative number").ToJSON(w)
+			errs.NewAppError(errs.CodeInvalidRequest, "Invalid offset: must be a non-negative number").ToJSON(w)
 			return
 		}
 	}
@@ -364,7 +364,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.GetAllUsers(ctx)
 	if err != nil {
 		logger.Logger.Errorw("Failed to fetch all users", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeDbError)
 		return
 	}
 
@@ -375,7 +375,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	totalUsers := len(users)
 
 	if limitStr == "" {
-		jsonResponse := map[string]any{
+		jsonResponse := map[string]interface{}{
 			"code":    http.StatusOK,
 			"message": "Fetched users successfully",
 			"users":   users,
@@ -385,7 +385,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 			logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-			errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+			errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 		}
 		return
 	}
@@ -403,7 +403,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		paginatedUsers = []dto.StandardUser{}
 	}
 
-	jsonResponse := map[string]any{
+	jsonResponse := map[string]interface{}{
 		"code":               http.StatusOK,
 		"message":            "Fetched users successfully",
 		"users":              paginatedUsers,
@@ -414,7 +414,7 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), http.StatusInternalServerError)
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }
 
@@ -425,11 +425,11 @@ func (u *UserHandler) GetPlatformStats(w http.ResponseWriter, r *http.Request) {
 	platformStats, err := u.userService.GetPlatformStats(ctx)
 	if err != nil {
 		logger.Logger.Errorw("Failed to fetch platform stats", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to fetch platform stats", http.StatusInternalServerError)
+		errs.JSONError(w, "Failed to fetch platform stats", errs.CodeDbError)
 		return
 	}
 
-	jsonResponse := map[string]any{
+	jsonResponse := map[string]interface{}{
 		"code":    http.StatusOK,
 		"message": "Fetched platform stats successfully",
 		"stats":   platformStats,
@@ -438,7 +438,7 @@ func (u *UserHandler) GetPlatformStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
+		errs.JSONError(w, "Failed to encode response", errs.CodeUnexpectedError)
 	}
 }
 
@@ -448,7 +448,7 @@ func (u *UserHandler) UpdateUserBanState(w http.ResponseWriter, r *http.Request)
 
 	if username == "" {
 		logger.Logger.Errorw("Missing 'username' query parameter", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Bad Request: 'username' query parameter is required", http.StatusBadRequest)
+		errs.JSONError(w, "Bad Request: 'username' query parameter is required", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -457,16 +457,16 @@ func (u *UserHandler) UpdateUserBanState(w http.ResponseWriter, r *http.Request)
 		logger.Logger.Errorw("Failed to update user ban state", "method", r.Method, "error", err, "time", time.Now())
 		switch {
 		case errors.Is(err, errs.ErrUserNotFound):
-			errs.JSONError(w, "User not found", http.StatusNotFound)
+			errs.JSONError(w, "User not found", errs.CodeInvalidRequest)
 		case errors.Is(err, errs.ErrInvalidParameterError):
-			errs.JSONError(w, "Operation not allowed", http.StatusForbidden)
+			errs.JSONError(w, "Operation not allowed", errs.CodePermissionDenied)
 		default:
-			errs.JSONError(w, "Internal Server Error", http.StatusInternalServerError)
+			errs.JSONError(w, "Internal Server Error", errs.CodeUnexpectedError)
 		}
 		return
 	}
 
-	jsonResponse := map[string]any{
+	jsonResponse := map[string]interface{}{
 		"code":    http.StatusOK,
 		"message": message,
 	}
@@ -474,16 +474,16 @@ func (u *UserHandler) UpdateUserBanState(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
+		errs.JSONError(w, "Failed to encode response", errs.CodeUnexpectedError)
 	}
 }
 
-// DeleteUser handles the HTTP request for deleting a user
+// DeleteUser handles the HTTP request for deleting a user.
 func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
 		logger.Logger.Errorw("Missing username parameter", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Missing username parameter", http.StatusBadRequest)
+		errs.JSONError(w, "Missing username parameter", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -491,9 +491,9 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Logger.Errorw("Failed to delete user", "method", r.Method, "error", err, "time", time.Now())
 		if errors.Is(err, errs.ErrUserNotFound) {
-			errs.JSONError(w, "User not found", http.StatusNotFound)
+			errs.JSONError(w, "User not found", errs.CodeInvalidRequest)
 		} else {
-			errs.JSONError(w, "Failed to delete user", http.StatusInternalServerError)
+			errs.JSONError(w, "Failed to delete user", errs.CodeUnexpectedError)
 		}
 		return
 	}
@@ -506,6 +506,6 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to encode response", http.StatusInternalServerError)
+		errs.JSONError(w, "Failed to encode response", errs.CodeUnexpectedError)
 	}
 }
