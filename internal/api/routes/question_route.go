@@ -7,7 +7,10 @@ import (
 )
 
 func InitialiseQuestionRouter(r *mux.Router, questionHandler *handlers.QuestionHandler) {
-	r.HandleFunc("/questions", questionHandler.GetQuestions).Methods("GET")
+	memberQuestionRouter := r.PathPrefix("/questions").Subrouter()
+	memberQuestionRouter.Use(middleware.JWTAuthMiddleware)
+	memberQuestionRouter.Use(middleware.MemeberRoleMiddleware)
+	memberQuestionRouter.HandleFunc("", questionHandler.GetQuestions).Methods("GET")
 	//get a specific question
 	questionsRouter := r.PathPrefix("/questions").Subrouter()
 	questionsRouter.Use(middleware.JWTAuthMiddleware)

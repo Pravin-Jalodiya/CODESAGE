@@ -159,8 +159,8 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	// Parse the update request
 	var updateReq map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
-		logger.Logger.Errorw("Failed to decode request body", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to decode request body", http.StatusBadRequest)
+		logger.Logger.Errorw("Invalid request body", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
