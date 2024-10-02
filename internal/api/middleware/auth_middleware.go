@@ -3,6 +3,7 @@ package middleware
 import (
 	"cli-project/internal/config"
 	"cli-project/internal/config/roles"
+	errs "cli-project/pkg/errors"
 	"cli-project/pkg/logger"
 	"context"
 	"encoding/json"
@@ -28,7 +29,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			logger.Logger.Errorw("Missing Authorization header", "error", nil, "time", time.Now())
-			unauthorized(w, "Missing Authorization header")
+			unauthorized(w, "Missing Authorization header", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -36,7 +37,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		tokenParts := strings.Split(authHeader, "Bearer ")
 		if len(tokenParts) != 2 || tokenParts[1] == "" {
 			logger.Logger.Errorw("Missing token in Authorization header", "tokenParts", tokenParts, "time", time.Now())
-			unauthorized(w, "Missing token in Authorization header")
+			unauthorized(w, "Missing token in Authorization header", errs.CodeInvalidRequest)
 			return
 		}
 		tokenString := tokenParts[1]
@@ -53,7 +54,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Handle token validation errors
 		if err != nil || !token.Valid {
 			logger.Logger.Errorw("Invalid token", "error", err, "time", time.Now())
-			unauthorized(w, "Invalid or expired token")
+			unauthorized(w, "Invalid or expired token", errs.CodePermissionDenied)
 			return
 		}
 
@@ -61,7 +62,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
 			logger.Logger.Errorw("Invalid Token Claims", "token", tokenString, "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -69,14 +70,14 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		userIdStr, ok := claims["userId"].(string)
 		if !ok {
 			logger.Logger.Errorw("userId not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
 		userId, err := uuid.Parse(userIdStr)
 		if err != nil {
 			logger.Logger.Errorw("Invalid userId format", "userId", userIdStr, "error", err, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -84,14 +85,14 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		roleStr, ok := claims["role"].(string)
 		if !ok {
 			logger.Logger.Errorw("role not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
 		role, err := roles.ParseRole(roleStr)
 		if err != nil {
 			logger.Logger.Errorw("Invalid role value", "role", roleStr, "error", err, "time", time.Now())
-			unauthorized(w, "Invalid Role")
+			unauthorized(w, "Invalid Role", errs.CodeValidationError)
 			return
 		}
 
@@ -99,7 +100,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		username, ok := claims["username"].(string)
 		if !ok {
 			logger.Logger.Errorw("username not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -107,7 +108,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		banState, ok := claims["banState"].(bool)
 		if !ok {
 			logger.Logger.Errorw("banState not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token")
+			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -129,12 +130,12 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 }
 
 // Helper to return unauthorized error response
-func unauthorized(w http.ResponseWriter, message string) {
+func unauthorized(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	jsonResponse := map[string]string{
-		"code":    "401",
-		"message": message,
+	jsonResponse := map[string]interface{}{
+		"error_code": code,
+		"message":    message,
 	}
 	json.NewEncoder(w).Encode(jsonResponse)
 }
