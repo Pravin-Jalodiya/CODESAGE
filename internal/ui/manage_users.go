@@ -70,7 +70,7 @@ func (ui *UI) viewAllUsers() {
 
 	// Print table rows, excluding admin users
 	for _, user := range *users {
-		if user.StandardUser.Role != "user" {
+		if user.Role != "user" {
 			continue
 		}
 
@@ -79,13 +79,13 @@ func (ui *UI) viewAllUsers() {
 
 		// Add the row to the table
 		table.Append([]string{
-			user.StandardUser.Username,
-			user.StandardUser.Name,
-			user.StandardUser.Email,
+			user.Username,
+			user.Name,
+			user.Email,
 			user.LeetcodeID,
-			user.StandardUser.Organisation,
-			user.StandardUser.Country,
-			fmt.Sprintf("%t", user.StandardUser.IsBanned),
+			user.Organisation,
+			user.Country,
+			fmt.Sprintf("%t", user.IsBanned),
 			lastSeenIST,
 		})
 	}

@@ -27,7 +27,7 @@ func TestSignupHandler(t *testing.T) {
 
 	t.Run("Successful Signup", func(t *testing.T) {
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username:     "Dummy",
 				Password:     "Dummy@123",
 				Name:         "Dummy User",
@@ -42,12 +42,12 @@ func TestSignupHandler(t *testing.T) {
 
 		mockAuthService.EXPECT().Signup(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(ctx context.Context, u *models.StandardUser) error {
-				assert.Equal(t, user.StandardUser.Username, u.StandardUser.Username)
-				assert.Equal(t, user.StandardUser.Password, u.StandardUser.Password)
-				assert.Equal(t, user.StandardUser.Name, u.StandardUser.Name)
-				assert.Equal(t, user.StandardUser.Email, u.StandardUser.Email)
-				assert.Equal(t, user.StandardUser.Organisation, u.StandardUser.Organisation)
-				assert.Equal(t, user.StandardUser.Country, u.StandardUser.Country)
+				assert.Equal(t, user.Username, u.Username)
+				assert.Equal(t, user.Password, u.Password)
+				assert.Equal(t, user.Name, u.Name)
+				assert.Equal(t, user.Email, u.Email)
+				assert.Equal(t, user.Organisation, u.Organisation)
+				assert.Equal(t, user.Country, u.Country)
 				assert.Equal(t, user.LeetcodeID, u.LeetcodeID)
 				return nil
 			},
@@ -275,7 +275,7 @@ func TestLoginHandler(t *testing.T) {
 
 	t.Run("Successful Login", func(t *testing.T) {
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				ID:       "user1",
 				Username: "testuser",
 				Role:     "user",

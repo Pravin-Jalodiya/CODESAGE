@@ -19,7 +19,7 @@ func TestUserRepo_CreateUser(t *testing.T) {
 
 	userID := uuid.New()
 	user := &models.StandardUser{
-		StandardUser: models.User{
+		User: models.User{
 			ID:           userID.String(),
 			Username:     "testuser",
 			Password:     "password",
@@ -34,20 +34,22 @@ func TestUserRepo_CreateUser(t *testing.T) {
 		LastSeen:   time.Now().UTC(),
 	}
 
+	}
+
 	// Case 1: Successfully creating a user
 	mock.ExpectExec(`INSERT INTO Users \(\s*id,\s*username,\s*password,\s*name,\s*email,\s*role,\s*last_seen,\s*organisation,\s*country,\s*leetcode_id,\s*is_banned\s*\) VALUES \(\s*\$1,\s*\$2,\s*\$3,\s*\$4,\s*\$5,\s*\$6,\s*\$7,\s*\$8,\s*\$9,\s*\$10,\s*\$11\s*\)`).
 		WithArgs(
-			user.StandardUser.ID,
-			user.StandardUser.Username,
-			user.StandardUser.Password,
-			user.StandardUser.Name,
-			user.StandardUser.Email,
-			user.StandardUser.Role,
+			user.ID,
+			user.Username,
+			user.Password,
+			user.Name,
+			user.Email,
+			user.Role,
 			user.LastSeen,
-			user.StandardUser.Organisation,
-			user.StandardUser.Country,
+			user.Organisation,
+			user.Country,
 			user.LeetcodeID,
-			user.StandardUser.IsBanned,
+			user.IsBanned,
 		).WillReturnResult(sqlmock.NewResult(0, 1)) // LastInsertId should be 0
 
 	err := userRepo.CreateUser(user)
@@ -57,17 +59,17 @@ func TestUserRepo_CreateUser(t *testing.T) {
 	// Case 2: Failure case due to unique constraint violation
 	mock.ExpectExec(`INSERT INTO Users \(\s*id,\s*username,\s*password,\s*name,\s*email,\s*role,\s*last_seen,\s*organisation,\s*country,\s*leetcode_id,\s*is_banned\s*\) VALUES \(\s*\$1,\s*\$2,\s*\$3,\s*\$4,\s*\$5,\s*\$6,\s*\$7,\s*\$8,\s*\$9,\s*\$10,\s*\$11\s*\)`).
 		WithArgs(
-			user.StandardUser.ID,
-			user.StandardUser.Username,
-			user.StandardUser.Password,
-			user.StandardUser.Name,
-			user.StandardUser.Email,
-			user.StandardUser.Role,
+			user.ID,
+			user.Username,
+			user.Password,
+			user.Name,
+			user.Email,
+			user.Role,
 			user.LastSeen,
-			user.StandardUser.Organisation,
-			user.StandardUser.Country,
+			user.Organisation,
+			user.Country,
 			user.LeetcodeID,
-			user.StandardUser.IsBanned,
+			user.IsBanned,
 		).WillReturnError(fmt.Errorf("ERROR: duplicate key value violates unique constraint \"users_new_username_key\" (SQLSTATE 23505)"))
 
 	err = userRepo.CreateUser(user)
@@ -159,7 +161,7 @@ func TestUserRepo_FetchAllUsers(t *testing.T) {
 
 	expectedUsers := []models.StandardUser{
 		{
-			StandardUser: models.User{
+			User: models.User{
 				ID:           uuid.New().String(),
 				Username:     "user1",
 				Password:     "pass1",
@@ -174,7 +176,7 @@ func TestUserRepo_FetchAllUsers(t *testing.T) {
 			LastSeen:   time.Now().UTC(),
 		},
 		{
-			StandardUser: models.User{
+			User: models.User{
 				ID:           uuid.New().String(),
 				Username:     "user2",
 				Password:     "pass2",

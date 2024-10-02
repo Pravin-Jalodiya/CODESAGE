@@ -178,7 +178,7 @@ func (ui *UI) ShowSignupPage() {
 
 	// Create User Object
 	user := models.StandardUser{
-		StandardUser: models.User{
+		User: models.User{
 			Username:     username,
 			Password:     password,
 			Name:         name,

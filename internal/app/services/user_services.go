@@ -43,20 +43,20 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]dto.StandardUser, erro
 	var dtoUsers []dto.StandardUser
 
 	for _, user := range users {
-		role, _ := roles.ParseRole(user.StandardUser.Role)
+		role, _ := roles.ParseRole(user.Role)
 		if role == roles.ADMIN {
 			continue
 		}
 
 		dtoUser := dto.StandardUser{
-			StandardUser: dto.User{
-				Username:     user.StandardUser.Username,
-				Role:         user.StandardUser.Role,
-				Name:         user.StandardUser.Name,
-				Email:        user.StandardUser.Email,
-				Organisation: user.StandardUser.Organisation,
-				Country:      user.StandardUser.Country,
-				IsBanned:     user.StandardUser.IsBanned,
+			User: dto.User{
+				Username:     user.Username,
+				Role:         user.Role,
+				Name:         user.Name,
+				Email:        user.Email,
+				Organisation: user.Organisation,
+				Country:      user.Country,
+				IsBanned:     user.IsBanned,
 			},
 			LeetcodeID: user.LeetcodeID,
 			LastSeen:   user.LastSeen,
@@ -150,7 +150,7 @@ func (s *UserService) GetUserRole(ctx context.Context, userID string) (roles.Rol
 		return -1, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 
-	role, err := roles.ParseRole(user.StandardUser.Role)
+	role, err := roles.ParseRole(user.Role)
 	if err != nil {
 		return -1, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
@@ -171,7 +171,7 @@ func (s *UserService) GetUserID(ctx context.Context, username string) (string, e
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
-	return user.StandardUser.ID, nil
+	return user.ID, nil
 }
 
 func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (string, error) {
@@ -182,7 +182,7 @@ func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (
 	}
 
 	// Check the role to ensure we're not operating on an admin
-	role, err := roles.ParseRole(user.StandardUser.Role)
+	role, err := roles.ParseRole(user.Role)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
@@ -233,7 +233,7 @@ func (s *UserService) DeleteUser(ctx context.Context, username string) error {
 			return fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
 		}
 	}
-	err = s.userRepo.DeleteUser(ctx, user.StandardUser.ID)
+	err = s.userRepo.DeleteUser(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, errs.ErrUserNotFound) {
 			return fmt.Errorf("delete user failed: %w", errs.ErrUserNotFound)
@@ -279,7 +279,7 @@ func (s *UserService) IsUserBanned(ctx context.Context, userID string) (bool, er
 		return false, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
 	}
 
-	return user.StandardUser.IsBanned, nil
+	return user.IsBanned, nil
 }
 
 func (s *UserService) GetUserLeetcodeStats(userID string) (*models.LeetcodeStats, error) {

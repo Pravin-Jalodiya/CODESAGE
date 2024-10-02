@@ -36,7 +36,7 @@ func TestGetUserByID(t *testing.T) {
 		}
 
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username:     "testuser",
 				Name:         "Test User",
 				Email:        "testuser@gmail.com",

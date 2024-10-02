@@ -75,12 +75,12 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userResponse := UserResponse{
-		Username:     user.StandardUser.Username,
-		Name:         user.StandardUser.Name,
-		Email:        user.StandardUser.Email,
+		Username:     user.Username,
+		Name:         user.Name,
+		Email:        user.Email,
 		LeetcodeID:   user.LeetcodeID,
-		Organisation: user.StandardUser.Organisation,
-		Country:      user.StandardUser.Country,
+		Organisation: user.Organisation,
+		Country:      user.Country,
 	}
 
 	response := struct {

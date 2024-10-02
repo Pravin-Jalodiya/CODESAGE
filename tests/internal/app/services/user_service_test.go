@@ -27,7 +27,7 @@ func TestUserService_Signup(t *testing.T) {
 		mockUserRepo.EXPECT().CreateUser(gomock.Any()).Return(nil)
 
 		user := models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username:     "TestUser",
 				Email:        "testuser@example.com",
 				Password:     "securepassword",
@@ -41,14 +41,14 @@ func TestUserService_Signup(t *testing.T) {
 
 		err := userService.Signup(&user)
 		assert.NoError(t, err)
-		assert.Equal(t, strings.ToLower("TestUser"), user.StandardUser.Username)
-		assert.Equal(t, strings.ToLower("testuser@example.com"), user.StandardUser.Email)
-		assert.Equal(t, utils.CapitalizeWords("test org"), user.StandardUser.Organisation)
-		assert.Equal(t, utils.CapitalizeWords("test country"), user.StandardUser.Country)
-		assert.NotEmpty(t, user.StandardUser.ID)
-		assert.NotEqual(t, "securepassword", user.StandardUser.Password)
-		assert.Equal(t, "user", user.StandardUser.Role)
-		assert.False(t, user.StandardUser.IsBanned)
+		assert.Equal(t, strings.ToLower("TestUser"), user.Username)
+		assert.Equal(t, strings.ToLower("testuser@example.com"), user.Email)
+		assert.Equal(t, utils.CapitalizeWords("test org"), user.Organisation)
+		assert.Equal(t, utils.CapitalizeWords("test country"), user.Country)
+		assert.NotEmpty(t, user.ID)
+		assert.NotEqual(t, "securepassword", user.Password)
+		assert.Equal(t, "user", user.Role)
+		assert.False(t, user.IsBanned)
 		assert.Empty(t, user.QuestionsSolved)
 		assert.WithinDuration(t, time.Now().UTC(), user.LastSeen, time.Second)
 	})
@@ -61,7 +61,7 @@ func TestUserService_Signup(t *testing.T) {
 		defer func() { services.HashString = originalHashString }()
 
 		user := models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username:     "TestUser",
 				Email:        "testuser@example.com",
 				Password:     "securepassword",
@@ -81,7 +81,7 @@ func TestUserService_Signup(t *testing.T) {
 		mockUserRepo.EXPECT().CreateUser(gomock.Any()).Return(errors.New("create error"))
 
 		user := models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username:     "TestUser",
 				Email:        "testuser@example.com",
 				Password:     "securepassword",
@@ -109,7 +109,7 @@ func TestUserService_Login(t *testing.T) {
 		lowercaseUsername := strings.ToLower(username)
 
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username: lowercaseUsername,
 				Password: password,
 			},
@@ -154,7 +154,7 @@ func TestUserService_Login(t *testing.T) {
 		lowercaseUsername := strings.ToLower(username)
 
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				Username: lowercaseUsername,
 				Password: "securepassword",
 			},
@@ -180,7 +180,7 @@ func TestUserService_GetAllUsers(t *testing.T) {
 	t.Run("Successful FetchAllUsers", func(t *testing.T) {
 		users := []models.StandardUser{
 			{
-				StandardUser: models.User{
+				User: models.User{
 					Username: "testuser",
 					Email:    "testuser@example.com",
 				},
@@ -233,7 +233,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -256,7 +256,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -280,7 +280,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -309,7 +309,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -336,7 +336,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -364,7 +364,7 @@ func TestUserService_UpdateUserProgress_InvalidUUID(t *testing.T) {
 //	globals.ActiveUserID = validUUID
 //
 //	mockUser := &models.StandardUser{
-//		StandardUser: models.User{
+//		User: models.User{
 //			ID: validUUID,
 //		},
 //		LeetcodeID: "leetcode_user",
@@ -405,7 +405,7 @@ func TestUserService_Logout(t *testing.T) {
 		globals.ActiveUserID = "active-user-id"
 
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				ID: globals.ActiveUserID,
 			},
 			LastSeen: time.Now().UTC(),
@@ -433,7 +433,7 @@ func TestUserService_Logout(t *testing.T) {
 		globals.ActiveUserID = "active-user-id"
 
 		user := &models.StandardUser{
-			StandardUser: models.User{
+			User: models.User{
 				ID: globals.ActiveUserID,
 			},
 			LastSeen: time.Now().UTC(),

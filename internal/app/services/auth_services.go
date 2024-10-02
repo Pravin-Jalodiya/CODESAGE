@@ -28,28 +28,28 @@ func NewAuthService(userRepo interfaces.UserRepository, LeetcodeAPI interfaces2.
 
 // Signup creates a new user account
 func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) error {
-	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
-	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
-	user.StandardUser.Organisation = utils.CapitalizeWords(user.StandardUser.Organisation)
-	user.StandardUser.Country = utils.CapitalizeWords(user.StandardUser.Country)
-	user.StandardUser.ID = utils.GenerateUUID()
+	user.Username = strings.ToLower(user.Username)
+	user.Email = strings.ToLower(user.Email)
+	user.Organisation = utils.CapitalizeWords(user.Organisation)
+	user.Country = utils.CapitalizeWords(user.Country)
+	user.ID = utils.GenerateUUID()
 
 	// Check if the username is unique
-	usernameUnique, err := s.userRepo.IsUsernameUnique(ctx, user.StandardUser.Username)
+	usernameUnique, err := s.userRepo.IsUsernameUnique(ctx, user.Username)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	if !usernameUnique {
-		return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, user.StandardUser.Username)
+		return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, user.Username)
 	}
 
 	// Check if the email is unique
-	emailUnique, err := s.userRepo.IsEmailUnique(ctx, user.StandardUser.Email)
+	emailUnique, err := s.userRepo.IsEmailUnique(ctx, user.Email)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	if !emailUnique {
-		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.StandardUser.Email)
+		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.Email)
 	}
 
 	// Check if Leetcode ID exists on Leetcode or not
@@ -70,13 +70,13 @@ func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) err
 		return fmt.Errorf("%w: %v", errs.ErrLeetcodeIDAlreadyExists, user.LeetcodeID)
 	}
 
-	hashedPassword, err := HashString(user.StandardUser.Password)
+	hashedPassword, err := HashString(user.Password)
 	if err != nil {
 		return fmt.Errorf("%w: could not hash password", errs.ErrInternalServerError)
 	}
-	user.StandardUser.Password = hashedPassword
-	user.StandardUser.Role = "user"
-	user.StandardUser.IsBanned = false
+	user.Password = hashedPassword
+	user.Role = "user"
+	user.IsBanned = false
 	user.QuestionsSolved = []string{}
 	user.LastSeen = time.Now().UTC()
 
@@ -99,7 +99,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*mo
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
-	if !VerifyString(password, user.StandardUser.Password) {
+	if !VerifyString(password, user.Password) {
 		return nil, errs.ErrInvalidPassword
 	}
 	return user, nil

@@ -35,7 +35,7 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		Password     string `json:"password"`
 		Name         string `json:"name"`
 		Email        string `json:"email"`
-		Organization string `json:"organisation"`
+		Organisation string `json:"organisation"`
 		Country      string `json:"country"`
 		LeetcodeID   string `json:"leetcode_id"`
 	}
@@ -48,12 +48,12 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := models.StandardUser{
-		StandardUser: models.User{
+		User: models.User{
 			Username:     requestBody.Username,
 			Password:     requestBody.Password,
 			Name:         requestBody.Name,
 			Email:        requestBody.Email,
-			Organisation: requestBody.Organization,
+			Organisation: requestBody.Organisation,
 			Country:      requestBody.Country,
 		},
 		LeetcodeID:      requestBody.LeetcodeID,
@@ -62,44 +62,44 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Perform custom validations
-	if !validation.ValidateUsername(user.StandardUser.Username) {
+	if !validation.ValidateUsername(user.Username) {
 		errs.NewAppError(errs.CodeValidationError, "Invalid username").ToJSON(w)
-		logger.Logger.Errorw("Invalid username", "method", r.Method, "username", user.StandardUser.Username, "time", time.Now())
+		logger.Logger.Errorw("Invalid username", "method", r.Method, "username", user.Username, "time", time.Now())
 		return
 	}
-	if !validation.ValidatePassword(user.StandardUser.Password) {
+	if !validation.ValidatePassword(user.Password) {
 		errs.NewAppError(errs.CodeValidationError, "Invalid password").ToJSON(w)
 		logger.Logger.Errorw("Invalid password", "method", r.Method, "time", time.Now())
 		return
 	}
-	if !validation.ValidateName(user.StandardUser.Name) {
+	if !validation.ValidateName(user.Name) {
 		errs.NewAppError(errs.CodeValidationError, "Invalid name").ToJSON(w)
 		logger.Logger.Errorw("Invalid name", "method", r.Method, "time", time.Now())
 		return
 	}
 
-	isEmailValid, isReputable := validation.ValidateEmail(user.StandardUser.Email)
+	isEmailValid, isReputable := validation.ValidateEmail(user.Email)
 	if !isEmailValid {
 		errs.NewAppError(errs.CodeValidationError, "Invalid email format").ToJSON(w)
-		logger.Logger.Errorw("Invalid email format", "method", r.Method, "email", user.StandardUser.Email, "time", time.Now())
+		logger.Logger.Errorw("Invalid email format", "method", r.Method, "email", user.Email, "time", time.Now())
 		return
 	} else if !isReputable {
 		errs.NewAppError(errs.CodeValidationError, "Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud)").ToJSON(w)
-		logger.Logger.Errorw("Unsupported email domain", "method", r.Method, "email", user.StandardUser.Email, "time", time.Now())
+		logger.Logger.Errorw("Unsupported email domain", "method", r.Method, "email", user.Email, "time", time.Now())
 		return
 	}
 
-	isOrgValid, orgErr := validation.ValidateOrganizationName(user.StandardUser.Organisation)
+	isOrgValid, orgErr := validation.ValidateOrganizationName(user.Organisation)
 	if !isOrgValid {
 		errs.NewAppError(errs.CodeValidationError, orgErr.Error()).ToJSON(w)
-		logger.Logger.Errorw("Invalid organization name", "method", r.Method, "organisation", user.StandardUser.Organisation, "time", time.Now())
+		logger.Logger.Errorw("Invalid organization name", "method", r.Method, "organisation", user.Organisation, "time", time.Now())
 		return
 	}
 
-	isCountryValid, countryErr := validation.ValidateCountryName(user.StandardUser.Country)
+	isCountryValid, countryErr := validation.ValidateCountryName(user.Country)
 	if !isCountryValid {
 		errs.NewAppError(errs.CodeValidationError, countryErr.Error()).ToJSON(w)
-		logger.Logger.Errorw("Invalid country name", "method", r.Method, "country", user.StandardUser.Country, "time", time.Now())
+		logger.Logger.Errorw("Invalid country name", "method", r.Method, "country", user.Country, "time", time.Now())
 		return
 	}
 
@@ -125,11 +125,12 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		"message": "User successfully registered",
 		"code":    http.StatusOK,
 		"user_info": map[string]any{
-			"username": user.StandardUser.Username,
+			"username": user.Username,
+			"role":     user.Role,
 		},
 	}
 	json.NewEncoder(w).Encode(jsonResponse)
-	logger.Logger.Infow("Signup Successful", "method", r.Method, "username", user.StandardUser.Username, "time", time.Now())
+	logger.Logger.Infow("Signup Successful", "method", r.Method, "username", user.Username, "time", time.Now())
 }
 
 func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -170,17 +171,17 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.CreateJwtToken(user.StandardUser.Username, user.StandardUser.ID, user.StandardUser.Role, user.StandardUser.IsBanned)
+	token, err := utils.CreateJwtToken(user.Username, user.ID, user.Role, user.IsBanned)
 	if err != nil {
 		errs.NewAppError(errs.CodeUnexpectedError, "Failed to generate token").ToJSON(w)
 		logger.Logger.Errorw("Failed to generate token", "method", r.Method, "username", requestBody.Username, "error", err, "time", time.Now())
 		return
 	}
 
-	globals.ActiveUserID = user.StandardUser.ID
+	globals.ActiveUserID = user.ID
 
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Login successful", "token": token, "role": user.StandardUser.Role}
+	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Login successful", "token": token, "role": user.Role}
 	json.NewEncoder(w).Encode(jsonResponse)
 	logger.Logger.Infow("Login Successful", "method", r.Method, "username", requestBody.Username, "time", time.Now())
 }

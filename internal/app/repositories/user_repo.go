@@ -39,17 +39,17 @@ func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) er
 	})
 
 	_, err = db.ExecContext(ctx, query,
-		user.StandardUser.ID,
-		strings.ToLower(user.StandardUser.Username),
-		user.StandardUser.Password,
-		user.StandardUser.Name,
-		strings.ToLower(user.StandardUser.Email),
-		user.StandardUser.Role,
+		user.ID,
+		strings.ToLower(user.Username),
+		user.Password,
+		user.Name,
+		strings.ToLower(user.Email),
+		user.Role,
 		user.LastSeen,
-		user.StandardUser.Organisation,
-		user.StandardUser.Country,
+		user.Organisation,
+		user.Country,
 		user.LeetcodeID,
-		user.StandardUser.IsBanned,
+		user.IsBanned,
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrUserCreationFailed, err)
@@ -207,17 +207,17 @@ func (r *userRepo) FetchAllUsers(ctx context.Context) ([]models.StandardUser, er
 	for rows.Next() {
 		var user models.StandardUser
 		err := rows.Scan(
-			&user.StandardUser.ID,
-			&user.StandardUser.Username,
-			&user.StandardUser.Password,
-			&user.StandardUser.Name,
-			&user.StandardUser.Email,
-			&user.StandardUser.Role,
+			&user.ID,
+			&user.Username,
+			&user.Password,
+			&user.Name,
+			&user.Email,
+			&user.Role,
 			&user.LastSeen,
-			&user.StandardUser.Organisation,
-			&user.StandardUser.Country,
+			&user.Organisation,
+			&user.Country,
 			&user.LeetcodeID,
-			&user.StandardUser.IsBanned,
+			&user.IsBanned,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
@@ -248,17 +248,17 @@ func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.St
 
 	var user models.StandardUser
 	err = row.Scan(
-		&user.StandardUser.ID,
-		&user.StandardUser.Username,
-		&user.StandardUser.Password,
-		&user.StandardUser.Name,
-		&user.StandardUser.Email,
-		&user.StandardUser.Role,
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Name,
+		&user.Email,
+		&user.Role,
 		&user.LastSeen,
-		&user.StandardUser.Organisation,
-		&user.StandardUser.Country,
+		&user.Organisation,
+		&user.Country,
 		&user.LeetcodeID,
-		&user.StandardUser.IsBanned,
+		&user.IsBanned,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -286,17 +286,17 @@ func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*m
 
 	var user models.StandardUser
 	err = row.Scan(
-		&user.StandardUser.ID,
-		&user.StandardUser.Username,
-		&user.StandardUser.Password,
-		&user.StandardUser.Name,
-		&user.StandardUser.Email,
-		&user.StandardUser.Role,
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Name,
+		&user.Email,
+		&user.Role,
 		&user.LastSeen,
-		&user.StandardUser.Organisation,
-		&user.StandardUser.Country,
+		&user.Organisation,
+		&user.Country,
 		&user.LeetcodeID,
-		&user.StandardUser.IsBanned,
+		&user.IsBanned,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -341,7 +341,7 @@ func (r *userRepo) UpdateUserDetails(ctx context.Context, user *models.StandardU
 		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
 
-	if user.StandardUser.ID == "" {
+	if user.ID == "" {
 		return fmt.Errorf("%w: user ID is required", errs.ErrUserNotFound)
 	}
 
@@ -354,15 +354,15 @@ func (r *userRepo) UpdateUserDetails(ctx context.Context, user *models.StandardU
 	_, err = db.ExecContext(
 		ctx,
 		query,
-		user.StandardUser.Username,
-		user.StandardUser.Email,
-		user.StandardUser.Password,
-		user.StandardUser.Name,
-		user.StandardUser.Organisation,
-		user.StandardUser.Country,
+		user.Username,
+		user.Email,
+		user.Password,
+		user.Name,
+		user.Organisation,
+		user.Country,
 		user.LeetcodeID,
 		user.LastSeen,
-		user.StandardUser.ID,
+		user.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrUpdatingUserDetailsFailed, err)
