@@ -110,7 +110,7 @@ func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates
 
 	_, err = db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
 	return nil
@@ -501,7 +501,7 @@ func (r *userRepo) IsUsernameUnique(ctx context.Context, username string) (bool,
 	var count int
 	err = row.Scan(&count)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
 	}
 
 	return count == 0, nil

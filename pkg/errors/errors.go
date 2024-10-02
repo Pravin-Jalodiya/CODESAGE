@@ -28,8 +28,6 @@ var (
 	ErrLeetcodeUsernameInvalid    = errors.New("Leetcode username is invalid")
 	ErrFetchingQuestion           = errors.New("error fetching question")
 	ErrDeletingUserFailed         = errors.New("failed to delete question")
-	ErrTransactionStart           = errors.New("could not start transaction")
-	ErrTransactionCommit          = errors.New("could not commit transaction")
 	ErrQueryExecution             = errors.New("could not execute query")
 	ErrCheckRowsAffected          = errors.New("could not get rows affected")
 	ErrNoRows                     = errors.New("no rows found")
@@ -39,9 +37,6 @@ var (
 	ErrInvalidQuestionID          = errors.New("invalid question ID")
 	ErrInvalidQuestionDifficulty  = errors.New("invalid difficulty")
 	ErrInvalidQuestionLink        = errors.New("invalid question link")
-	ErrQuestionExists             = errors.New("question already exists in the database")
-	ErrReadingCSVFile             = errors.New("error reading CSV file")
-	ErrCSVFileOpening             = errors.New("error opening CSV file")
 	ErrDbOperation                = errors.New("error in database operations")
 )
 

@@ -229,6 +229,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+
 	if password, ok := updates["password"].(string); ok {
 		if !validation.ValidatePassword(password) {
 			errs.NewAppError(errs.CodeValidationError, "Invalid password").ToJSON(w)
@@ -236,6 +237,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+
 	if name, ok := updates["name"].(string); ok {
 		if !validation.ValidateName(name) {
 			errs.NewAppError(errs.CodeValidationError, "Invalid name").ToJSON(w)
@@ -243,6 +245,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+
 	if email, ok := updates["email"].(string); ok {
 		isEmailValid, isReputable := validation.ValidateEmail(email)
 		if !isEmailValid {
@@ -250,11 +253,12 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 			logger.Logger.Errorw("Invalid email format", "method", r.Method, "email", email, "time", time.Now())
 			return
 		} else if !isReputable {
-			errs.NewAppError(errs.CodeValidationError, "Unsupported email domain (use gmail, hotmail, outlook, watchguard or icloud)").ToJSON(w)
+			errs.NewAppError(errs.CodeValidationError, "Unsupported email domain (use gmail, hotmail, outlook or icloud)").ToJSON(w)
 			logger.Logger.Errorw("Unsupported email domain", "method", r.Method, "email", email, "time", time.Now())
 			return
 		}
 	}
+
 	if organisation, ok := updates["organisation"].(string); ok {
 		isOrgValid, orgErr := validation.ValidateOrganizationName(organisation)
 		if !isOrgValid {
@@ -263,6 +267,7 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+
 	if country, ok := updates["country"].(string); ok {
 		isCountryValid, countryErr := validation.ValidateCountryName(country)
 		if !isCountryValid {
@@ -282,8 +287,13 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	// Perform the update
 	err := u.userService.UpdateUser(r.Context(), userMetaData.UserId.String(), updates)
 	if err != nil {
-		logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, "Failed to update user: "+err.Error(), errs.CodeDbError)
+		if errors.Is(err, errs.ErrDbError) {
+			logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
+			errs.JSONError(w, "Failed to update user: Database error", errs.CodeDbError)
+		} else {
+			logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
+			errs.JSONError(w, "Failed to update user: "+err.Error(), errs.CodeInvalidRequest)
+		}
 		return
 	}
 
@@ -404,11 +414,10 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse := map[string]interface{}{
-		"code":               http.StatusOK,
-		"message":            "Fetched users successfully",
-		"users":              paginatedUsers,
-		"total":              totalUsers,
-		"current_page_users": len(paginatedUsers),
+		"code":    http.StatusOK,
+		"message": "Fetched users successfully",
+		"users":   paginatedUsers,
+		"total":   totalUsers,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

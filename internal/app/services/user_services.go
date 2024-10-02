@@ -246,22 +246,22 @@ func (s *UserService) DeleteUser(ctx context.Context, username string) error {
 // UpdateUser updates the user's profile.
 func (s *UserService) UpdateUser(ctx context.Context, userID string, updates map[string]interface{}) error {
 	if username, ok := updates["username"].(string); ok {
-		exists, err := s.userRepo.IsUsernameUnique(ctx, username)
+		unique, err := s.userRepo.IsUsernameUnique(ctx, username)
 		if err != nil {
 			return err
 		}
-		if exists {
-			return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, err)
+		if !unique {
+			return fmt.Errorf("%w", errs.ErrUserNameAlreadyExists)
 		}
 	}
 
 	if email, ok := updates["email"].(string); ok {
-		exists, err := s.userRepo.IsEmailUnique(ctx, email)
+		unique, err := s.userRepo.IsEmailUnique(ctx, email)
 		if err != nil {
 			return err
 		}
-		if exists {
-			return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, err)
+		if !unique {
+			return fmt.Errorf("%w", errs.ErrEmailAlreadyExists)
 		}
 	}
 

@@ -13,7 +13,6 @@ func InitialiseUserRouter(r *mux.Router, userHandler *handlers.UserHandler) {
 	adminRouter.Use(middleware.JWTAuthMiddleware)
 	userRouter.Use(middleware.UserRoleMiddleware)
 	adminRouter.Use(middleware.AdminRoleMiddleware)
-	//update user profile
 	userRouter.HandleFunc("/profile/{username}", userHandler.GetUserByID).Methods("GET")
 	userRouter.HandleFunc("/progress/{username}", userHandler.GetUserProgress).Methods("GET")
 	userRouter.HandleFunc("/progress/{username}", userHandler.UpdateUserProgress).Methods("PATCH")
