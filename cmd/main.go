@@ -1,12 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"cli-project/external/api"
+	"cli-project/internal/api/handlers"
+	"cli-project/internal/api/routes"
 	"cli-project/internal/app/repositories"
 	"cli-project/internal/app/services"
-	"cli-project/internal/ui"
+	"cli-project/internal/config"
+	"cli-project/internal/db"
+	"fmt"
+	"github.com/gorilla/mux"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,7 +19,7 @@ import (
 
 func main() {
 
-	defer repositories.CloseMongoClient()
+	defer db.ClosePostgresClient()
 
 	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -24,8 +29,8 @@ func main() {
 		sig := <-sigChan
 		log.Printf("Received signal: %s. Shutting down gracefully...", sig)
 
-		// Call the function to close MongoDB client
-		repositories.CloseMongoClient()
+		// Call the function to close Postgres client
+		db.ClosePostgresClient()
 
 		os.Exit(0)
 	}()
@@ -63,12 +68,23 @@ func main() {
 		log.Fatal("Failed to initialize AuthService")
 	}
 
-	// Initialize UI
-	newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
-	if newUI == nil {
-		log.Fatal("Failed to initialize UI")
-	}
+	r := mux.NewRouter()
+	authHandler := handlers.NewAuthHandler(authService)
+	userHandler := handlers.NewUserHandler(userService)
+	questionHandler := handlers.NewQuestionHandler(questionService)
+	routes.InitialiseAuthRouter(r, authHandler)
+	routes.InitialiseUserRouter(r, userHandler)
+	routes.InitialiseQuestionRouter(r, questionHandler)
+	http.Handle("/", r)
+	fmt.Println("server is running on port:", config.PORT)
+	log.Fatal(http.ListenAndServe(config.PORT, nil))
 
-	// Show Main Menu
-	newUI.ShowMainMenu()
+	//// Initialize UI
+	//newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
+	//if newUI == nil {
+	//	log.Fatal("Failed to initialize UI")
+	//}
+	//
+	//// Show Main Menu
+	//newUI.ShowMainMenu()
 }

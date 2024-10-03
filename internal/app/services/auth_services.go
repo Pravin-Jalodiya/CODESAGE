@@ -3,6 +3,15 @@ package services
 import (
 	interfaces2 "cli-project/external/domain/interfaces"
 	"cli-project/internal/domain/interfaces"
+	"cli-project/internal/domain/models"
+	"cli-project/pkg/errors"
+	"cli-project/pkg/globals"
+	"cli-project/pkg/utils"
+	"context"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
 )
 
 type AuthService struct {
@@ -17,19 +26,131 @@ func NewAuthService(userRepo interfaces.UserRepository, LeetcodeAPI interfaces2.
 	}
 }
 
-func (s *AuthService) IsEmailUnique(email string) (bool, error) {
-	return s.userRepo.IsEmailUnique(email)
+// Signup creates a new user account
+func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) error {
+	user.Username = strings.ToLower(user.Username)
+	user.Email = strings.ToLower(user.Email)
+	user.Organisation = utils.CapitalizeWords(user.Organisation)
+	user.Country = utils.CapitalizeWords(user.Country)
+	user.ID = utils.GenerateUUID()
+
+	// Check if the username is unique
+	usernameUnique, err := s.userRepo.IsUsernameUnique(ctx, user.Username)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	if !usernameUnique {
+		return fmt.Errorf("%w: %v", errs.ErrUserNameAlreadyExists, user.Username)
+	}
+
+	// Check if the email is unique
+	emailUnique, err := s.userRepo.IsEmailUnique(ctx, user.Email)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	if !emailUnique {
+		return fmt.Errorf("%w: %v", errs.ErrEmailAlreadyExists, user.Email)
+	}
+
+	// Check if Leetcode ID exists on Leetcode or not
+	isLeetcodeUsernameValid, leetcodeErr := s.LeetcodeAPI.ValidateLeetcodeUsername(user.LeetcodeID)
+	if leetcodeErr != nil {
+		return fmt.Errorf("%w: %v", errs.ErrLeetcodeValidationFailed, leetcodeErr)
+	}
+	if !isLeetcodeUsernameValid {
+		return fmt.Errorf("%w: %v", errs.ErrLeetcodeUsernameInvalid, user.LeetcodeID)
+	}
+
+	// Check if the Leetcode ID is unique
+	leetcodeIDUnique, err := s.userRepo.IsLeetcodeIDUnique(ctx, user.LeetcodeID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	if !leetcodeIDUnique {
+		return fmt.Errorf("%w: %v", errs.ErrLeetcodeIDAlreadyExists, user.LeetcodeID)
+	}
+
+	hashedPassword, err := HashString(user.Password)
+	if err != nil {
+		return fmt.Errorf("%w: could not hash password", errs.ErrInternalServerError)
+	}
+	user.Password = hashedPassword
+	user.Role = "user"
+	user.IsBanned = false
+	user.QuestionsSolved = []string{}
+	user.LastSeen = time.Now().UTC()
+
+	err = s.userRepo.CreateUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("%w: could not register user", errs.ErrDbError)
+	}
+	return nil
 }
 
-func (s *AuthService) IsUsernameUnique(username string) (bool, error) {
-	return s.userRepo.IsUsernameUnique(username)
+// Login authenticates a user
+func (s *AuthService) Login(ctx context.Context, username, password string) (*models.StandardUser, error) {
+	username = utils.CleanString(username)
+
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrUserNotFound) {
+			return nil, errs.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	if !VerifyString(password, user.Password) {
+		return nil, errs.ErrInvalidPassword
+	}
+	return user, nil
 }
 
-func (s *AuthService) IsLeetcodeIDUnique(LeetcodeID string) (bool, error) {
-	return s.userRepo.IsLeetcodeIDUnique(LeetcodeID)
+func (s *AuthService) Logout(ctx context.Context) error {
+	user, err := s.userRepo.FetchUserByID(ctx, globals.ActiveUserID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+
+	user.LastSeen = time.Now().UTC()
+
+	err = s.userRepo.UpdateUserDetails(ctx, user)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	globals.ActiveUserID = ""
+	return nil
+}
+
+func (s *AuthService) IsEmailUnique(ctx context.Context, email string) (bool, error) {
+	unique, err := s.userRepo.IsEmailUnique(ctx, email)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return unique, nil
+}
+
+func (s *AuthService) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
+	unique, err := s.userRepo.IsUsernameUnique(ctx, username)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return unique, nil
+}
+
+func (s *AuthService) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error) {
+	unique, err := s.userRepo.IsLeetcodeIDUnique(ctx, LeetcodeID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return unique, nil
 }
 
 // ValidateLeetcodeUsername checks if the provided Leetcode username exists
 func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
-	return s.LeetcodeAPI.ValidateUsername(username)
+	valid, err := s.LeetcodeAPI.ValidateLeetcodeUsername(username)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrExternalAPI, err)
+	}
+	return valid, nil
 }

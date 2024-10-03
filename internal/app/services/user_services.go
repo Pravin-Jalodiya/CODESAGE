@@ -2,285 +2,398 @@ package services
 
 import (
 	interfaces2 "cli-project/external/domain/interfaces"
+	"cli-project/internal/config/roles"
+	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
-	"cli-project/pkg/globals"
+	"cli-project/pkg/errors"
 	"cli-project/pkg/utils"
-	"cli-project/pkg/utils/data_cleaning"
-	pwd "cli-project/pkg/utils/password"
+	"context"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"strings"
-	"time"
+	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidCredentials = errors.New("username or password incorrect")
-	ErrUserNotFound       = errors.New("user not found")
+	HashString   = utils.HashString
+	VerifyString = utils.VerifyString
 )
 
 type UserService struct {
 	userRepo        interfaces.UserRepository
 	questionService interfaces.QuestionService
 	LeetcodeAPI     interfaces2.LeetcodeAPI
-	//userWG   *sync.WaitGroup
 }
 
-func NewUserService(userRepo interfaces.UserRepository, questionService interfaces.QuestionService, LeetcodeAPI interfaces2.LeetcodeAPI) interfaces.UserService {
+func NewUserService(
+	userRepo interfaces.UserRepository,
+	questionService interfaces.QuestionService,
+	LeetcodeAPI interfaces2.LeetcodeAPI,
+) interfaces.UserService {
 	return &UserService{
 		userRepo:        userRepo,
 		questionService: questionService,
 		LeetcodeAPI:     LeetcodeAPI,
-		//userWG:   &sync.WaitGroup{},
 	}
 }
 
-// Signup creates a new user account
-func (s *UserService) Signup(user *models.StandardUser) error {
+func (s *UserService) GetAllUsers(ctx context.Context) ([]dto.StandardUser, error) {
+	users, err := s.userRepo.FetchAllUsers(ctx)
 
-	// Change username to lowercase for consistency
-	user.StandardUser.Username = strings.ToLower(user.StandardUser.Username)
+	var dtoUsers []dto.StandardUser
 
-	// Change email to lower for consistency
-	user.StandardUser.Email = strings.ToLower(user.StandardUser.Email)
-
-	// Change org and country name to proper format
-	user.StandardUser.Organisation = data_cleaning.CapitalizeWords(user.StandardUser.Organisation)
-	user.StandardUser.Country = data_cleaning.CapitalizeWords(user.StandardUser.Country)
-
-	// Generate a new UUID for the user
-	userID := utils.GenerateUUID()
-	user.StandardUser.ID = userID
-
-	// Hash the user password
-	hashedPassword, err := pwd.HashPassword(user.StandardUser.Password)
-	if err != nil {
-		return fmt.Errorf("could not hash password")
-	}
-	user.StandardUser.Password = hashedPassword
-
-	// Set default role
-	user.StandardUser.Role = "user"
-
-	// Set default blocked status
-	user.StandardUser.IsBanned = false
-
-	// set question solved
-	user.QuestionsSolved = []string{}
-
-	// set last seen
-	user.LastSeen = time.Now().UTC()
-
-	// Register the user
-	err = s.userRepo.CreateUser(user)
-	if err != nil {
-		return fmt.Errorf("could not register user")
-	}
-
-	return nil
-}
-
-// Login authenticates a user
-func (s *UserService) Login(username, password string) error {
-
-	// Change username to lowercase for consistency
-	username = data_cleaning.CleanString(username)
-
-	// Retrieve the user by username
-	user, err := s.userRepo.FetchUserByUsername(username)
-
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return ErrUserNotFound // Return error if user doesn't exist
+	for _, user := range users {
+		role, _ := roles.ParseRole(user.Role)
+		if role == roles.ADMIN {
+			continue
 		}
-		return fmt.Errorf("%v", err)
+
+		dtoUser := dto.StandardUser{
+			User: dto.User{
+				Username:     user.Username,
+				Role:         user.Role,
+				Name:         user.Name,
+				Email:        user.Email,
+				Organisation: user.Organisation,
+				Country:      user.Country,
+				IsBanned:     user.IsBanned,
+			},
+			LeetcodeID: user.LeetcodeID,
+			LastSeen:   user.LastSeen,
+		}
+
+		dtoUsers = append(dtoUsers, dtoUser)
+
 	}
 
-	// Verify the password
-	if !pwd.VerifyPassword(password, user.StandardUser.Password) {
-		return ErrInvalidCredentials
-	}
-
-	return nil
-}
-
-func (s *UserService) Logout() error {
-	// Get active user
-	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
 	if err != nil {
-		return errors.New("user not found")
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
-
-	// update last seen of user
-	user.LastSeen = time.Now().UTC()
-
-	// update data in db
-	err = s.userRepo.UpdateUserDetails(user)
-	if err != nil {
-		return errors.New("could not update user details")
-	}
-
-	// clear active user
-	globals.ActiveUserID = ""
-
-	return nil
-}
-
-func (s *UserService) GetAllUsers() (*[]models.StandardUser, error) {
-	return s.userRepo.FetchAllUsers()
+	return dtoUsers, nil
 }
 
 // ViewDashboard retrieves the dashboard for the active user
-func (s *UserService) ViewDashboard() error {
-	// Placeholder implementation
+func (s *UserService) ViewDashboard(ctx context.Context) error {
+	// Implementation for viewing the dashboard
 	return nil
 }
 
 // UpdateUserProgress updates the user's progress by adding a solved question ID.
-func (s *UserService) UpdateUserProgress(solvedQuestionID string) (bool, error) {
-	// Fetch the current user from the repository
-	user, err := s.userRepo.FetchUserByID(globals.ActiveUserID)
+func (s *UserService) UpdateUserProgress(ctx context.Context, userID uuid.UUID) error {
+
+	stats, err := s.GetUserLeetcodeStats(userID.String())
 	if err != nil {
-		return false, fmt.Errorf("could not fetch user: %v", err)
+		return fmt.Errorf("%w: could not fetch stats from LeetCode API", err)
 	}
 
-	// Check if the question ID is already in the user's progress
-	for _, id := range user.QuestionsSolved {
-		if id == solvedQuestionID {
-			return false, nil // No need to update if the question ID is already in the list
+	recentSlugs := stats.RecentACSubmissionTitleSlugs
+	var validSlugs []string
+	for _, slug := range recentSlugs {
+		exists, err := s.questionService.QuestionExistsByTitleSlug(ctx, slug)
+		if err != nil {
+			return fmt.Errorf("%w: could not check if question exists", err)
+		}
+		if exists {
+			validSlugs = append(validSlugs, slug)
 		}
 	}
 
-	// Check if the question ID exists in the questions repository
-	exists, err := s.questionService.QuestionExists(solvedQuestionID)
+	err = s.userRepo.UpdateUserProgress(ctx, userID, validSlugs)
 	if err != nil {
-		return false, fmt.Errorf("could not check if question exists: %v", err)
+		return fmt.Errorf("%w: could not update user progress", err)
 	}
-	if !exists {
-		return false, fmt.Errorf("question with ID %s does not exist", solvedQuestionID)
-	}
-
-	// Update the user's progress
-	return true, s.userRepo.UpdateUserProgress(solvedQuestionID)
+	return nil
 }
 
-func (s *UserService) CountActiveUserInLast24Hours() (int64, error) {
-	count, err := s.userRepo.CountActiveUsersInLast24Hours()
+func (s *UserService) CountActiveUserInLast24Hours(ctx context.Context) (int, error) {
+	count, err := s.userRepo.CountActiveUsersInLast24Hours(ctx)
 	if err != nil {
-		return count, err
+		return 0, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	return count, nil
 }
 
-func (s *UserService) GetUserByUsername(username string) (*models.StandardUser, error) {
-
+func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*models.StandardUser, error) {
 	if username == "" {
-		return nil, errors.New("username is empty")
+		return nil, fmt.Errorf("%w: username is empty", errs.ErrInvalidParameterError)
 	}
 
-	// Change userID to lowercase for consistency
-	username = data_cleaning.CleanString(username)
-
-	return s.userRepo.FetchUserByUsername(username)
+	username = utils.CleanString(username)
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+	return user, nil
 }
 
-func (s *UserService) GetUserByID(userID string) (*models.StandardUser, error) {
+func (s *UserService) GetUserByID(ctx context.Context, userID string) (*models.StandardUser, error) {
 	if userID == "" {
-		return nil, errors.New("user ID is empty")
+		return nil, fmt.Errorf("%w: user ID is empty", errs.ErrInvalidParameterError)
 	}
 
-	// Clean userID for consistency
-	userID = data_cleaning.CleanString(userID)
-
-	// Fetch user by ID from the repository
-	return s.userRepo.FetchUserByID(userID)
+	userID = utils.CleanString(userID)
+	user, err := s.userRepo.FetchUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+	return user, nil
 }
 
-func (s *UserService) GetUserRole(userID string) (string, error) {
-
+func (s *UserService) GetUserRole(ctx context.Context, userID string) (roles.Role, error) {
 	if userID == "" {
-		return "", errors.New("userID is empty")
+		return -1, fmt.Errorf("%w: userID is empty", errs.ErrInvalidParameterError)
 	}
 
-	// Change userID to lowercase for consistency
-	userID = data_cleaning.CleanString(userID)
+	userID = utils.CleanString(userID)
+	user, err := s.userRepo.FetchUserByID(ctx, userID)
+	if err != nil {
+		return -1, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
 
-	user, err := s.userRepo.FetchUserByID(userID)
+	role, err := roles.ParseRole(user.Role)
+	if err != nil {
+		return -1, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
+	}
+
+	return role, nil
+}
+
+func (s *UserService) GetUserProgress(ctx context.Context, userID string) (*[]string, error) {
+	progress, err := s.userRepo.FetchUserProgress(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return progress, nil
+}
+
+func (s *UserService) GetUserID(ctx context.Context, username string) (string, error) {
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+	return user.ID, nil
+}
+
+func (s *UserService) UpdateUserBanState(ctx context.Context, username string) (string, error) {
+	// Fetch the user by username
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+
+	// Check the role to ensure we're not operating on an admin
+	role, err := roles.ParseRole(user.Role)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
+	}
+
+	if role == roles.ADMIN {
+		return "", fmt.Errorf("%w: ban/unban operation on admin not allowed", errs.ErrInvalidParameterError)
+	}
+
+	// Fetch user ID by username
+	userID, err := s.GetUserID(ctx, username)
 	if err != nil {
 		return "", err
 	}
 
-	return user.StandardUser.Role, nil
-}
-
-func (s *UserService) GetUserID(username string) (string, error) {
-	user, err := s.userRepo.FetchUserByUsername(username)
+	// Check if the user is already banned
+	alreadyBanned, err := s.IsUserBanned(ctx, userID)
 	if err != nil {
 		return "", err
 	}
-	return user.StandardUser.ID, nil
-}
 
-func (s *UserService) BanUser(username string) (bool, error) {
-
-	userID, err := s.GetUserID(username)
-	if err != nil {
-		return false, err
-	}
-
-	alreadyBanned, err := s.IsUserBanned(userID)
-	if err != nil {
-		return false, err
-	}
-
+	// If the user is banned, unban them
 	if alreadyBanned {
-		return true, nil
+		err = s.userRepo.UnbanUser(ctx, userID)
+		if err != nil {
+			return "", fmt.Errorf("%w: %v", errs.ErrDbError, err)
+		}
+		return "User has been unbanned successfully", nil
 	}
 
-	return false, s.userRepo.BanUser(userID)
+	// If the user is not banned, ban them
+	err = s.userRepo.BanUser(ctx, userID)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return "User has been banned successfully", nil
 }
 
-func (s *UserService) UnbanUser(username string) (bool, error) {
+// DeleteUser deletes a user by the given ID
+func (s *UserService) DeleteUser(ctx context.Context, username string) error {
 
-	userID, err := s.GetUserID(username)
+	username = utils.CleanString(username)
+	user, err := s.userRepo.FetchUserByUsername(ctx, username)
 	if err != nil {
-		return false, err
+		if errors.Is(err, errs.ErrUserNotFound) {
+			return fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+		} else {
+			return fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+		}
 	}
-
-	alreadyBanned, err := s.IsUserBanned(userID)
+	err = s.userRepo.DeleteUser(ctx, user.ID)
 	if err != nil {
-		return false, err
+		if errors.Is(err, errs.ErrUserNotFound) {
+			return fmt.Errorf("delete user failed: %w", errs.ErrUserNotFound)
+		}
+		return fmt.Errorf("delete user failed: %w", err)
 	}
-
-	if !alreadyBanned {
-		return true, nil
-	}
-
-	return false, s.userRepo.UnbanUser(userID)
+	return nil
 }
 
-func (s *UserService) IsUserBanned(userID string) (bool, error) {
-
-	user, err := s.userRepo.FetchUserByID(userID)
-	if err != nil {
-		return false, err
+// UpdateUser updates the user's profile.
+func (s *UserService) UpdateUser(ctx context.Context, userID string, updates map[string]interface{}) error {
+	if username, ok := updates["username"].(string); ok {
+		unique, err := s.userRepo.IsUsernameUnique(ctx, username)
+		if err != nil {
+			return err
+		}
+		if !unique {
+			return fmt.Errorf("%w", errs.ErrUserNameAlreadyExists)
+		}
 	}
 
-	return user.StandardUser.IsBanned, nil
+	if email, ok := updates["email"].(string); ok {
+		unique, err := s.userRepo.IsEmailUnique(ctx, email)
+		if err != nil {
+			return err
+		}
+		if !unique {
+			return fmt.Errorf("%w", errs.ErrEmailAlreadyExists)
+		}
+	}
+
+	err := s.userRepo.UpdateUserProfile(ctx, userID, updates)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *UserService) GetLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
-	user, err := s.GetUserByID(userID)
+func (s *UserService) IsUserBanned(ctx context.Context, userID string) (bool, error) {
+	user, err := s.userRepo.FetchUserByID(ctx, userID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+
+	return user.IsBanned, nil
+}
+
+func (s *UserService) GetUserLeetcodeStats(userID string) (*models.LeetcodeStats, error) {
+	user, err := s.GetUserByID(context.Background(), userID) // use default context as this is external API call
 	if err != nil {
 		return nil, err
 	}
 
 	LeetcodeID := user.LeetcodeID
+	stats, err := s.LeetcodeAPI.GetStats(LeetcodeID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrExternalAPI, err)
+	}
 
-	return s.LeetcodeAPI.GetStats(LeetcodeID)
+	return stats, nil
 }
 
-//func (s *UserService) WaitForCompletion() {
-//	s.userWG.Wait()
-//}
+func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (*models.CodesageStats, error) {
+	userProgress, err := s.GetUserProgress(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to get user progress", err)
+	}
+
+	totalQuestionsDoneCount := len(*userProgress)
+	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to get total questions count", err)
+	}
+
+	var easyDoneCount, mediumDoneCount, hardDoneCount int
+	topicWiseStats := make(map[string]int)
+	companyWiseStats := make(map[string]int)
+
+	for _, titleSlug := range *userProgress {
+		question, err := s.questionService.GetQuestionByID(ctx, titleSlug)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to get question details for %s", err, titleSlug)
+		}
+
+		switch question.Difficulty {
+		case "easy":
+			easyDoneCount++
+		case "medium":
+			mediumDoneCount++
+		case "hard":
+			hardDoneCount++
+		}
+
+		for _, tag := range question.TopicTags {
+			topicWiseStats[tag]++
+		}
+
+		for _, company := range question.CompanyTags {
+			companyWiseStats[company]++
+		}
+	}
+
+	stats := &models.CodesageStats{
+		TotalQuestionsCount:     totalQuestionsCount,
+		TotalQuestionsDoneCount: totalQuestionsDoneCount,
+		TotalEasyCount:          easyDoneCount,
+		TotalMediumCount:        mediumDoneCount,
+		TotalHardCount:          hardDoneCount,
+		EasyDoneCount:           easyDoneCount,
+		MediumDoneCount:         mediumDoneCount,
+		HardDoneCount:           hardDoneCount,
+		CompanyWiseStats:        companyWiseStats,
+		TopicWiseStats:          topicWiseStats,
+	}
+
+	return stats, nil
+}
+
+func (s *UserService) GetPlatformStats(ctx context.Context) (*models.PlatformStats, error) {
+	activeUsersInLast24Hours, err := s.CountActiveUserInLast24Hours(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to count active users in the last 24 hours: %v", errs.ErrDbError, err)
+	}
+
+	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to get total questions count: %v", errs.ErrDbError, err)
+	}
+
+	allQuestions, err := s.questionService.GetAllQuestions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to fetch all questions: %v", errs.ErrDbError, err)
+	}
+
+	// Initialize counts
+	difficultyWiseCount := make(map[string]int)
+	topicWiseCount := make(map[string]int)
+	companyWiseCount := make(map[string]int)
+
+	// Count the questions by difficulty, topic, and company
+	for _, question := range allQuestions {
+		difficultyWiseCount[question.Difficulty]++
+
+		for _, topic := range question.TopicTags {
+			topicWiseCount[topic]++
+		}
+
+		for _, company := range question.CompanyTags {
+			companyWiseCount[company]++
+		}
+	}
+
+	platformStats := &models.PlatformStats{
+		ActiveUserInLast24Hours:      activeUsersInLast24Hours,
+		TotalQuestionsCount:          totalQuestionsCount,
+		DifficultyWiseQuestionsCount: difficultyWiseCount,
+		TopicWiseQuestionsCount:      topicWiseCount,
+		CompanyWiseQuestionsCount:    companyWiseCount,
+	}
+
+	return platformStats, nil
+}

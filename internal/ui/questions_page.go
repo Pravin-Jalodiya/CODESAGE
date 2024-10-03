@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/data_cleaning"
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"os"
@@ -15,9 +14,9 @@ func (ui *UI) ViewQuestionsPage() {
 		// Clear the screen
 		fmt.Print("\033[H\033[2J")
 
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("              QUESTIONS             ", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("              QUESTIONS             ", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
 		fmt.Println("1. View questions")
 		fmt.Println("2. Go back")
 		fmt.Print("Enter your choice : ")
@@ -33,7 +32,7 @@ func (ui *UI) ViewQuestionsPage() {
 		case "2":
 			return
 		default:
-			fmt.Println(formatting.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
+			fmt.Println(utils.Colorize("Invalid choice. Please select a valid option.", "red", "bold"))
 		}
 
 	}
@@ -45,7 +44,7 @@ func (ui *UI) ViewQuestions() {
 	// Load all questions in the db
 	questionsList, err := ui.questionService.GetAllQuestions()
 	if err != nil {
-		fmt.Println("Failed to load questions")
+		fmt.Println("Failed to load questions: ", err)
 		return
 	}
 
@@ -105,19 +104,19 @@ func (ui *UI) ViewFilteredQuestions() {
 	fmt.Print("Enter difficulty (press enter to skip): ")
 	difficulty, _ := ui.reader.ReadString('\n')
 	difficulty = strings.TrimSuffix(difficulty, "\n")
-	difficulty = data_cleaning.CleanString(difficulty)
+	difficulty = utils.CleanString(difficulty)
 
 	// Prompt for topic
 	fmt.Print("Enter topic (press enter to skip): ")
 	topic, _ := ui.reader.ReadString('\n')
 	topic = strings.TrimSuffix(topic, "\n")
-	topic = data_cleaning.CleanString(topic)
+	topic = utils.CleanString(topic)
 
 	// Prompt for company
 	fmt.Print("Enter company (press enter to skip): ")
 	company, _ := ui.reader.ReadString('\n')
 	company = strings.TrimSuffix(company, "\n")
-	company = data_cleaning.CleanString(company)
+	company = utils.CleanString(company)
 
 	// Fetch filtered questions
 	filteredQuestions, err := ui.questionService.GetQuestionsByFilters(difficulty, topic, company)
@@ -128,7 +127,7 @@ func (ui *UI) ViewFilteredQuestions() {
 
 	// If no questions found, notify the user
 	if len(*filteredQuestions) == 0 {
-		fmt.Println(formatting.Colorize("No questions match the filter", "yellow", "bold"))
+		fmt.Println(utils.Colorize("No questions match the filter", "yellow", "bold"))
 		return
 	}
 

@@ -17,12 +17,41 @@ func NewLeetcodeAPI() interfaces.LeetcodeAPI {
 	return &LeetcodeAPI{}
 }
 
-// GetStats makes the API call to fetch user Leetcode stats
-func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, error) {
+// Function to perform GraphQL request
+func (api *LeetcodeAPI) FetchData(query string, variables map[string]interface{}) (map[string]interface{}, error) {
+	requestBody := map[string]interface{}{
+		"query":     query,
+		"variables": variables,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request body: %v", err)
+	}
 
-	recentLimit := config.RECENT_SUBMISSION_LIMIT
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
 
-	// Updated GraphQL query
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("could not decode response: %v", err)
+	}
+
+	data, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid response format")
+	}
+	return data, nil
+}
+
+// Fetch user stats
+func (api *LeetcodeAPI) FetchUserStats(username string) (*models.LeetcodeStats, error) {
 	userStatsQuery := `
 	query userProblemsSolved($username: String!) {
 		allQuestionsCount {
@@ -39,55 +68,14 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 		}
 	}`
 
-	recentSubmissionsQuery := `
-	query recentAcSubmissions($username: String!, $limit: Int!) {
-		recentAcSubmissionList(username: $username, limit: $limit) {
-			title
-		}
-	}`
-
-	// Function to perform GraphQL request
-	fetchData := func(query string, variables map[string]interface{}) (map[string]interface{}, error) {
-		requestBody := map[string]interface{}{
-			"query":     query,
-			"variables": variables,
-		}
-		jsonBody, err := json.Marshal(requestBody)
-		if err != nil {
-			return nil, fmt.Errorf("could not marshal request body: %v", err)
-		}
-
-		resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
-		if err != nil {
-			return nil, fmt.Errorf("request failed: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-		}
-
-		var result map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, fmt.Errorf("could not decode response: %v", err)
-		}
-
-		data, ok := result["data"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid response format")
-		}
-		return data, nil
-	}
-
-	// Fetch user stats
-	statsData, err := fetchData(userStatsQuery, map[string]interface{}{"username": LeetcodeID})
+	statsData, err := api.FetchData(userStatsQuery, map[string]interface{}{"username": username})
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse stats data
 	stats := &models.LeetcodeStats{
-		RecentACSubmissions: []string{},
+		RecentACSubmissionTitles:     []string{},
+		RecentACSubmissionTitleSlugs: []string{},
 	}
 
 	if allQuestionsCount, ok := statsData["allQuestionsCount"].([]interface{}); ok {
@@ -97,7 +85,6 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 			count := int(countInfo["count"].(float64))
 			switch difficulty {
 			case "All":
-				// These are totals for all difficulties combined, not used for individual counts
 				stats.TotalQuestionsCount = count
 			case "Easy":
 				stats.TotalEasyCount = count
@@ -131,27 +118,78 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 		}
 	}
 
-	// Fetch recent accepted submissions
-	submissionsData, err := fetchData(recentSubmissionsQuery, map[string]interface{}{"username": LeetcodeID, "limit": recentLimit})
+	return stats, nil
+}
+
+// Fetch recent accepted submissions
+func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]map[string]string, error) {
+	recentSubmissionsQuery := `
+	query recentAcSubmissions($username: String!, $limit: Int!) {
+		recentAcSubmissionList(username: $username, limit: $limit) {
+			title
+			titleSlug
+		}
+	}`
+
+	submissionsData, err := api.FetchData(recentSubmissionsQuery, map[string]interface{}{"username": username, "limit": limit})
 	if err != nil {
 		return nil, err
 	}
 
+	var submissions []map[string]string
 	if recentSubmissions, ok := submissionsData["recentAcSubmissionList"].([]interface{}); ok {
 		for _, item := range recentSubmissions {
 			submission := item.(map[string]interface{})
 			if title, ok := submission["title"].(string); ok {
-				stats.RecentACSubmissions = append(stats.RecentACSubmissions, title)
+				if titleSlug, ok := submission["titleSlug"].(string); ok {
+					submissions = append(submissions, map[string]string{
+						"title":     title,
+						"titleSlug": titleSlug,
+					})
+				}
 			}
 		}
 	}
 
+	return submissions, nil
+}
+
+// GetStats combines fetchUserStats and fetchRecentSubmissions
+func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, error) {
+
+	recentLimit := config.RECENT_SUBMISSION_LIMIT
+
+	stats, err := api.FetchUserStats(LeetcodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	recentSubmissions, err := api.FetchRecentSubmissions(LeetcodeID, recentLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize slices for titles and titleSlugs
+	var submissionTitles []string
+	var submissionSlugs []string
+
+	for _, submission := range recentSubmissions {
+		if title, ok := submission["title"]; ok {
+			submissionTitles = append(submissionTitles, title)
+		}
+		if slug, ok := submission["titleSlug"]; ok {
+			submissionSlugs = append(submissionSlugs, slug)
+		}
+	}
+
+	// Set both slices in the stats
+	stats.RecentACSubmissionTitles = submissionTitles
+	stats.RecentACSubmissionTitleSlugs = submissionSlugs
+
 	return stats, nil
 }
 
-func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
-
-	// GraphQL query to check if a Leetcode user exists
+func (api *LeetcodeAPI) ValidateLeetcodeUsername(username string) (bool, error) {
 	const userQuery = `
 	query getUserProfile($username: String!) {
   	matchedUser(username: $username) {
@@ -160,7 +198,6 @@ func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 }
 `
 
-	// Construct the GraphQL query with variables
 	query := userQuery
 	requestBody := map[string]interface{}{
 		"query": query,
@@ -173,8 +210,7 @@ func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 		return false, fmt.Errorf("could not marshal request body: %v", err)
 	}
 
-	// Make the HTTP request
-	resp, err := http.Post(config.Leetcode_API, "application/json", bytes.NewBuffer(jsonBody))
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return false, fmt.Errorf("request failed: %v", err)
 	}
@@ -187,18 +223,15 @@ func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 		}
 	}(resp.Body)
 
-	// Check for a successful response
 	if resp.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	// Decode the response body
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return false, fmt.Errorf("could not decode response: %v", err)
 	}
 
-	// Check if the user exists
 	data, ok := result["data"].(map[string]interface{})
 	if !ok {
 		return false, fmt.Errorf("invalid response format")
@@ -208,6 +241,5 @@ func (api *LeetcodeAPI) ValidateUsername(username string) (bool, error) {
 		return false, nil // User does not exist
 	}
 
-	// Check if the username matches
 	return matchedUser["username"] == username, nil
 }

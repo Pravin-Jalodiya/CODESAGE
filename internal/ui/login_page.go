@@ -4,9 +4,7 @@ import (
 	"cli-project/internal/app/services"
 	"cli-project/internal/config/roles"
 	"cli-project/pkg/globals"
-	"cli-project/pkg/utils/data_cleaning"
-	"cli-project/pkg/utils/emojis"
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"errors"
 	"fmt"
@@ -20,34 +18,34 @@ func (ui *UI) ShowLoginPage() {
 	// Clear the screen
 	fmt.Print("\033[H\033[2J")
 
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("               LOGIN                 ", "cyan", "bold"))
-	fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+	fmt.Println(utils.Colorize("               LOGIN                 ", "cyan", "bold"))
+	fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
 
 	var username, password string
 	for {
 		// Read Username
-		fmt.Print(formatting.Colorize("Username: ", "yellow", ""))
+		fmt.Print(utils.Colorize("Username: ", "yellow", ""))
 		username, _ = ui.reader.ReadString('\n')
 		username = strings.TrimSuffix(username, "\n")
-		username = data_cleaning.CleanString(username)
+		username = utils.CleanString(username)
 
 		if !validation.ValidateUsername(username) {
 			if len(username) == 0 {
-				fmt.Printf("%s Username cannot be empty. Try again.\n", emojis.Info)
+				fmt.Printf("%s Username cannot be empty. Try again.\n", utils.InfoEmoji)
 			} else {
-				fmt.Printf("%s Username is invalid. Try again.\n", emojis.Info)
+				fmt.Printf("%s Username is invalid. Try again.\n", utils.InfoEmoji)
 			}
 			continue
 		}
 
 		// Read Password
-		fmt.Print(formatting.Colorize("Password: ", "yellow", ""))
+		fmt.Print(utils.Colorize("Password: ", "yellow", ""))
 		passwordBytes, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 		password = string(passwordBytes)
 
 		if password == "" {
-			fmt.Printf("%s Password cannot be empty. Try again.\n", emojis.Info)
+			fmt.Printf("%s Password cannot be empty. Try again.\n", utils.InfoEmoji)
 			continue
 		}
 		fmt.Println()
@@ -59,23 +57,23 @@ func (ui *UI) ShowLoginPage() {
 			var choice string
 
 			if errors.Is(err, services.ErrUserNotFound) {
-				fmt.Println(emojis.Error, "User not found. Would you like to sign up instead? (y/n)")
+				fmt.Println(utils.ErrorEmoji, "User not found. Would you like to sign up instead? [y(es)/n(o)]")
 				for {
-					fmt.Print(formatting.Colorize("Choice: ", "yellow", ""))
+					fmt.Print(utils.Colorize("Choice: ", "yellow", ""))
 					choice, err = ui.reader.ReadString('\n')
 					choice = strings.TrimSuffix(choice, "\n")
 					choice = strings.TrimSpace(choice)
 
 					if err != nil {
-						fmt.Println(emojis.Error, "Failed to read input. Please try again.")
+						fmt.Println(utils.ErrorEmoji, "Failed to read input. Please try again.")
 						continue
 					}
 
-					if strings.ToLower(choice) == "y" {
+					if strings.ToLower(choice) == "y" || choice == "yes" {
 						ui.ShowSignupPage()
 						return
 
-					} else if strings.ToLower(choice) == "n" {
+					} else if strings.ToLower(choice) == "n" || choice == "no" {
 						break
 
 					} else {
@@ -87,20 +85,20 @@ func (ui *UI) ShowLoginPage() {
 				continue
 
 			} else if errors.Is(err, services.ErrInvalidCredentials) {
-				fmt.Println(emojis.Error, "Username or password incorrect. Please try again.")
+				fmt.Println(utils.ErrorEmoji, "Username or password incorrect. Please try again.")
 				continue
 
 			} else {
-				fmt.Println(emojis.Error, "Login failed:", err)
+				fmt.Println(utils.ErrorEmoji, "Login failed:", err)
 			}
 
 		} else {
-			fmt.Println(emojis.Success, "Login successful!")
+			fmt.Println(utils.SuccessEmoji, "Login successful!")
 
 			globals.ActiveUserID, err = ui.userService.GetUserID(username)
 
 			if err != nil {
-				fmt.Println(emojis.Error, "Failed to get user ID:", err)
+				fmt.Println(utils.ErrorEmoji, "Failed to get user ID:", err)
 				return
 			}
 

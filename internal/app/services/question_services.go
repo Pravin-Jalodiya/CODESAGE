@@ -1,13 +1,15 @@
 package services
 
 import (
+	"cli-project/internal/domain/dto"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
-	"cli-project/pkg/utils/data_cleaning"
-	"cli-project/pkg/utils/readers"
+	"cli-project/pkg/errors"
+	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
-	"errors"
+	"context"
 	"fmt"
+	"strings"
 )
 
 type QuestionService struct {
@@ -20,140 +22,205 @@ func NewQuestionService(questionRepo interfaces.QuestionRepository) interfaces.Q
 	}
 }
 
-func (s *QuestionService) AddQuestionsFromFile(questionFilePath string) (bool, error) {
+var (
+	CSVReader                  = utils.ReadCSV
+	ValidateQuestionID         = validation.ValidateQuestionID
+	ValidateQuestionDifficulty = validation.ValidateQuestionDifficulty
+	ValidateQuestionLink       = validation.ValidateQuestionLink
+	ValidateTitleSlug          = validation.ValidateTitleSlug
+)
 
-	records, err := readers.ReadCSV(questionFilePath)
-	if err != nil {
-		return false, err
-	}
-
+func (s *QuestionService) AddQuestionsFromRecords(ctx context.Context, records [][]string) (bool, bool, error) {
 	var questions []models.Question
 	newQuestionsAdded := false
+	existingQuestionsUpdated := false
 
 	for i, record := range records {
 		if i == 0 {
+			continue // Skip header row
+		}
+
+		if len(record) != 7 {
+			return false, false, errs.ErrInvalidCSVFormat
+		}
+
+		titleSlug := utils.CleanString(record[0])
+		questionID := utils.CleanString(record[1])
+		questionTitle := utils.CleanString(record[2])
+		difficulty := record[3]
+		questionLink := record[4]
+		topicTags := utils.CleanTags(record[5])
+		companyTags := utils.CleanTags(record[6])
+
+		valid, err := ValidateQuestionID(questionID)
+		if !valid {
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionID, err)
+		}
+
+		difficulty, err = ValidateQuestionDifficulty(difficulty)
+		if err != nil {
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionDifficulty, err)
+		}
+
+		questionLink, err = ValidateQuestionLink(questionLink)
+		if err != nil {
+			return false, false, fmt.Errorf("%w: %v", errs.ErrInvalidQuestionLink, err)
+		}
+
+		question := models.Question{
+			QuestionTitleSlug: titleSlug,
+			QuestionID:        questionID,
+			QuestionTitle:     questionTitle,
+			Difficulty:        difficulty,
+			QuestionLink:      questionLink,
+			TopicTags:         topicTags,
+			CompanyTags:       companyTags,
+		}
+
+		exists, err := s.QuestionExistsByID(ctx, questionID)
+		if err != nil {
+			return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+		}
+
+		if exists {
+			// Fetch existing question details
+			existingQuestion, err := s.questionRepo.FetchQuestionByTitleSlug(ctx, titleSlug)
+			if err != nil {
+				return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+			}
+
+			// Check if tags need to be updated
+			mergedTopicTags := utils.MergeTags(existingQuestion.TopicTags, topicTags)
+			mergedCompanyTags := utils.MergeTags(existingQuestion.CompanyTags, companyTags)
+
+			if !utils.AreSlicesEqual(existingQuestion.TopicTags, mergedTopicTags) || !utils.AreSlicesEqual(existingQuestion.CompanyTags, mergedCompanyTags) {
+				// Update the question with merged tags
+				existingQuestion.TopicTags = mergedTopicTags
+				existingQuestion.CompanyTags = mergedCompanyTags
+
+				// Update the question in the repository
+				err = s.questionRepo.UpdateQuestion(ctx, existingQuestion)
+				if err != nil {
+					return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
+				}
+				existingQuestionsUpdated = true
+			}
+
 			continue
 		}
 
-		if len(record) != 6 {
-			return false, errors.New("invalid CSV format")
-		}
-
-		questionID := data_cleaning.CleanString(record[0])
-		valid, err := validation.ValidateQuestionID(questionID)
-		if !valid {
-			return false, err
-		}
-
-		questionTitle := data_cleaning.CleanString(record[1])
-		difficulty := data_cleaning.CleanString(record[2])
-		difficulty, err = validation.ValidateDifficulty(difficulty)
-		if err != nil {
-			return false, err
-		}
-
-		questionLink := data_cleaning.CleanString(record[3])
-		questionLink, err = validation.ValidateQuestionLink(questionLink)
-		if err != nil {
-			return false, err
-		}
-
-		topicTags := data_cleaning.CleanTags(record[4])
-		companyTags := data_cleaning.CleanTags(record[5])
-
-		question := models.Question{
-			QuestionID:    questionID,
-			QuestionTitle: questionTitle,
-			Difficulty:    difficulty,
-			QuestionLink:  questionLink,
-			TopicTags:     topicTags,
-			CompanyTags:   companyTags,
-		}
-
-		exists, err := s.QuestionExists(questionID)
-		if err != nil {
-			return false, err
-		}
-
-		if !exists {
-			questions = append(questions, question)
-			newQuestionsAdded = true
-		}
+		questions = append(questions, question)
+		newQuestionsAdded = true
 	}
 
 	if newQuestionsAdded {
-		err = s.questionRepo.AddQuestions(&questions)
+		err := s.questionRepo.AddQuestions(ctx, &questions)
 		if err != nil {
-			return false, err
+			return false, false, fmt.Errorf("%w: %v", errs.ErrDbOperation, err)
 		}
 	}
 
-	return newQuestionsAdded, nil
+	return newQuestionsAdded, existingQuestionsUpdated, nil
 }
 
-func (s *QuestionService) RemoveQuestionByID(questionID string) error {
-	// Check if the question exists in the database
-	exists, err := s.QuestionExists(questionID)
+func (s *QuestionService) RemoveQuestionByID(ctx context.Context, questionID string) error {
+	exists, err := s.QuestionExistsByID(ctx, questionID)
 	if err != nil {
-		return fmt.Errorf("error checking if question exists: %v", err)
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
 	if !exists {
-		return fmt.Errorf("question with ID %s not found", questionID)
+		return fmt.Errorf("%w: question with ID %s not found", errs.ErrNoRows, questionID)
 	}
 
-	// Call repository to remove the question
-	return s.questionRepo.RemoveQuestionByID(questionID)
+	err = s.questionRepo.RemoveQuestionByID(ctx, questionID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return nil
 }
 
-func (s *QuestionService) GetQuestionByID(questionID string) (*models.Question, error) {
-	// Check if the question exists
-	exists, err := s.QuestionExists(questionID)
+func (s *QuestionService) GetQuestionByID(ctx context.Context, questionID string) (*models.Question, error) {
+	exists, err := s.QuestionExistsByTitleSlug(ctx, questionID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("question with ID %s not found", questionID)
+		return nil, fmt.Errorf("%w: question with title slug %s not found", errs.ErrNoRows, questionID)
 	}
 
-	// Fetch the question from the repository
-	question, err := s.questionRepo.FetchQuestionByID(questionID)
+	question, err := s.questionRepo.FetchQuestionByTitleSlug(ctx, questionID)
 	if err != nil {
-		return &models.Question{}, err
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 
 	return question, nil
 }
 
-func (s *QuestionService) GetAllQuestions() (*[]models.Question, error) {
-	return s.questionRepo.FetchAllQuestions()
+func (s *QuestionService) GetAllQuestions(ctx context.Context) ([]dto.Question, error) {
+	questions, err := s.questionRepo.FetchAllQuestions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return questions, nil
 }
 
-func (s *QuestionService) GetQuestionsByFilters(difficulty, company, topic string) (*[]models.Question, error) {
-	// Validate and clean the difficulty level
-	validDifficulty, err := validation.ValidateDifficulty(difficulty)
-	if err != nil {
-		return nil, err
+func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {
+	var validDifficulty string
+	var err error
+
+	if difficulty != "" && strings.ToLower(difficulty) != "any" {
+		validDifficulty, err = ValidateQuestionDifficulty(difficulty)
+		if err != nil {
+			return []dto.Question{}, fmt.Errorf("%w: invalid difficulty", errs.ErrInvalidParameterError)
+		}
 	}
 
-	// Clean company and topic strings
-	cleanCompany := data_cleaning.CleanString(company)
-	cleanTopic := data_cleaning.CleanString(topic)
+	cleanCompany := utils.CleanString(company)
+	cleanTopic := utils.CleanString(topic)
 
-	// Fetch questions by filters from the repository
-	return s.questionRepo.FetchQuestionsByFilters(validDifficulty, cleanCompany, cleanTopic)
+	questions, err := s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
+	if err != nil {
+		return []dto.Question{}, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return questions, nil
 }
 
-func (s *QuestionService) QuestionExists(questionID string) (bool, error) {
-	// Validate the question ID
+func (s *QuestionService) QuestionExistsByID(ctx context.Context, questionID string) (bool, error) {
 	valid, err := validation.ValidateQuestionID(questionID)
 	if !valid {
-		return false, err
+		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
 	}
 
-	return s.questionRepo.QuestionExists(questionID)
+	exists, err := s.questionRepo.QuestionExistsByID(ctx, questionID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return exists, nil
 }
 
-func (s *QuestionService) GetTotalQuestionsCount() (int64, error) {
-	return s.questionRepo.CountQuestions()
+func (s *QuestionService) QuestionExistsByTitleSlug(ctx context.Context, titleSlug string) (bool, error) {
+
+	valid, err := ValidateTitleSlug(titleSlug)
+	if !valid {
+		return false, fmt.Errorf("%w: %v", errs.ErrInvalidParameterError, err)
+	}
+
+	exists, err := s.questionRepo.QuestionExistsByTitleSlug(ctx, titleSlug)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return exists, nil
+}
+
+func (s *QuestionService) GetTotalQuestionsCount(ctx context.Context) (int, error) {
+	count, err := s.questionRepo.CountQuestions(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+	return count, nil
 }
