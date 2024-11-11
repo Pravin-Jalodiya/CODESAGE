@@ -7,6 +7,7 @@ import (
 	"cli-project/internal/domain/models"
 	errs "cli-project/pkg/errors"
 	"cli-project/pkg/logger"
+	"cli-project/pkg/utils"
 	"cli-project/pkg/validation"
 	"encoding/json"
 	"errors"
@@ -110,7 +111,7 @@ func (u *UserHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	username := vars["username"]
+	username := utils.CleanString(vars["username"])
 
 	if userMetaData.Username != username {
 		logger.Logger.Errorw("Unauthorized access", "method", r.Method, "user", username, "time", time.Now())

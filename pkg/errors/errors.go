@@ -46,6 +46,7 @@ var (
 	CodeValidationError  = 3300
 	CodeDbError          = 4400
 	CodeUnexpectedError  = 9900
+	CodeForbiddenError   = 9997
 )
 
 // JSONError creates a JSON error response
@@ -62,13 +63,15 @@ func getHttpStatus(errorCode int) int {
 	case CodeInvalidRequest:
 		return http.StatusBadRequest
 	case CodePermissionDenied:
-		return http.StatusForbidden
+		return http.StatusUnauthorized
 	case CodeValidationError:
 		return http.StatusUnprocessableEntity
 	case CodeDbError:
 		return http.StatusInternalServerError
 	case CodeUnexpectedError:
 		return http.StatusInternalServerError
+	case CodeForbiddenError:
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}

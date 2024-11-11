@@ -11,6 +11,7 @@ type LeetcodeStats struct {
 	HardDoneCount                int
 	RecentACSubmissionTitles     []string `json:"recent_ac_submission_title"`
 	RecentACSubmissionTitleSlugs []string `json:"recent_ac_submissions_title_slugs"`
+	RecentACSubmissionIds        []string `json:"recent_ac_submission_ids"`
 }
 
 type CodesageStats struct {

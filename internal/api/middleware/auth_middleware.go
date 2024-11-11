@@ -5,8 +5,8 @@ import (
 	"cli-project/internal/config/roles"
 	errs "cli-project/pkg/errors"
 	"cli-project/pkg/logger"
+	"cli-project/pkg/utils"
 	"context"
-	"encoding/json"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -29,7 +29,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			logger.Logger.Errorw("Missing Authorization header", "error", nil, "time", time.Now())
-			unauthorized(w, "Missing Authorization header", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Missing Authorization header", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -37,7 +37,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		tokenParts := strings.Split(authHeader, "Bearer ")
 		if len(tokenParts) != 2 || tokenParts[1] == "" {
 			logger.Logger.Errorw("Missing token in Authorization header", "tokenParts", tokenParts, "time", time.Now())
-			unauthorized(w, "Missing token in Authorization header", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Missing token in Authorization header", errs.CodeInvalidRequest)
 			return
 		}
 		tokenString := tokenParts[1]
@@ -54,7 +54,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Handle token validation errors
 		if err != nil || !token.Valid {
 			logger.Logger.Errorw("Invalid token", "error", err, "time", time.Now())
-			unauthorized(w, "Invalid or expired token", errs.CodePermissionDenied)
+			utils.Unauthorized(w, "Invalid or expired token", errs.CodePermissionDenied)
 			return
 		}
 
@@ -62,7 +62,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
 			logger.Logger.Errorw("Invalid Token Claims", "token", tokenString, "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -70,14 +70,14 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		userIdStr, ok := claims["userId"].(string)
 		if !ok {
 			logger.Logger.Errorw("userId not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
 		userId, err := uuid.Parse(userIdStr)
 		if err != nil {
 			logger.Logger.Errorw("Invalid userId format", "userId", userIdStr, "error", err, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -85,14 +85,14 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		roleStr, ok := claims["role"].(string)
 		if !ok {
 			logger.Logger.Errorw("role not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
 		role, err := roles.ParseRole(roleStr)
 		if err != nil {
 			logger.Logger.Errorw("Invalid role value", "role", roleStr, "error", err, "time", time.Now())
-			unauthorized(w, "Invalid Role", errs.CodeValidationError)
+			utils.Unauthorized(w, "Invalid Role", errs.CodeValidationError)
 			return
 		}
 
@@ -100,7 +100,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		username, ok := claims["username"].(string)
 		if !ok {
 			logger.Logger.Errorw("username not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -108,7 +108,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		banState, ok := claims["banState"].(bool)
 		if !ok {
 			logger.Logger.Errorw("banState not found in token claims", "claims", claims, "time", time.Now())
-			unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
+			utils.Unauthorized(w, "Invalid Token", errs.CodeInvalidRequest)
 			return
 		}
 
@@ -127,15 +127,4 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		// Proceed to the next handler if the token is valid
 		next.ServeHTTP(w, r)
 	})
-}
-
-// Helper to return unauthorized error response
-func unauthorized(w http.ResponseWriter, message string, code int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
-	jsonResponse := map[string]interface{}{
-		"error_code": code,
-		"message":    message,
-	}
-	json.NewEncoder(w).Encode(jsonResponse)
 }

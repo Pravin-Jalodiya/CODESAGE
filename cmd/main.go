@@ -9,6 +9,7 @@ import (
 	"cli-project/internal/config"
 	"cli-project/internal/db"
 	"fmt"
+	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -72,19 +73,15 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userService)
 	questionHandler := handlers.NewQuestionHandler(questionService)
+	r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
 	routes.InitialiseAuthRouter(r, authHandler)
 	routes.InitialiseUserRouter(r, userHandler)
 	routes.InitialiseQuestionRouter(r, questionHandler)
 	http.Handle("/", r)
 	fmt.Println("server is running on port:", config.PORT)
-	log.Fatal(http.ListenAndServe(config.PORT, nil))
-
-	//// Initialize UI
-	//newUI := ui.NewUI(authService, userService, questionService, bufio.NewReader(os.Stdin))
-	//if newUI == nil {
-	//	log.Fatal("Failed to initialize UI")
-	//}
-	//
-	//// Show Main Menu
-	//newUI.ShowMainMenu()
+	log.Fatal(http.ListenAndServe(config.PORT, gorillaHandlers.CORS(
+		gorillaHandlers.AllowedOrigins([]string{"*"}),
+		gorillaHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		gorillaHandlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE"}))(r)),
+	)
 }

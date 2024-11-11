@@ -362,7 +362,6 @@ func TestUserRepo_FetchUserByUsername(t *testing.T) {
 	assert.Nil(t, user)
 	assert.Contains(t, err.Error(), "failed to get DB connection")
 }
-
 func TestUserRepo_FetchUserProgress(t *testing.T) {
 	cleanup := setup(t)
 	defer cleanup()
@@ -759,3 +758,4 @@ func TestUserRepo_IsLeetcodeIDUnique(t *testing.T) {
 	assert.False(t, isUnique)
 	assert.Contains(t, err.Error(), "failed to get DB connection")
 }
+

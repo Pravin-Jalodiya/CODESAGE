@@ -7,7 +7,7 @@ var (
 	GPT_API_ENDPOINT        = "https://api.openai.com/v1/chat/completions"
 	GPT_MODEL               = "gpt-4o"
 	LEETCODE_API            = "https://Leetcode.com/graphql/"
-	RECENT_SUBMISSION_LIMIT = 10
+	RECENT_SUBMISSION_LIMIT = 20
 	DB_USER                 = "postgres"
 	DB_PASSWORD             = "password"
 	DB_NAME                 = "codesage"

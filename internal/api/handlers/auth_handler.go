@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cli-project/internal/api/middleware"
 	"cli-project/internal/domain/interfaces"
 	"cli-project/internal/domain/models"
 	errs "cli-project/pkg/errors"
@@ -12,24 +13,20 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
-	"github.com/go-playground/validator"
 )
-
-var validate *validator.Validate
 
 type AuthHandler struct {
 	authService interfaces.AuthService
 }
 
 func NewAuthHandler(authService interfaces.AuthService) *AuthHandler {
-	validate = validator.New()
 	return &AuthHandler{
 		authService: authService,
 	}
 }
 
 func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+
 	var requestBody struct {
 		Username     string `json:"username"`
 		Password     string `json:"password"`
@@ -67,11 +64,13 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Logger.Errorw("Invalid username", "method", r.Method, "username", user.Username, "time", time.Now())
 		return
 	}
+
 	if !validation.ValidatePassword(user.Password) {
 		errs.NewAppError(errs.CodeValidationError, "Invalid password").ToJSON(w)
 		logger.Logger.Errorw("Invalid password", "method", r.Method, "time", time.Now())
 		return
 	}
+
 	if !validation.ValidateName(user.Name) {
 		errs.NewAppError(errs.CodeValidationError, "Invalid name").ToJSON(w)
 		logger.Logger.Errorw("Invalid name", "method", r.Method, "time", time.Now())
@@ -134,6 +133,7 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+
 	var requestBody struct {
 		Username string `json:"username" validate:"required"`
 		Password string `json:"password" validate:"required"`
@@ -178,6 +178,13 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsBanned {
+		w.Header().Set("Content-Type", "application/json")
+		jsonResponse := map[string]any{"code": http.StatusForbidden, "message": "Banned: Contact admin for help"}
+		json.NewEncoder(w).Encode(jsonResponse)
+		return
+	}
+
 	globals.ActiveUserID = user.ID
 
 	w.Header().Set("Content-Type", "application/json")
@@ -200,4 +207,18 @@ func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	jsonResponse := map[string]any{"code": http.StatusOK, "message": "Logout successful"}
 	json.NewEncoder(w).Encode(jsonResponse)
 	logger.Logger.Infow("Logout Successful", "method", r.Method, "time", time.Now())
+}
+
+func (a *AuthHandler) GetRole(w http.ResponseWriter, r *http.Request) {
+	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
+	if !ok {
+		errs.NewAppError(errs.CodePermissionDenied, "Unauthorized access").ToJSON(w)
+		return
+	}
+
+	role := userMetaData.Role.String()
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]any{"role": role, "code": http.StatusOK, "message": "Request successful"}
+	json.NewEncoder(w).Encode(jsonResponse)
 }

@@ -76,6 +76,7 @@ func (api *LeetcodeAPI) FetchUserStats(username string) (*models.LeetcodeStats, 
 	stats := &models.LeetcodeStats{
 		RecentACSubmissionTitles:     []string{},
 		RecentACSubmissionTitleSlugs: []string{},
+		RecentACSubmissionIds:        []string{},
 	}
 
 	if allQuestionsCount, ok := statsData["allQuestionsCount"].([]interface{}); ok {
@@ -126,6 +127,7 @@ func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]ma
 	recentSubmissionsQuery := `
 	query recentAcSubmissions($username: String!, $limit: Int!) {
 		recentAcSubmissionList(username: $username, limit: $limit) {
+			id
 			title
 			titleSlug
 		}
@@ -135,22 +137,26 @@ func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]ma
 	if err != nil {
 		return nil, err
 	}
-
+	//fmt.Println(submissionsData)
 	var submissions []map[string]string
 	if recentSubmissions, ok := submissionsData["recentAcSubmissionList"].([]interface{}); ok {
 		for _, item := range recentSubmissions {
 			submission := item.(map[string]interface{})
 			if title, ok := submission["title"].(string); ok {
 				if titleSlug, ok := submission["titleSlug"].(string); ok {
-					submissions = append(submissions, map[string]string{
-						"title":     title,
-						"titleSlug": titleSlug,
-					})
+					if id, ok := submission["id"].(string); ok {
+						submissions = append(submissions, map[string]string{
+							"id":        id,
+							"title":     title,
+							"titleSlug": titleSlug,
+						})
+					}
+
 				}
 			}
 		}
 	}
-
+	fmt.Println(submissions)
 	return submissions, nil
 }
 
@@ -172,6 +178,7 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 	// Initialize slices for titles and titleSlugs
 	var submissionTitles []string
 	var submissionSlugs []string
+	var submissionIds []string
 
 	for _, submission := range recentSubmissions {
 		if title, ok := submission["title"]; ok {
@@ -180,11 +187,14 @@ func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, erro
 		if slug, ok := submission["titleSlug"]; ok {
 			submissionSlugs = append(submissionSlugs, slug)
 		}
+		if id, ok := submission["id"]; ok {
+			submissionIds = append(submissionIds, id)
+		}
 	}
-
 	// Set both slices in the stats
 	stats.RecentACSubmissionTitles = submissionTitles
 	stats.RecentACSubmissionTitleSlugs = submissionSlugs
+	stats.RecentACSubmissionIds = submissionIds
 
 	return stats, nil
 }

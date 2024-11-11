@@ -2,12 +2,14 @@ package repositories_test
 
 import (
 	"cli-project/internal/domain/models"
+	"context"
 	"database/sql"
+	"strings"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
 )
 
 func TestAddQuestions_Success(t *testing.T) {
@@ -43,7 +45,7 @@ func TestAddQuestions_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	// Call the function
-	err := questionRepo.AddQuestions(&questions)
+	err := questionRepo.AddQuestions(context.Background(), &questions)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -74,7 +76,8 @@ func TestAddQuestions_TransactionFailure(t *testing.T) {
 	mock.ExpectBegin().WillReturnError(sql.ErrConnDone)
 
 	// Call the function being tested
-	err := questionRepo.AddQuestions(&questions)
+	ctx := context.Background()                       // Create a context
+	err := questionRepo.AddQuestions(ctx, &questions) // Pass the context as the first argument
 	assert.Error(t, err)
 	assert.EqualError(t, err, "could not start transaction: sql: connection is already closed")
 
@@ -124,7 +127,7 @@ func TestAddQuestions_InsertFailure(t *testing.T) {
 	mock.ExpectRollback()
 
 	// Call the function being tested
-	err := questionRepo.AddQuestions(&questions)
+	err := questionRepo.AddQuestions(context.Background(), &questions)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "could not insert question")
 
@@ -163,7 +166,7 @@ func TestFetchQuestionByTitleSlug(t *testing.T) {
 
 	mock.ExpectQuery(query).WithArgs(questionID).WillReturnRows(rows)
 
-	question, err := questionRepo.FetchQuestionByTitleSlug(questionID)
+	question, err := questionRepo.FetchQuestionByTitleSlug(context.Background(), questionID)
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
@@ -186,7 +189,7 @@ func TestRemoveQuestionByID(t *testing.T) {
 		WithArgs(questionID).
 		WillReturnResult(sqlmock.NewResult(0, 1)) // 1 row affected
 
-	err := questionRepo.RemoveQuestionByID(questionID)
+	err := questionRepo.RemoveQuestionByID(context.Background(), questionID)
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
@@ -206,7 +209,7 @@ func TestRemoveQuestionByIDNotFound(t *testing.T) {
 		WithArgs(questionID).
 		WillReturnResult(sqlmock.NewResult(0, 0)) // no rows affected
 
-	err := questionRepo.RemoveQuestionByID(questionID)
+	err := questionRepo.RemoveQuestionByID(context.Background(), questionID)
 	if err == nil || !strings.Contains(err.Error(), "not found") {
 		t.Errorf("expected not found error, got %v", err)
 	}
@@ -220,7 +223,7 @@ func TestFetchQuestionByTitleSlugNoResult(t *testing.T) {
 		WithArgs(questionID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := questionRepo.FetchQuestionByTitleSlug(questionID)
+	_, err := questionRepo.FetchQuestionByTitleSlug(context.Background(), questionID)
 	if err == nil || !strings.Contains(err.Error(), "not found") {
 		t.Errorf("expected not found error, did not receive it")
 	}
@@ -236,12 +239,12 @@ func TestFetchAllQuestions(t *testing.T) {
 	mock.ExpectQuery(`SELECT id, title, difficulty, link, topic_tags, company_tags FROM questions`).
 		WillReturnRows(rows)
 
-	questions, err := questionRepo.FetchAllQuestions()
+	questions, err := questionRepo.FetchAllQuestions(context.Background())
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
-	if len(*questions) != 2 {
-		t.Errorf("expected 2 questions, got %d", len(*questions))
+	if len(questions) != 2 {
+		t.Errorf("expected 2 questions, got %d", len(questions))
 	}
 }
 
@@ -256,12 +259,12 @@ func TestFetchQuestionsByFilters(t *testing.T) {
 		WithArgs("Easy", pq.Array([]string{"tag1"}), "comp1").
 		WillReturnRows(rows)
 
-	questions, err := questionRepo.FetchQuestionsByFilters("Easy", "tag1", "comp1")
+	questions, err := questionRepo.FetchQuestionsByFilters(context.Background(), "Easy", "tag1", "comp1")
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
-	if len(*questions) != 2 {
-		t.Errorf("expected 2 questions, got %d", len(*questions))
+	if len(questions) != 2 {
+		t.Errorf("expected 2 questions, got %d", len(questions))
 	}
 }
 
@@ -271,7 +274,7 @@ func TestCountQuestions(t *testing.T) {
 	mock.ExpectQuery(`SELECT COUNT\(\*\) FROM questions`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5))
 
-	count, err := questionRepo.CountQuestions()
+	count, err := questionRepo.CountQuestions(context.Background())
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
@@ -287,7 +290,7 @@ func TestQuestionExistsByID(t *testing.T) {
 		WithArgs("1").
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
-	exists, err := questionRepo.QuestionExistsByID("1")
+	exists, err := questionRepo.QuestionExistsByID(context.Background(), "1")
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}
@@ -303,7 +306,7 @@ func TestQuestionExistsByTitleSlug(t *testing.T) {
 		WithArgs("test-slug").
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
-	exists, err := questionRepo.QuestionExistsByTitleSlug("test-slug")
+	exists, err := questionRepo.QuestionExistsByTitleSlug(context.Background(), "test-slug")
 	if err != nil {
 		t.Errorf("error was not expected: %s", err)
 	}

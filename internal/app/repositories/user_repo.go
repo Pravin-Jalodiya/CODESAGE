@@ -117,11 +117,12 @@ func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates
 }
 
 func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
+	fmt.Println(newSlugs)
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
-
+	fmt.Println("Problem here at line 125")
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
@@ -146,6 +147,7 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 				"columns": "user_id, title_slugs",
 				"values":  "$1, $2",
 			})
+
 			_, err = tx.ExecContext(ctx, insertQuery, userID, pq.Array(newSlugs))
 			if err != nil {
 				return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
@@ -155,6 +157,7 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 		return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
 	}
 
+	fmt.Println("Problem here at line 161")
 	existingSlugSet := make(map[string]struct{}, len(existingSlugs))
 	for _, slug := range existingSlugs {
 		existingSlugSet[slug] = struct{}{}

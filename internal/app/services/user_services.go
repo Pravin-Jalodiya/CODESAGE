@@ -298,6 +298,11 @@ func (s *UserService) GetUserLeetcodeStats(userID string) (*models.LeetcodeStats
 }
 
 func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (*models.CodesageStats, error) {
+	userUUID, _ := uuid.Parse(userID)
+	err := s.UpdateUserProgress(ctx, userUUID)
+	if err != nil {
+		return nil, err
+	}
 	userProgress, err := s.GetUserProgress(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to get user progress", err)
@@ -309,7 +314,7 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 		return nil, fmt.Errorf("%w: failed to get total questions count", err)
 	}
 
-	var easyDoneCount, mediumDoneCount, hardDoneCount int
+	var easyDoneCount, mediumDoneCount, hardDoneCount, easyTotalCount, mediumTotalCount, hardTotalCount int
 	topicWiseStats := make(map[string]int)
 	companyWiseStats := make(map[string]int)
 
@@ -337,12 +342,21 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 		}
 	}
 
+	easyQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "easy", "", "")
+	easyTotalCount = len(easyQuestions)
+
+	mediumQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "medium", "", "")
+	mediumTotalCount = len(mediumQuestions)
+
+	hardQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "hard", "", "")
+	hardTotalCount = len(hardQuestions)
+
 	stats := &models.CodesageStats{
 		TotalQuestionsCount:     totalQuestionsCount,
 		TotalQuestionsDoneCount: totalQuestionsDoneCount,
-		TotalEasyCount:          easyDoneCount,
-		TotalMediumCount:        mediumDoneCount,
-		TotalHardCount:          hardDoneCount,
+		TotalEasyCount:          easyTotalCount,
+		TotalMediumCount:        mediumTotalCount,
+		TotalHardCount:          hardTotalCount,
 		EasyDoneCount:           easyDoneCount,
 		MediumDoneCount:         mediumDoneCount,
 		HardDoneCount:           hardDoneCount,

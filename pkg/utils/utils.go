@@ -4,12 +4,14 @@ import (
 	"cli-project/internal/config"
 	"cli-project/pkg/logger"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -204,4 +206,15 @@ func ConvertToIST(t time.Time) string {
 
 func GenerateUUID() string {
 	return uuid.New().String()
+}
+
+// Helper to return unauthorized error response
+func Unauthorized(w http.ResponseWriter, message string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	jsonResponse := map[string]interface{}{
+		"error_code": code,
+		"message":    message,
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
 }
