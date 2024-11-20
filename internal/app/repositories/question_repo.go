@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"strconv"
 	"strings"
 )
 
@@ -199,7 +200,7 @@ func (r *questionRepo) FetchAllQuestions(ctx context.Context) ([]dto.Question, e
 	return questions, nil
 }
 
-func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {
+func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, topic, company, searchQuery string) ([]dto.Question, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -228,6 +229,25 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 	if company != "" && strings.ToLower(company) != "any" {
 		query += fmt.Sprintf(" AND $%d = ANY(company_tags::varchar[])", argIndex)
 		args = append(args, company)
+		argIndex++
+	}
+
+	if searchQuery != "" {
+		// Try to parse the search query as an integer for ID search
+		if id, err := strconv.Atoi(searchQuery); err == nil {
+			// If it's a valid integer, search by exact ID match
+			query += fmt.Sprintf(" AND (id = $%d", argIndex)
+			args = append(args, id)
+			argIndex++
+
+			// Also search in title for the original search query
+			query += fmt.Sprintf(" OR title ILIKE $%d)", argIndex)
+			args = append(args, "%"+searchQuery+"%")
+		} else {
+			// If it's not a valid integer, only search in title
+			query += fmt.Sprintf(" AND title ILIKE $%d", argIndex)
+			args = append(args, "%"+searchQuery+"%")
+		}
 		argIndex++
 	}
 

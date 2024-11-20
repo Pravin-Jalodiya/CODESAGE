@@ -342,13 +342,13 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 		}
 	}
 
-	easyQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "easy", "", "")
+	easyQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "easy", "", "", "")
 	easyTotalCount = len(easyQuestions)
 
-	mediumQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "medium", "", "")
+	mediumQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "medium", "", "", "")
 	mediumTotalCount = len(mediumQuestions)
 
-	hardQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "hard", "", "")
+	hardQuestions, _ := s.questionService.GetQuestionsByFilters(ctx, "hard", "", "", "")
 	hardTotalCount = len(hardQuestions)
 
 	stats := &models.CodesageStats{

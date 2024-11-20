@@ -93,6 +93,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	difficulty := r.URL.Query().Get("difficulty")
 	company := r.URL.Query().Get("company")
 	topic := r.URL.Query().Get("topic")
+	searchQuery := r.URL.Query().Get("search") // New parameter for search
 
 	var limit, offset int
 	var err error
@@ -128,7 +129,7 @@ func (q *QuestionHandler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, topic, company)
+	questions, err := q.questionService.GetQuestionsByFilters(ctx, difficulty, topic, company, searchQuery)
 	if err != nil {
 		errs.JSONError(w, "Error fetching questions: "+err.Error(), errs.CodeDbError)
 		logger.Logger.Errorw("Error fetching questions", "method", r.Method, "error", err, "time", time.Now())

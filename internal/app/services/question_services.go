@@ -166,7 +166,7 @@ func (s *QuestionService) GetAllQuestions(ctx context.Context) ([]dto.Question, 
 	return questions, nil
 }
 
-func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company string) ([]dto.Question, error) {
+func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty, topic, company, searchQuery string) ([]dto.Question, error) {
 	var validDifficulty string
 	var err error
 
@@ -179,8 +179,9 @@ func (s *QuestionService) GetQuestionsByFilters(ctx context.Context, difficulty,
 
 	cleanCompany := utils.CleanString(company)
 	cleanTopic := utils.CleanString(topic)
+	cleanSearch := utils.CleanString(searchQuery)
 
-	questions, err := s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany)
+	questions, err := s.questionRepo.FetchQuestionsByFilters(ctx, validDifficulty, cleanTopic, cleanCompany, cleanSearch)
 	if err != nil {
 		return []dto.Question{}, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
