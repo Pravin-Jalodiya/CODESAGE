@@ -8,4 +8,5 @@ type LeetcodeAPI interface {
 	FetchData(query string, variables map[string]interface{}) (map[string]interface{}, error)
 	FetchUserStats(username string) (*models.LeetcodeStats, error)
 	FetchRecentSubmissions(username string, limit int) ([]map[string]string, error)
+	GetUserAvatar(LeetcodeID string) (string, error)
 }

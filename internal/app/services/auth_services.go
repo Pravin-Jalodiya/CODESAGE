@@ -70,6 +70,14 @@ func (s *AuthService) Signup(ctx context.Context, user *models.StandardUser) err
 		return fmt.Errorf("%w: %v", errs.ErrLeetcodeIDAlreadyExists, user.LeetcodeID)
 	}
 
+	// Get user's leetcode profile picture
+	avatar, _ := s.LeetcodeAPI.GetUserAvatar(user.LeetcodeID)
+	if avatar != "" {
+		user.Avatar = avatar
+	} else {
+		user.Avatar = "https://assets.leetcode.com/users/default_avatar.jpg"
+	}
+
 	hashedPassword, err := HashString(user.Password)
 	if err != nil {
 		return fmt.Errorf("%w: could not hash password", errs.ErrInternalServerError)

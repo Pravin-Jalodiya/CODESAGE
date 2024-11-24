@@ -15,7 +15,7 @@ var (
 	DB_PORT                 = "5432"
 	SECRET_KEY              = []byte("secret-key")
 	PORT                    = ":8080"
-	//LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
-	CSV_DIR  = "C:\\go workspace\\CODESAGE\\csv"
-	LOG_FILE = "C:\\go workspace\\CODESAGE\\logs.log"
+	LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
+	//CSV_DIR  = "C:\\go workspace\\CODESAGE\\csv"
+	//LOG_FILE = "C:\\go workspace\\CODESAGE\\logs.log"
 )

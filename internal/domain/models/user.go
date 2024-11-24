@@ -12,6 +12,7 @@ type User struct {
 	Organisation string `json:"organisation"`
 	Country      string `json:"country"`
 	IsBanned     bool   `json:"is_banned"`
+	Avatar       string `json:"avatar"`
 }
 
 type Admin struct {

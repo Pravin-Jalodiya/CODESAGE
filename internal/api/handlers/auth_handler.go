@@ -113,7 +113,7 @@ func (a *AuthHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		} else if errors.Is(err, errs.ErrLeetcodeUsernameInvalid) {
 			errs.NewAppError(errs.CodeValidationError, "Invalid leetcode id").ToJSON(w)
 		} else {
-			errs.NewAppError(errs.CodeUnexpectedError, "Signup failed").ToJSON(w)
+			errs.NewAppError(errs.CodeUnexpectedError, "Unexpected Error: Signup failed").ToJSON(w)
 		}
 		logger.Logger.Errorw("Signup failed", "method", r.Method, "error", err, "time", time.Now())
 		return
@@ -165,7 +165,7 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		} else if errors.Is(err, errs.ErrUserNotFound) {
 			errs.NewAppError(errs.CodeInvalidRequest, "User not found").ToJSON(w)
 		} else {
-			errs.NewAppError(errs.CodeUnexpectedError, "Login failed").ToJSON(w)
+			errs.NewAppError(errs.CodeUnexpectedError, "Unexpected Error: Login failed").ToJSON(w)
 		}
 		logger.Logger.Errorw("Authentication failed", "method", r.Method, "error", err, "username", requestBody.Username, "time", time.Now())
 		return
@@ -173,7 +173,7 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := utils.CreateJwtToken(user.Username, user.ID, user.Role, user.IsBanned)
 	if err != nil {
-		errs.NewAppError(errs.CodeUnexpectedError, "Failed to generate token").ToJSON(w)
+		errs.NewAppError(errs.CodeUnexpectedError, "Unexpected Error: Login failed").ToJSON(w)
 		logger.Logger.Errorw("Failed to generate token", "method", r.Method, "username", requestBody.Username, "error", err, "time", time.Now())
 		return
 	}
@@ -196,7 +196,7 @@ func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 func (a *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	err := a.authService.Logout(r.Context())
 	if err != nil {
-		errs.NewAppError(errs.CodeUnexpectedError, err.Error()).ToJSON(w)
+		errs.NewAppError(errs.CodeUnexpectedError, "Something went wrong").ToJSON(w)
 		logger.Logger.Errorw("Logout failed", "method", r.Method, "error", err, "time", time.Now())
 		return
 	}
@@ -219,6 +219,6 @@ func (a *AuthHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 	role := userMetaData.Role.String()
 
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]any{"role": role, "code": http.StatusOK, "message": "Request successful"}
+	jsonResponse := map[string]any{"role": role, "code": http.StatusOK, "message": "Fetched role successfully"}
 	json.NewEncoder(w).Encode(jsonResponse)
 }

@@ -50,7 +50,7 @@ func ValidateCountryName(country string) (bool, error) {
 	country = strings.ToLower(country)
 	country = strings.ReplaceAll(country, " ", "")
 	if _, exists := validCountries[country]; !exists {
-		return false, errors.New("invalid country name")
+		return false, errors.New("Invalid country name")
 	}
 	return true, nil
 }
@@ -102,14 +102,14 @@ func ValidateName(name string) bool {
 func ValidateOrganizationName(orgName string) (bool, error) {
 
 	if len(orgName) <= 1 || len(orgName) > 40 {
-		return false, errors.New("invalid organization name : name must be between 2 and 40 characters")
+		return false, errors.New("Invalid organization name : name must be between 2 and 40 characters")
 	}
 	// Regex to allow only letters and spaces
 	const orgNameRegex = `^[a-zA-Z\s]+$`
 	match, _ := regexp.MatchString(orgNameRegex, orgName)
 
 	if !match {
-		return false, errors.New("invalid organization name : only letters and spaces are allowed")
+		return false, errors.New("Invalid organization name : only letters and spaces are allowed")
 	}
 
 	return true, nil

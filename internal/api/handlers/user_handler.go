@@ -25,6 +25,7 @@ type UserResponse struct {
 	LeetcodeID   string `json:"leetcodeId"`
 	Organisation string `json:"organisation"`
 	Country      string `json:"country"`
+	Avatar       string `json:"avatar"`
 }
 
 type UserProgressResponse struct {
@@ -51,7 +52,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
 	if !ok {
 		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
-		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
+		errs.JSONError(w, "User verification failed", errs.CodeInvalidRequest)
 		return
 	}
 
@@ -82,6 +83,7 @@ func (u *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		LeetcodeID:   user.LeetcodeID,
 		Organisation: user.Organisation,
 		Country:      user.Country,
+		Avatar:       user.Avatar,
 	}
 
 	response := struct {

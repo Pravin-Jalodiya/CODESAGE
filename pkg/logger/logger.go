@@ -41,7 +41,7 @@ func init() {
 
 	// Define level enablers
 	consoleLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl == zapcore.InfoLevel // Console shows Warn and above
+		return lvl == zapcore.ErrorLevel // Console shows Warn and above
 	})
 
 	fileLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {

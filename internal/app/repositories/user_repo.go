@@ -34,8 +34,8 @@ func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) er
 
 	query := queries.QueryBuilder(queries.BaseInsert, map[string]string{
 		"table":   "Users",
-		"columns": "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
-		"values":  "$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11",
+		"columns": "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned, avatar",
+		"values":  "$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12",
 	})
 
 	_, err = db.ExecContext(ctx, query,
@@ -50,6 +50,7 @@ func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) er
 		user.Country,
 		user.LeetcodeID,
 		user.IsBanned,
+		user.Avatar,
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrUserCreationFailed, err)
@@ -122,7 +123,6 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
-	fmt.Println("Problem here at line 125")
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
@@ -157,7 +157,6 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 		return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
 	}
 
-	fmt.Println("Problem here at line 161")
 	existingSlugSet := make(map[string]struct{}, len(existingSlugs))
 	for _, slug := range existingSlugs {
 		existingSlugSet[slug] = struct{}{}
@@ -242,7 +241,7 @@ func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.St
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
-		"columns":    "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
+		"columns":    "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned, avatar",
 		"table":      "Users",
 		"conditions": "id = $1",
 	})
@@ -262,6 +261,7 @@ func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.St
 		&user.Country,
 		&user.LeetcodeID,
 		&user.IsBanned,
+		&user.Avatar,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

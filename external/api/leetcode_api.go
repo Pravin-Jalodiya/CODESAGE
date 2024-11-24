@@ -122,7 +122,7 @@ func (api *LeetcodeAPI) FetchUserStats(username string) (*models.LeetcodeStats, 
 	return stats, nil
 }
 
-// Fetch recent accepted submissions
+// FetchRecentSubmissions fetches recent accepted submissions
 func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]map[string]string, error) {
 	recentSubmissionsQuery := `
 	query recentAcSubmissions($username: String!, $limit: Int!) {
@@ -137,7 +137,6 @@ func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]ma
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(submissionsData)
 	var submissions []map[string]string
 	if recentSubmissions, ok := submissionsData["recentAcSubmissionList"].([]interface{}); ok {
 		for _, item := range recentSubmissions {
@@ -156,7 +155,6 @@ func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]ma
 			}
 		}
 	}
-	fmt.Println(submissions)
 	return submissions, nil
 }
 
@@ -228,7 +226,6 @@ func (api *LeetcodeAPI) ValidateLeetcodeUsername(username string) (bool, error) 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("could not close response body")
 			return
 		}
 	}(resp.Body)
@@ -252,4 +249,58 @@ func (api *LeetcodeAPI) ValidateLeetcodeUsername(username string) (bool, error) 
 	}
 
 	return matchedUser["username"] == username, nil
+}
+
+func (api *LeetcodeAPI) GetUserAvatar(username string) (string, error) {
+	const userAvatarQuery = `
+	query getUserProfile($username: String!) {
+		matchedUser(username: $username) {
+			profile {
+				userAvatar
+			}
+		}
+	}
+`
+	query := userAvatarQuery
+	requestBody := map[string]interface{}{
+		"query": query,
+		"variables": map[string]string{
+			"username": username,
+		},
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("Could not marshal request body: %v", err)
+	}
+
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return "", fmt.Errorf("Request failed: %v", err)
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("Could not decode response: %v", err)
+	}
+
+	data, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("Invalid response format")
+	}
+	matchedUser, ok := data["matchedUser"].(map[string]interface{})
+	if !ok || matchedUser == nil {
+		return "", nil // User does not exist
+	}
+	return matchedUser["profile"].(map[string]interface{})["userAvatar"].(string), nil
 }
