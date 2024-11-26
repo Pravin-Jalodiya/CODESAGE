@@ -9,10 +9,10 @@ import (
 )
 
 type UserService interface {
-	GetAllUsers(ctx context.Context) ([]dto.StandardUser, error)
+	GetAllUsers(ctx context.Context, userStatus string, searchQuery string) ([]dto.StandardUser, error)
 	ViewDashboard(ctx context.Context) error
 	UpdateUserProgress(ctx context.Context, userID uuid.UUID) error
-	GetUserProgress(ctx context.Context, userID string) (*[]string, error)
+	GetUserProgress(ctx context.Context, userID string) ([]string, error)
 	CountActiveUserInLast24Hours(ctx context.Context) (int, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.StandardUser, error)
 	GetUserByID(ctx context.Context, userID string) (*models.StandardUser, error)

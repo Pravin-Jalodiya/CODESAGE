@@ -37,8 +37,8 @@ func NewUserService(
 	}
 }
 
-func (s *UserService) GetAllUsers(ctx context.Context) ([]dto.StandardUser, error) {
-	users, err := s.userRepo.FetchAllUsers(ctx)
+func (s *UserService) GetAllUsers(ctx context.Context, userStatus string, searchQuery string) ([]dto.StandardUser, error) {
+	users, err := s.userRepo.FetchAllUsers(ctx, userStatus, searchQuery)
 
 	var dtoUsers []dto.StandardUser
 
@@ -158,9 +158,9 @@ func (s *UserService) GetUserRole(ctx context.Context, userID string) (roles.Rol
 	return role, nil
 }
 
-func (s *UserService) GetUserProgress(ctx context.Context, userID string) (*[]string, error) {
+func (s *UserService) GetUserProgress(ctx context.Context, userID string) ([]string, error) {
 	progress, err := s.userRepo.FetchUserProgress(ctx, userID)
-	if err != nil {
+	if err != nil && progress == nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDbError, err)
 	}
 	return progress, nil
@@ -308,7 +308,7 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 		return nil, fmt.Errorf("%w: failed to get user progress", err)
 	}
 
-	totalQuestionsDoneCount := len(*userProgress)
+	totalQuestionsDoneCount := len(userProgress)
 	totalQuestionsCount, err := s.questionService.GetTotalQuestionsCount(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to get total questions count", err)
@@ -318,7 +318,7 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 	topicWiseStats := make(map[string]int)
 	companyWiseStats := make(map[string]int)
 
-	for _, titleSlug := range *userProgress {
+	for _, titleSlug := range userProgress {
 		question, err := s.questionService.GetQuestionByID(ctx, titleSlug)
 		if err != nil {
 			return nil, fmt.Errorf("%w: failed to get question details for %s", err, titleSlug)

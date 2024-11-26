@@ -35,6 +35,12 @@ type UserProgressResponse struct {
 	CodesageStats *models.CodesageStats `json:"codesageStats"`
 }
 
+type UserProgressListResponse struct {
+	Code         int      `json:"code"`
+	Message      string   `json:"message"`
+	ProgressList []string `json:"progress_list"`
+}
+
 // UserHandler handles user-related requests.
 type UserHandler struct {
 	userService interfaces.UserService
@@ -350,6 +356,8 @@ func (u *UserHandler) UpdateUserProgress(w http.ResponseWriter, r *http.Request)
 func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
+	userStatus := r.URL.Query().Get("userStatus")
+	searchQuery := r.URL.Query().Get("searchQuery")
 
 	var limit int
 	var err error
@@ -372,12 +380,23 @@ func (u *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if userStatus != "" {
+		ok, err := validation.ValidateUserStatus(userStatus)
+		if !ok && err != nil {
+			errs.NewAppError(errs.CodeInvalidRequest, err.Error()).ToJSON(w)
+			return
+		}
+	}
+
+	userStatus = utils.CleanString(userStatus)
+	searchQuery = utils.CleanString(searchQuery)
+
 	ctx := r.Context()
 
-	users, err := u.userService.GetAllUsers(ctx)
+	users, err := u.userService.GetAllUsers(ctx, userStatus, searchQuery)
 	if err != nil {
-		logger.Logger.Errorw("Failed to fetch all users", "method", r.Method, "error", err, "time", time.Now())
-		errs.JSONError(w, err.Error(), errs.CodeDbError)
+		logger.Logger.Errorw(err.Error(), "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "failed to fetch users", errs.CodeDbError)
 		return
 	}
 
@@ -519,5 +538,48 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
 		errs.JSONError(w, "Failed to encode response", errs.CodeUnexpectedError)
+	}
+}
+
+func (u *UserHandler) GetProgressList(w http.ResponseWriter, r *http.Request) {
+	userMetaData, ok := r.Context().Value("userMetaData").(middleware.UserMetaData)
+	if !ok {
+		logger.Logger.Errorw("Could not retrieve user metadata", "method", r.Method, "time", time.Now())
+		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
+		return
+	}
+
+	//vars := mux.Vars(r)
+	//username := utils.CleanString(vars["username"])
+
+	//if userMetaData.Username != username {
+	//	logger.Logger.Errorw("Unauthorized access", "method", r.Method, "user", username, "time", time.Now())
+	//	errs.JSONError(w, "Unauthorized access", errs.CodePermissionDenied)
+	//	return
+	//}
+
+	ctx := r.Context()
+	progressList, err := u.userService.GetUserProgress(ctx, userMetaData.UserId.String())
+	if err != nil && progressList == nil {
+		logger.Logger.Errorw(err.Error(), "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, "Error fetching progress list", errs.CodeDbError)
+		return
+	}
+
+	progressListResponse := UserProgressListResponse{
+		Code:    http.StatusOK,
+		Message: "Fetched user progress list successfully",
+		ProgressList: func() []string {
+			if progressList == nil {
+				return []string{}
+			}
+			return progressList
+		}(),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(progressListResponse); err != nil {
+		logger.Logger.Errorw("Failed to encode response", "method", r.Method, "error", err, "time", time.Now())
+		errs.JSONError(w, err.Error(), errs.CodeUnexpectedError)
 	}
 }

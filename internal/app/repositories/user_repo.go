@@ -184,7 +184,7 @@ func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, new
 	return tx.Commit()
 }
 
-func (r *userRepo) FetchAllUsers(ctx context.Context) ([]models.StandardUser, error) {
+func (r *userRepo) FetchAllUsers(ctx context.Context, userStatus string, searchQuery string) ([]models.StandardUser, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -193,9 +193,24 @@ func (r *userRepo) FetchAllUsers(ctx context.Context) ([]models.StandardUser, er
 	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
 		"columns": "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
 		"table":   "Users",
-	})
+	}) + " WHERE TRUE"
 
-	rows, err := db.QueryContext(ctx, query)
+	var args []interface{}
+	argIndex := 1
+
+	if userStatus != "" {
+		query += fmt.Sprintf(" AND is_banned = $%d", argIndex)
+		args = append(args, userStatus)
+		argIndex++
+	}
+
+	if searchQuery != "" {
+		query += fmt.Sprintf(" AND username ILIKE $%d", argIndex)
+		args = append(args, "%"+searchQuery+"%")
+		argIndex++
+	}
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
 	}
@@ -311,7 +326,7 @@ func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*m
 	return &user, nil
 }
 
-func (r *userRepo) FetchUserProgress(ctx context.Context, userID string) (*[]string, error) {
+func (r *userRepo) FetchUserProgress(ctx context.Context, userID string) ([]string, error) {
 	db, err := r.getDBConnection()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
@@ -326,16 +341,17 @@ func (r *userRepo) FetchUserProgress(ctx context.Context, userID string) (*[]str
 	row := db.QueryRowContext(ctx, query, userID)
 
 	var titleSlugs pq.StringArray
+	var emptyList []string
 	err = row.Scan(&titleSlugs)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+			return emptyList, nil
 		}
 		return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
 	}
 
 	titleSlugList := []string(titleSlugs)
-	return &titleSlugList, nil
+	return titleSlugList, nil
 }
 
 func (r *userRepo) UpdateUserDetails(ctx context.Context, user *models.StandardUser) error {

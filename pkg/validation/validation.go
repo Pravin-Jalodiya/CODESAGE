@@ -239,3 +239,16 @@ func ValidateQuestionID(questionID string) (bool, error) {
 	}
 	return true, nil
 }
+
+func ValidateUserStatus(status string) (bool, error) {
+
+	status = strings.ToLower(strings.TrimSpace(status))
+
+	if status == "true" {
+		return true, nil
+	} else if status == "false" {
+		return false, nil
+	}
+
+	return false, errors.New("invalid status: must be 'true' or 'false'")
+}

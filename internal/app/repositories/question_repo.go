@@ -207,7 +207,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 	}
 
 	query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
-		"columns": "id, title, difficulty, link, topic_tags, company_tags",
+		"columns": "title_slug, id, title, difficulty, link, topic_tags, company_tags",
 		"table":   "questions",
 	}) + " WHERE TRUE"
 
@@ -261,6 +261,7 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 
 	for rows.Next() {
 		var (
+			title_slug  string
 			id          string
 			title       string
 			difficulty  string
@@ -269,18 +270,19 @@ func (r *questionRepo) FetchQuestionsByFilters(ctx context.Context, difficulty, 
 			companyTags []string
 		)
 
-		err = rows.Scan(&id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
+		err = rows.Scan(&title_slug, &id, &title, &difficulty, &link, pq.Array(&topicTags), pq.Array(&companyTags))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errs.ErrQueryExecution, err)
 		}
 
 		questions = append(questions, dto.Question{
-			QuestionID:    id,
-			QuestionTitle: title,
-			Difficulty:    difficulty,
-			QuestionLink:  link,
-			TopicTags:     topicTags,
-			CompanyTags:   companyTags,
+			QuestionTitleSlug: title_slug,
+			QuestionID:        id,
+			QuestionTitle:     title,
+			Difficulty:        difficulty,
+			QuestionLink:      link,
+			TopicTags:         topicTags,
+			CompanyTags:       companyTags,
 		})
 	}
 
