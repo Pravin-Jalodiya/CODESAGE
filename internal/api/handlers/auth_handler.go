@@ -222,3 +222,66 @@ func (a *AuthHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 	jsonResponse := map[string]any{"role": role, "code": http.StatusOK, "message": "Fetched role successfully"}
 	json.NewEncoder(w).Encode(jsonResponse)
 }
+
+func (a *AuthHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody struct {
+		Email string `json:"email" validate:"required"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		errs.NewAppError(errs.CodeInvalidRequest, "Invalid request body").ToJSON(w)
+		logger.Logger.Errorw("Error decoding request body", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	go func() {
+		err := a.authService.GenerateAndSendOtp(requestBody.Email)
+		if err != nil {
+			logger.Logger.Errorw("Failed to generate and send OTP", "email", requestBody.Email, "error", err, "time", time.Now())
+		}
+	}()
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]any{
+		"code":    http.StatusOK,
+		"message": "If this email exists, an OTP will be been sent",
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("OTP sent successfully", "method", r.Method, "time", time.Now())
+}
+
+func (a *AuthHandler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody struct {
+		Email    string `json:"email" validate:"required"`
+		Password string `json:"password" validate:"required"`
+		Otp      string `json:"otp" validate:"required"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		errs.NewAppError(errs.CodeInvalidRequest, "Invalid request body").ToJSON(w)
+		logger.Logger.Errorw("Error decoding request body", "method", r.Method, "error", err, "time", time.Now())
+		return
+	}
+
+	isValid := utils.ValidateOTP(requestBody.Email, requestBody.Otp)
+	if !isValid {
+		errs.NewAppError(errs.CodeInvalidRequest, "Invalid Email or OTP").ToJSON(w)
+		logger.Logger.Errorw("Invalid OTP or email", "method", r.Method, "email", requestBody.Email, "time", time.Now())
+		return
+	}
+
+	err = a.authService.UpdateUserPassword(r.Context(), requestBody.Email, requestBody.Password)
+	if err != nil {
+		errs.NewAppError(errs.CodeUnexpectedError, "Could not reset password. Please try again").ToJSON(w)
+		logger.Logger.Errorw("Error resetting password", "method", r.Method, "email", requestBody.Email, "error", err, "time", time.Now())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]any{
+		"code":    http.StatusOK,
+		"message": "Password Reset Successful",
+	}
+	json.NewEncoder(w).Encode(jsonResponse)
+	logger.Logger.Infow("Password changed successfully", "method", r.Method, "time", time.Now())
+}

@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// Initialize Auth Service
-	authService := services.NewAuthService(userRepo, LeetcodeAPI)
+	authService := services.NewAuthService(userRepo, userService, LeetcodeAPI)
 	if authService == nil {
 		log.Fatal("Failed to initialize AuthService")
 	}

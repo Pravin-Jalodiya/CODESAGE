@@ -151,7 +151,7 @@ func CreateJwtToken(username string, userId string, role string, banState bool) 
 		"userId":   userId,
 		"role":     role,
 		"banState": banState,
-		"exp":      time.Now().Add(5 * time.Minute).Unix(), // Token expiry time (1 minute)
+		"exp":      time.Now().Add(30 * time.Minute).Unix(),
 	}
 
 	// Create a new JWT token with claims

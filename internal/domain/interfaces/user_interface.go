@@ -22,4 +22,6 @@ type UserRepository interface {
 	IsEmailUnique(ctx context.Context, email string) (bool, error)
 	IsLeetcodeIDUnique(ctx context.Context, leetcodeID string) (bool, error)
 	UpdateUserProfile(ctx context.Context, userID string, updates map[string]interface{}) error
+	UpdateUserPassword(ctx context.Context, email string, newPassword string) error
+	FetchUserByEmail(ctx context.Context, email string) (*models.StandardUser, error)
 }

@@ -16,6 +16,7 @@ var (
 	SECRET_KEY              = []byte("secret-key")
 	PORT                    = ":8080"
 	LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
+	APP_PASSWORD            = "dieovsornzcruocx"
 	//CSV_DIR  = "C:\\go workspace\\CODESAGE\\csv"
 	//LOG_FILE = "C:\\go workspace\\CODESAGE\\logs.log"
 )

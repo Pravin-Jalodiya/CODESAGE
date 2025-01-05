@@ -25,4 +25,5 @@ type UserService interface {
 	GetPlatformStats(ctx context.Context) (*models.PlatformStats, error)
 	DeleteUser(ctx context.Context, username string) error
 	UpdateUser(ctx context.Context, userID string, updates map[string]interface{}) error
+	GetUserByEmail(ctx context.Context, email string) (*models.StandardUser, error)
 }

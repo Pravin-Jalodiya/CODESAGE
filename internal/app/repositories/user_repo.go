@@ -94,7 +94,6 @@ func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
 	}
-	// This is a rough example, you may need to adapt this query to your needs, or use an ORM like GORM or Ent
 	updateFields := []string{}
 	args := []interface{}{}
 	argID := 1
@@ -301,6 +300,44 @@ func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*m
 	})
 
 	row := db.QueryRowContext(ctx, query, username)
+
+	var user models.StandardUser
+	err = row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Name,
+		&user.Email,
+		&user.Role,
+		&user.LastSeen,
+		&user.Organisation,
+		&user.Country,
+		&user.LeetcodeID,
+		&user.IsBanned,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+		}
+		return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+	}
+
+	return &user, nil
+}
+
+func (r *userRepo) FetchUserByEmail(ctx context.Context, email string) (*models.StandardUser, error) {
+	db, err := r.getDBConnection()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+		"columns":    "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
+		"table":      "Users",
+		"conditions": "email = $1",
+	})
+
+	row := db.QueryRowContext(ctx, query, email)
 
 	var user models.StandardUser
 	err = row.Scan(
@@ -547,4 +584,20 @@ func (r *userRepo) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (b
 	}
 
 	return count == 0, nil
+}
+
+func (r *userRepo) UpdateUserPassword(ctx context.Context, email string, newPassword string) error {
+	db, err := r.getDBConnection()
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	// Define query and arguments for updating the user's password
+	query := "UPDATE users SET password = $1 WHERE email = $2"
+	_, err = db.ExecContext(ctx, query, newPassword, email)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+	}
+
+	return nil
 }

@@ -13,4 +13,6 @@ type AuthService interface {
 	IsUsernameUnique(ctx context.Context, username string) (bool, error)
 	IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error)
 	ValidateLeetcodeUsername(username string) (bool, error)
+	UpdateUserPassword(ctx context.Context, email string, password string) error
+	GenerateAndSendOtp(email string) error
 }

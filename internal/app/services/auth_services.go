@@ -6,6 +6,7 @@ import (
 	"cli-project/internal/domain/models"
 	"cli-project/pkg/errors"
 	"cli-project/pkg/globals"
+	"cli-project/pkg/logger"
 	"cli-project/pkg/utils"
 	"context"
 	"errors"
@@ -16,13 +17,17 @@ import (
 
 type AuthService struct {
 	userRepo    interfaces.UserRepository
+	userService interfaces.UserService
 	LeetcodeAPI interfaces2.LeetcodeAPI
+	emailConfig *utils.EmailConfig
 }
 
-func NewAuthService(userRepo interfaces.UserRepository, LeetcodeAPI interfaces2.LeetcodeAPI) interfaces.AuthService {
+func NewAuthService(userRepo interfaces.UserRepository, userService interfaces.UserService, LeetcodeAPI interfaces2.LeetcodeAPI) interfaces.AuthService {
 	return &AuthService{
 		userRepo:    userRepo,
+		userService: userService,
 		LeetcodeAPI: LeetcodeAPI,
+		emailConfig: utils.NewEmailConfig(),
 	}
 }
 
@@ -161,4 +166,71 @@ func (s *AuthService) ValidateLeetcodeUsername(username string) (bool, error) {
 		return false, fmt.Errorf("%w: %v", errs.ErrExternalAPI, err)
 	}
 	return valid, nil
+}
+
+//func (a *AuthService) GenerateAndSendOtp(email string) error {
+//	user, err := a.userService.GetUserByEmail(context.TODO(), email)
+//	if user != nil {
+//		otp, _ := utils.GenerateOTP()
+//		utils.SaveOTP(email, otp)
+//		err := utils.SendOTPEmail(email, otp)
+//		if err != nil {
+//			logger.Logger.Errorw("Unable to send forgot password mail to the email", "email", email, "err", err)
+//			return err
+//		}
+//		return nil
+//	}
+//	return err
+//}
+
+// GenerateAndSendOtp handles OTP generation and sending
+func (a *AuthService) GenerateAndSendOtp(email string) error {
+	// Input validation
+	if email == "" {
+		return fmt.Errorf("email address is required")
+	}
+
+	// Check if user exists
+	user, err := a.userService.GetUserByEmail(context.TODO(), email)
+	if err != nil {
+		logger.Logger.Errorw("Failed to fetch user", "email", email, "error", err)
+		return fmt.Errorf("failed to process request")
+	}
+
+	if user == nil {
+		logger.Logger.Warnw("No user found with email", "email", email)
+		return fmt.Errorf("invalid email address")
+	}
+
+	// Generate OTP
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		logger.Logger.Errorw("Failed to generate OTP", "email", email, "error", err)
+		return fmt.Errorf("failed to generate verification code")
+	}
+
+	// Save OTP
+	utils.SaveOTP(email, otp)
+
+	// Send OTP email using new email system
+	if err := a.emailConfig.SendOTPEmail(email, otp); err != nil {
+		logger.Logger.Errorw("Failed to send OTP email",
+			"email", email,
+			"error", err,
+			"userId", user.ID,
+		)
+		return fmt.Errorf("failed to send verification code")
+	}
+
+	logger.Logger.Infow("Successfully sent OTP",
+		"email", email,
+		"userId", user.ID,
+	)
+
+	return nil
+}
+
+func (a *AuthService) UpdateUserPassword(ctx context.Context, email string, password string) error {
+	hashedPassword, _ := utils.HashString(password)
+	return a.userRepo.UpdateUserPassword(ctx, email, hashedPassword)
 }

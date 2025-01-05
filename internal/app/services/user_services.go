@@ -126,6 +126,19 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 	return user, nil
 }
 
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models.StandardUser, error) {
+	if email == "" {
+		return nil, fmt.Errorf("%w: email is empty", errs.ErrInvalidParameterError)
+	}
+
+	email = utils.CleanString(email)
+	user, err := s.userRepo.FetchUserByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+	}
+	return user, nil
+}
+
 func (s *UserService) GetUserByID(ctx context.Context, userID string) (*models.StandardUser, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("%w: user ID is empty", errs.ErrInvalidParameterError)
@@ -265,6 +278,14 @@ func (s *UserService) UpdateUser(ctx context.Context, userID string, updates map
 		}
 	}
 
+	if password, ok := updates["password"].(string); ok {
+		hashedPassword, err := utils.HashString(password)
+		if err != nil {
+			return err
+		}
+		updates["password"] = hashedPassword
+	}
+
 	err := s.userRepo.UpdateUserProfile(ctx, userID, updates)
 	if err != nil {
 		return err
@@ -321,7 +342,8 @@ func (s *UserService) GetUserCodesageStats(ctx context.Context, userID string) (
 	for _, titleSlug := range userProgress {
 		question, err := s.questionService.GetQuestionByID(ctx, titleSlug)
 		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get question details for %s", err, titleSlug)
+			return nil, fmt.Errorf("%w: tt"+
+				" failed to get question details for %s", err, titleSlug)
 		}
 
 		switch question.Difficulty {

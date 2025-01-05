@@ -297,11 +297,11 @@ func (u *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) 
 	err := u.userService.UpdateUser(r.Context(), userMetaData.UserId.String(), updates)
 	if err != nil {
 		if errors.Is(err, errs.ErrDbError) {
-			logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
+			logger.Logger.Errorw("Failed to update user"+err.Error(), "method", r.Method, "error", err, "time", time.Now())
 			errs.JSONError(w, "Failed to update user: Database error", errs.CodeDbError)
 		} else {
-			logger.Logger.Errorw("Failed to update user", "method", r.Method, "error", err, "time", time.Now())
-			errs.JSONError(w, "Failed to update user: "+err.Error(), errs.CodeInvalidRequest)
+			logger.Logger.Errorw("Failed to update user: "+err.Error(), "method", r.Method, "error", err, "time", time.Now())
+			errs.JSONError(w, "Failed to update user", errs.CodeInvalidRequest)
 		}
 		return
 	}
@@ -548,15 +548,6 @@ func (u *UserHandler) GetProgressList(w http.ResponseWriter, r *http.Request) {
 		errs.JSONError(w, "Could not retrieve user metadata", errs.CodeInvalidRequest)
 		return
 	}
-
-	//vars := mux.Vars(r)
-	//username := utils.CleanString(vars["username"])
-
-	//if userMetaData.Username != username {
-	//	logger.Logger.Errorw("Unauthorized access", "method", r.Method, "user", username, "time", time.Now())
-	//	errs.JSONError(w, "Unauthorized access", errs.CodePermissionDenied)
-	//	return
-	//}
 
 	ctx := r.Context()
 	progressList, err := u.userService.GetUserProgress(ctx, userMetaData.UserId.String())
