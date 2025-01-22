@@ -17,6 +17,9 @@ var (
 	PORT                    = ":8080"
 	LOG_FILE                = "/Users/pravin/Desktop/CODESAGE/logs.log"
 	APP_PASSWORD            = "dieovsornzcruocx"
+	APP_EMAIL               = "codesageofficialindia@gmail.com"
+	COMPANY_NAME            = "Codesage"
+	EMAIL_PORT              = "587"
 	//CSV_DIR  = "C:\\go workspace\\CODESAGE\\csv"
 	//LOG_FILE = "C:\\go workspace\\CODESAGE\\logs.log"
 )

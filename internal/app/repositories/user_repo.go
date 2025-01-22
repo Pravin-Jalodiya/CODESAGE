@@ -117,7 +117,6 @@ func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates
 }
 
 func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
-	fmt.Println(newSlugs)
 	db, err := r.getDBConnection()
 	if err != nil {
 		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
