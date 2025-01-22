@@ -7,21 +7,26 @@ import (
 )
 
 func TestValidateEmail(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected bool
+	cases := []struct {
+		email       string
+		isValid     bool
+		isReputable bool
+		description string
 	}{
-		{"Valid email with reputable domain", "example@gmail.com", true},
-		{"Valid email with reputable domain", "example@yahoo.com", true},
-		{"Invalid email format", "invalid_email", false},
+		{"test@gmail.com", true, true, "Valid reputable email"},
+		{"test@unknown.com", true, false, "Valid non-reputable email"},
+		{"invalidemail@", false, false, "Email without domain"},
+		{"@gmail.com", false, false, "Email without local part"},
+		{"invalidemail", false, false, "Email without @ symbol"},
+		{"", false, false, "Empty email"},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, _ := validation.ValidateEmail(tt.input)
-			if result != tt.expected {
-				t.Errorf("ValidateEmail(%q) = %v, expected %v", tt.input, result, tt.expected)
+	for _, c := range cases {
+		t.Run(c.description, func(t *testing.T) {
+			isValid, isReputable := validation.ValidateEmail(c.email)
+			if isValid != c.isValid || isReputable != c.isReputable {
+				t.Errorf("Expected (%v, %v) for email %s, but got (%v, %v)",
+					c.isValid, c.isReputable, c.email, isValid, isReputable)
 			}
 		})
 	}
@@ -48,22 +53,22 @@ func TestValidateCountryName(t *testing.T) {
 }
 
 func TestValidateName(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected bool
+	cases := []struct {
+		name    string
+		isValid bool
 	}{
-		{"Valid name", "Pravin k", true},
-		{"Empty name", "", false},
-		{"Name too short", "A", false},
-		{"Name too long", strings.Repeat("a", 46), false},
+		{"John", true},
+		{"A", false},
+		{"", false},
+		{"Valid Name", true},
+		{"Invalid@Name", false},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := validation.ValidateName(tt.input)
-			if result != tt.expected {
-				t.Errorf("ValidateName(%q) = %v, expected %v", tt.input, result, tt.expected)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := validation.ValidateName(c.name)
+			if result != c.isValid {
+				t.Errorf("Expected %v, but got %v", c.isValid, result)
 			}
 		})
 	}
@@ -102,6 +107,7 @@ func TestValidatePassword(t *testing.T) {
 		{"Weak password (no lowercase)", "WEAKPASSWORD123!", false},
 		{"Weak password (no digit)", "StrongP@ssword", false},
 		{"Weak password (no special character)", "StrongPassword123", false},
+		{name: "password lenght less than minimum allowed", input: "vsmall", expected: false},
 	}
 
 	for _, tt := range tests {
@@ -125,6 +131,7 @@ func TestValidateUsername(t *testing.T) {
 		{"Invalid username (too long)", strings.Repeat("a", 46), false},
 		{"Invalid username (no letter)", "123456789", false},
 		{"Valid username (no digit after letter)", "John", true},
+		{"invalid character", "%$$$%@$#$@--", false},
 	}
 
 	for _, tt := range tests {
@@ -151,7 +158,7 @@ func TestValidateDifficulty(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, _ := validation.ValidateDifficulty(tt.input)
+			result, _ := validation.ValidateQuestionDifficulty(tt.input)
 			if result != tt.expected {
 				t.Errorf("ValidateDifficulty(%q) = %v, expected %v", tt.input, result, tt.expected)
 			}
@@ -165,7 +172,7 @@ func TestValidateQuestionLink(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"Valid Leetcode link", "https://Leetcode.com/problems/example-problem/", "https://Leetcode.com/problems/example-problem/"},
+		{"Valid Leetcode link", "https://Leetcode.com/problems/example-problem/", "https://leetcode.com/problems/example-problem/"},
 		{"Invalid URL", "invalid-url", ""},
 		{"Leetcode link without scheme", "Leetcode.com/problems/example-problem/", ""},
 		{"Leetcode link without host", "https://example.com/problems/example-problem/", ""},
@@ -200,5 +207,28 @@ func TestValidateQuestionID(t *testing.T) {
 				t.Errorf("ValidateQuestionID(%q) = %v, expected %v", tt.input, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestValidateTitleSlug(t *testing.T) {
+	tests := []struct {
+		titleSlug   string
+		expectValid bool
+		expectError bool
+	}{
+		{"valid-title-slug", true, false},   // Valid title slug
+		{"", false, true},                   // Empty title slug
+		{"another-valid-slug", true, false}, // Another valid slug
+		{" ", false, true},                  // Space only slug
+	}
+
+	for _, test := range tests {
+		valid, err := validation.ValidateTitleSlug(test.titleSlug)
+		if valid != test.expectValid {
+			t.Errorf("Expected validity for slug '%s' to be %v, got %v", test.titleSlug, test.expectValid, valid)
+		}
+		if (err != nil) != test.expectError {
+			t.Errorf("Expected error for slug '%s' to be %v, got %v", test.titleSlug, test.expectError, err != nil)
+		}
 	}
 }

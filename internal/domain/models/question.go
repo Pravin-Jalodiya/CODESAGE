@@ -1,10 +1,11 @@
 package models
 
 type Question struct {
-	QuestionID    string   `bson:"question_id"`
-	QuestionTitle string   `bson:"question_title"`
-	Difficulty    string   `bson:"difficulty"`
-	QuestionLink  string   `bson:"question_link"`
-	TopicTags     []string `bson:"topic_tags"`
-	CompanyTags   []string `bson:"company_tags"`
+	QuestionTitleSlug string   `json:"question_title_slug" db:"title_slug"`
+	QuestionID        string   `json:"question_id" db:"id"`
+	QuestionTitle     string   `json:"question_title" db:"title"`
+	Difficulty        string   `json:"difficulty" db:"difficulty"`
+	QuestionLink      string   `json:"question_link" db:"link"`
+	TopicTags         []string `json:"topic_tags" db:"topic_tags"`
+	CompanyTags       []string `json:"company_tags" db:"company_tags"`
 }

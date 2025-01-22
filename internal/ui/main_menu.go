@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"cli-project/pkg/utils/emojis"
-	"cli-project/pkg/utils/formatting"
+	"cli-project/pkg/utils"
 	"fmt"
 	"strings"
 )
@@ -14,13 +13,13 @@ func (ui *UI) ShowMainMenu() {
 		fmt.Print("\033[H\033[2J")
 
 		// Print the application name and menu options
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("              CODESAGE              ", "cyan", "bold"))
-		fmt.Println(formatting.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
+		fmt.Println(utils.Colorize("              CODESAGE              ", "cyan", "bold"))
+		fmt.Println(utils.Colorize("====================================", "cyan", "bold"))
 		fmt.Println("Please choose an option:")
-		fmt.Printf("1. %s Sign Up\n", emojis.Signup)
-		fmt.Printf("2. %s Login\n", emojis.Login)
-		fmt.Printf("3. %s Exit\n", emojis.Exit)
+		fmt.Printf("1. %s Sign Up\n", utils.SignupEmoji)
+		fmt.Printf("2. %s Login\n", utils.LoginEmoji)
+		fmt.Printf("3. %s Exit\n", utils.ExitEmoji)
 		fmt.Print("Enter your choice : ")
 
 		// Read user input
@@ -35,10 +34,10 @@ func (ui *UI) ShowMainMenu() {
 		case "2":
 			ui.ShowLoginPage()
 		case "3":
-			fmt.Println(emojis.Exit + " Exiting the application.")
+			fmt.Println(utils.ExitEmoji + " Exiting the application.")
 			return
 		default:
-			fmt.Println(emojis.Error + " Invalid choice. Please try again.")
+			fmt.Println(utils.ErrorEmoji + " Invalid choice. Please try again.")
 		}
 	}
 }
