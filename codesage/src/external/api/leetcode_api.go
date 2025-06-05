@@ -1,0 +1,306 @@
+package api
+
+import (
+	"bytes"
+	"codesage/external/domain/interfaces"
+	"codesage/internal/config"
+	"codesage/internal/domain/models"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+type LeetcodeAPI struct{}
+
+func NewLeetcodeAPI() interfaces.LeetcodeAPI {
+	return &LeetcodeAPI{}
+}
+
+// Function to perform GraphQL request
+func (api *LeetcodeAPI) FetchData(query string, variables map[string]interface{}) (map[string]interface{}, error) {
+	requestBody := map[string]interface{}{
+		"query":     query,
+		"variables": variables,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request body: %v", err)
+	}
+
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("could not decode response: %v", err)
+	}
+
+	data, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid response format")
+	}
+	return data, nil
+}
+
+// Fetch user stats
+func (api *LeetcodeAPI) FetchUserStats(username string) (*models.LeetcodeStats, error) {
+	userStatsQuery := `
+	query userProblemsSolved($username: String!) {
+		allQuestionsCount {
+			difficulty
+			count
+		}
+		matchedUser(username: $username) {
+			submitStatsGlobal {
+				acSubmissionNum {
+					difficulty
+					count
+				}
+			}
+		}
+	}`
+
+	statsData, err := api.FetchData(userStatsQuery, map[string]interface{}{"username": username})
+	if err != nil {
+		return nil, err
+	}
+
+	stats := &models.LeetcodeStats{
+		RecentACSubmissionTitles:     []string{},
+		RecentACSubmissionTitleSlugs: []string{},
+		RecentACSubmissionIds:        []string{},
+	}
+
+	if allQuestionsCount, ok := statsData["allQuestionsCount"].([]interface{}); ok {
+		for _, item := range allQuestionsCount {
+			countInfo := item.(map[string]interface{})
+			difficulty := countInfo["difficulty"].(string)
+			count := int(countInfo["count"].(float64))
+			switch difficulty {
+			case "All":
+				stats.TotalQuestionsCount = count
+			case "Easy":
+				stats.TotalEasyCount = count
+			case "Medium":
+				stats.TotalMediumCount = count
+			case "Hard":
+				stats.TotalHardCount = count
+			}
+		}
+	}
+
+	if matchedUser, ok := statsData["matchedUser"].(map[string]interface{}); ok {
+		if submitStatsGlobal, ok := matchedUser["submitStatsGlobal"].(map[string]interface{}); ok {
+			if acSubmissionNum, ok := submitStatsGlobal["acSubmissionNum"].([]interface{}); ok {
+				for _, item := range acSubmissionNum {
+					difficultyCount := item.(map[string]interface{})
+					difficulty := difficultyCount["difficulty"].(string)
+					count := int(difficultyCount["count"].(float64))
+					switch difficulty {
+					case "All":
+						stats.TotalQuestionsDoneCount = count
+					case "Easy":
+						stats.EasyDoneCount = count
+					case "Medium":
+						stats.MediumDoneCount = count
+					case "Hard":
+						stats.HardDoneCount = count
+					}
+				}
+			}
+		}
+	}
+
+	return stats, nil
+}
+
+// FetchRecentSubmissions fetches recent accepted submissions
+func (api *LeetcodeAPI) FetchRecentSubmissions(username string, limit int) ([]map[string]string, error) {
+	recentSubmissionsQuery := `
+	query recentAcSubmissions($username: String!, $limit: Int!) {
+		recentAcSubmissionList(username: $username, limit: $limit) {
+			id
+			title
+			titleSlug
+		}
+	}`
+
+	submissionsData, err := api.FetchData(recentSubmissionsQuery, map[string]interface{}{"username": username, "limit": limit})
+	if err != nil {
+		return nil, err
+	}
+	var submissions []map[string]string
+	if recentSubmissions, ok := submissionsData["recentAcSubmissionList"].([]interface{}); ok {
+		for _, item := range recentSubmissions {
+			submission := item.(map[string]interface{})
+			if title, ok := submission["title"].(string); ok {
+				if titleSlug, ok := submission["titleSlug"].(string); ok {
+					if id, ok := submission["id"].(string); ok {
+						submissions = append(submissions, map[string]string{
+							"id":        id,
+							"title":     title,
+							"titleSlug": titleSlug,
+						})
+					}
+
+				}
+			}
+		}
+	}
+	return submissions, nil
+}
+
+// GetStats combines fetchUserStats and fetchRecentSubmissions
+func (api *LeetcodeAPI) GetStats(LeetcodeID string) (*models.LeetcodeStats, error) {
+
+	recentLimit := config.RECENT_SUBMISSION_LIMIT
+
+	stats, err := api.FetchUserStats(LeetcodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	recentSubmissions, err := api.FetchRecentSubmissions(LeetcodeID, recentLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize slices for titles and titleSlugs
+	var submissionTitles []string
+	var submissionSlugs []string
+	var submissionIds []string
+
+	for _, submission := range recentSubmissions {
+		if title, ok := submission["title"]; ok {
+			submissionTitles = append(submissionTitles, title)
+		}
+		if slug, ok := submission["titleSlug"]; ok {
+			submissionSlugs = append(submissionSlugs, slug)
+		}
+		if id, ok := submission["id"]; ok {
+			submissionIds = append(submissionIds, id)
+		}
+	}
+	// Set both slices in the stats
+	stats.RecentACSubmissionTitles = submissionTitles
+	stats.RecentACSubmissionTitleSlugs = submissionSlugs
+	stats.RecentACSubmissionIds = submissionIds
+
+	return stats, nil
+}
+
+func (api *LeetcodeAPI) ValidateLeetcodeUsername(username string) (bool, error) {
+	const userQuery = `
+	query getUserProfile($username: String!) {
+  	matchedUser(username: $username) {
+    username
+  }
+}
+`
+
+	query := userQuery
+	requestBody := map[string]interface{}{
+		"query": query,
+		"variables": map[string]string{
+			"username": username,
+		},
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return false, fmt.Errorf("could not marshal request body: %v", err)
+	}
+
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return false, fmt.Errorf("request failed: %v", err)
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return false, fmt.Errorf("could not decode response: %v", err)
+	}
+
+	data, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return false, fmt.Errorf("invalid response format")
+	}
+	matchedUser, ok := data["matchedUser"].(map[string]interface{})
+	if !ok || matchedUser == nil {
+		return false, nil // User does not exist
+	}
+
+	return matchedUser["username"] == username, nil
+}
+
+func (api *LeetcodeAPI) GetUserAvatar(username string) (string, error) {
+	const userAvatarQuery = `
+	query getUserProfile($username: String!) {
+		matchedUser(username: $username) {
+			profile {
+				userAvatar
+			}
+		}
+	}
+`
+	query := userAvatarQuery
+	requestBody := map[string]interface{}{
+		"query": query,
+		"variables": map[string]string{
+			"username": username,
+		},
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("Could not marshal request body: %v", err)
+	}
+
+	resp, err := http.Post(config.LEETCODE_API, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return "", fmt.Errorf("Request failed: %v", err)
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("Could not decode response: %v", err)
+	}
+
+	data, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("Invalid response format")
+	}
+	matchedUser, ok := data["matchedUser"].(map[string]interface{})
+	if !ok || matchedUser == nil {
+		return "", nil // User does not exist
+	}
+	return matchedUser["profile"].(map[string]interface{})["userAvatar"].(string), nil
+}

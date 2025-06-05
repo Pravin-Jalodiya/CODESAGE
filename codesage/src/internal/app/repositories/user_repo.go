@@ -1,0 +1,753 @@
+package repositories
+
+import (
+	"codesage/internal/config"
+	database "codesage/internal/db"
+	"codesage/internal/domain/interfaces"
+	"codesage/internal/domain/models"
+	"codesage/pkg/errors"
+	"context"
+	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"time"
+)
+
+type userRepo struct{}
+
+func NewUserRepo() interfaces.UserRepository {
+	return &userRepo{}
+}
+
+func (r *userRepo) getDBConnection() (*dynamodb.Client, error) {
+	return database.DynamoInitClient()
+}
+
+//func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) error {
+//	db, err := r.getDBConnection()
+//	if err != nil {
+//		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//	}
+//
+//	query := queries.QueryBuilder(queries.BaseInsert, map[string]string{
+//		"table":   "Users",
+//		"columns": "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned, avatar",
+//		"values":  "$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12",
+//	})
+//
+//	_, err = db.ExecContext(ctx, query,
+//		user.ID,
+//		strings.ToLower(user.Username),
+//		user.Password,
+//		user.Name,
+//		strings.ToLower(user.Email),
+//		user.Role,
+//		user.LastSeen,
+//		user.Organisation,
+//		user.Country,
+//		user.LeetcodeID,
+//		user.IsBanned,
+//		user.Avatar,
+//	)
+//	if err != nil {
+//		return fmt.Errorf("%w: %v", errs.ErrUserCreationFailed, err)
+//	}
+//
+//	return nil
+//}
+
+func (r *userRepo) CreateUser(ctx context.Context, user *models.StandardUser) error {
+
+	db, err := r.getDBConnection()
+
+	lastSeenStr := user.LastSeen.Format(time.RFC3339)
+
+	// Prepare the items to be inserted
+	items := []types.WriteRequest{
+		// 1. Insert with PK = users, SK = <email> (no additional data)
+		{
+			PutRequest: &types.PutRequest{
+				Item: map[string]types.AttributeValue{
+					"pk": &types.AttributeValueMemberS{Value: "users"},
+					"sk": &types.AttributeValueMemberS{Value: user.Email},
+				},
+			},
+		},
+		// 2. Insert with PK = users, SK = <leetcodeID> (no additional data)
+		{
+			PutRequest: &types.PutRequest{
+				Item: map[string]types.AttributeValue{
+					"pk": &types.AttributeValueMemberS{Value: "users"},
+					"sk": &types.AttributeValueMemberS{Value: user.LeetcodeID},
+				},
+			},
+		},
+		// 3. Insert with PK = users, SK = <username> (all user data)
+		{
+			PutRequest: &types.PutRequest{
+				Item: map[string]types.AttributeValue{
+					"pk":           &types.AttributeValueMemberS{Value: "users"},
+					"sk":           &types.AttributeValueMemberS{Value: user.Username},
+					"id":           &types.AttributeValueMemberS{Value: user.ID},
+					"username":     &types.AttributeValueMemberS{Value: user.Username},
+					"password":     &types.AttributeValueMemberS{Value: user.Password},
+					"name":         &types.AttributeValueMemberS{Value: user.Name},
+					"email":        &types.AttributeValueMemberS{Value: user.Email},
+					"role":         &types.AttributeValueMemberS{Value: user.Role},
+					"last_seen":    &types.AttributeValueMemberS{Value: lastSeenStr},
+					"organisation": &types.AttributeValueMemberS{Value: user.Organisation},
+					"country":      &types.AttributeValueMemberS{Value: user.Country},
+					"leetcode_id":  &types.AttributeValueMemberS{Value: user.LeetcodeID},
+					"is_banned":    &types.AttributeValueMemberBOOL{Value: user.IsBanned},
+					"avatar":       &types.AttributeValueMemberS{Value: user.Avatar},
+				},
+			},
+		},
+		// 4. Insert with PK = users, SK = NOBAN:<username> (all user data)
+		{
+			PutRequest: &types.PutRequest{
+				Item: map[string]types.AttributeValue{
+					"pk":           &types.AttributeValueMemberS{Value: "users"},
+					"sk":           &types.AttributeValueMemberS{Value: fmt.Sprintf("NOBAN:%s", user.Username)},
+					"id":           &types.AttributeValueMemberS{Value: user.ID},
+					"username":     &types.AttributeValueMemberS{Value: user.Username},
+					"password":     &types.AttributeValueMemberS{Value: user.Password},
+					"name":         &types.AttributeValueMemberS{Value: user.Name},
+					"email":        &types.AttributeValueMemberS{Value: user.Email},
+					"role":         &types.AttributeValueMemberS{Value: user.Role},
+					"last_seen":    &types.AttributeValueMemberS{Value: lastSeenStr},
+					"organisation": &types.AttributeValueMemberS{Value: user.Organisation},
+					"country":      &types.AttributeValueMemberS{Value: user.Country},
+					"leetcode_id":  &types.AttributeValueMemberS{Value: user.LeetcodeID},
+					"is_banned":    &types.AttributeValueMemberBOOL{Value: user.IsBanned},
+					"avatar":       &types.AttributeValueMemberS{Value: user.Avatar},
+				},
+			},
+		},
+	}
+
+	// Prepare the BatchWriteItemInput
+	input := &dynamodb.BatchWriteItemInput{
+		RequestItems: map[string][]types.WriteRequest{
+			config.TABLE_NAME: items,
+		},
+	}
+
+	// Perform the batch write operation
+	_, err = db.BatchWriteItem(ctx, input)
+	if err != nil {
+		return fmt.Errorf("failed to create user: %v", err)
+	}
+
+	return nil
+}
+
+// // DeleteUser deletes a user by the given ID
+//
+//	func (r *userRepo) DeleteUser(ctx context.Context, userID string) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		deleteQuery := queries.QueryBuilder(queries.BaseDelete, map[string]string{
+//			"table":      "users",
+//			"conditions": "id = $1",
+//		})
+//
+//		result, err := db.ExecContext(ctx, deleteQuery, userID)
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDeletingUserFailed, err)
+//		}
+//
+//		rowsAffected, err := result.RowsAffected()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDeletingUserFailed, err)
+//		}
+//
+//		if rowsAffected == 0 {
+//			return fmt.Errorf("%w: user ID %s", errs.ErrUserNotFound, userID)
+//		}
+//
+//		return nil
+//	}
+//
+// // UpdateUserProfile updates the user's information in the database.
+//
+//	func (r *userRepo) UpdateUserProfile(ctx context.Context, userID string, updates map[string]interface{}) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//		updateFields := []string{}
+//		args := []interface{}{}
+//		argID := 1
+//
+//		for key, value := range updates {
+//			updateFields = append(updateFields, fmt.Sprintf("%s = $%d", key, argID))
+//			args = append(args, value)
+//			argID++
+//		}
+//		args = append(args, userID)
+//
+//		query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d",
+//			fmt.Sprintf(strings.Join(updateFields, ", ")), argID)
+//
+//		_, err = db.ExecContext(ctx, query, args...)
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+//		}
+//
+//		return nil
+//	}
+//
+//	func (r *userRepo) UpdateUserProgress(ctx context.Context, userID uuid.UUID, newSlugs []string) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//		tx, err := db.BeginTx(ctx, nil)
+//		if err != nil {
+//			return fmt.Errorf("failed to begin transaction: %v", err)
+//		}
+//
+//		defer func(tx *sql.Tx) {
+//			_ = tx.Rollback()
+//		}(tx)
+//
+//		var existingSlugs []string
+//		fetchQuery := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+//			"columns":    "title_slugs",
+//			"table":      "users_progress",
+//			"conditions": "user_id = $1",
+//		})
+//
+//		err = tx.QueryRowContext(ctx, fetchQuery, userID).Scan(pq.Array(&existingSlugs))
+//		if err != nil {
+//			if errors.Is(err, sql.ErrNoRows) {
+//				insertQuery := queries.QueryBuilder(queries.BaseInsert, map[string]string{
+//					"table":   "users_progress",
+//					"columns": "user_id, title_slugs",
+//					"values":  "$1, $2",
+//				})
+//
+//				_, err = tx.ExecContext(ctx, insertQuery, userID, pq.Array(newSlugs))
+//				if err != nil {
+//					return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
+//				}
+//				return tx.Commit()
+//			}
+//			return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
+//		}
+//
+//		existingSlugSet := make(map[string]struct{}, len(existingSlugs))
+//		for _, slug := range existingSlugs {
+//			existingSlugSet[slug] = struct{}{}
+//		}
+//
+//		var slugsToAdd []string
+//		for _, slug := range newSlugs {
+//			if _, exists := existingSlugSet[slug]; !exists {
+//				slugsToAdd = append(slugsToAdd, slug)
+//			}
+//		}
+//
+//		if len(slugsToAdd) > 0 {
+//			updateQuery := queries.QueryBuilder(queries.BaseUpdate, map[string]string{
+//				"table":       "users_progress",
+//				"assignments": "title_slugs = array(SELECT DISTINCT unnest(title_slugs) || unnest($1::text[]))",
+//				"conditions":  "user_id = $2",
+//			})
+//			_, err = tx.ExecContext(ctx, updateQuery, pq.Array(slugsToAdd), userID)
+//			if err != nil {
+//				return fmt.Errorf("%w: %v", errs.ErrUpdatingUserProgressFailed, err)
+//			}
+//		}
+//
+//		return tx.Commit()
+//	}
+//
+//	func (r *userRepo) FetchAllUsers(ctx context.Context, userStatus string, searchQuery string) ([]models.StandardUser, error) {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseSelect, map[string]string{
+//			"columns": "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
+//			"table":   "Users",
+//		}) + " WHERE TRUE"
+//
+//		var args []interface{}
+//		argIndex := 1
+//
+//		if userStatus != "" {
+//			query += fmt.Sprintf(" AND is_banned = $%d", argIndex)
+//			args = append(args, userStatus)
+//			argIndex++
+//		}
+//
+//		if searchQuery != "" {
+//			query += fmt.Sprintf(" AND username ILIKE $%d", argIndex)
+//			args = append(args, "%"+searchQuery+"%")
+//			argIndex++
+//		}
+//
+//		rows, err := db.QueryContext(ctx, query, args...)
+//		if err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+//		}
+//
+//		defer func(rows *sql.Rows) {
+//			_ = rows.Close()
+//		}(rows)
+//
+//		var users []models.StandardUser
+//
+//		for rows.Next() {
+//			var user models.StandardUser
+//			err := rows.Scan(
+//				&user.ID,
+//				&user.Username,
+//				&user.Password,
+//				&user.Name,
+//				&user.Email,
+//				&user.Role,
+//				&user.LastSeen,
+//				&user.Organisation,
+//				&user.Country,
+//				&user.LeetcodeID,
+//				&user.IsBanned,
+//			)
+//			if err != nil {
+//				return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+//			}
+//			users = append(users, user)
+//		}
+//
+//		if err = rows.Err(); err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+//		}
+//
+//		return users, nil
+//	}
+//
+//	func (r *userRepo) FetchUserByID(ctx context.Context, userID string) (*models.StandardUser, error) {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+//			"columns":    "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned, avatar",
+//			"table":      "Users",
+//			"conditions": "id = $1",
+//		})
+//
+//		row := db.QueryRowContext(ctx, query, userID)
+//
+//		var user models.StandardUser
+//		err = row.Scan(
+//			&user.ID,
+//			&user.Username,
+//			&user.Password,
+//			&user.Name,
+//			&user.Email,
+//			&user.Role,
+//			&user.LastSeen,
+//			&user.Organisation,
+//			&user.Country,
+//			&user.LeetcodeID,
+//			&user.IsBanned,
+//			&user.Avatar,
+//		)
+//		if err != nil {
+//			if errors.Is(err, sql.ErrNoRows) {
+//				return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+//			}
+//			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+//		}
+//
+//		return &user, nil
+//	}
+//
+
+func (r *userRepo) FetchUserByUsername(ctx context.Context, username string) (*models.StandardUser, error) {
+	db, err := r.getDBConnection()
+
+	// Input for GetItem operation
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(config.TABLE_NAME),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: "users"},
+			"sk": &types.AttributeValueMemberS{Value: username},
+		},
+	}
+
+	// Execute the GetItem operation
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user from DynamoDB: %w", err)
+	}
+
+	// Check if item was found
+	if result.Item == nil {
+		return nil, fmt.Errorf("%w: no user found with username %s", errs.ErrUserNotFound, username)
+	}
+
+	// Unmarshal DynamoDB item into user struct
+	var user models.StandardUser
+	err = attributevalue.UnmarshalMap(result.Item, &user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
+	}
+
+	return &user, nil
+}
+
+//	func (r *userRepo) FetchUserByEmail(ctx context.Context, email string) (*models.StandardUser, error) {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+//			"columns":    "id, username, password, name, email, role, last_seen, organisation, country, leetcode_id, is_banned",
+//			"table":      "Users",
+//			"conditions": "email = $1",
+//		})
+//
+//		row := db.QueryRowContext(ctx, query, email)
+//
+//		var user models.StandardUser
+//		err = row.Scan(
+//			&user.ID,
+//			&user.Username,
+//			&user.Password,
+//			&user.Name,
+//			&user.Email,
+//			&user.Role,
+//			&user.LastSeen,
+//			&user.Organisation,
+//			&user.Country,
+//			&user.LeetcodeID,
+//			&user.IsBanned,
+//		)
+//		if err != nil {
+//			if errors.Is(err, sql.ErrNoRows) {
+//				return nil, fmt.Errorf("%w: %v", errs.ErrUserNotFound, err)
+//			}
+//			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+//		}
+//
+//		return &user, nil
+//	}
+//
+//	func (r *userRepo) FetchUserProgress(ctx context.Context, userID string) ([]string, error) {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return nil, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+//			"columns":    "title_slugs",
+//			"table":      "users_progress",
+//			"conditions": "user_id = $1",
+//		})
+//
+//		row := db.QueryRowContext(ctx, query, userID)
+//
+//		var titleSlugs pq.StringArray
+//		var emptyList []string
+//		err = row.Scan(&titleSlugs)
+//		if err != nil {
+//			if errors.Is(err, sql.ErrNoRows) {
+//				return emptyList, nil
+//			}
+//			return nil, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+//		}
+//
+//		titleSlugList := []string(titleSlugs)
+//		return titleSlugList, nil
+//	}
+//
+//	func (r *userRepo) UpdateUserDetails(ctx context.Context, user *models.StandardUser) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		if user.ID == "" {
+//			return fmt.Errorf("%w: user ID is required", errs.ErrUserNotFound)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseUpdate, map[string]string{
+//			"table":       "Users",
+//			"assignments": "username = $1, email = $2, password = $3, name = $4, organisation = $5, country = $6, leetcode_id = $7, last_seen = $8",
+//			"conditions":  "id = $9",
+//		})
+//
+//		_, err = db.ExecContext(
+//			ctx,
+//			query,
+//			user.Username,
+//			user.Email,
+//			user.Password,
+//			user.Name,
+//			user.Organisation,
+//			user.Country,
+//			user.LeetcodeID,
+//			user.LastSeen,
+//			user.ID,
+//		)
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrUpdatingUserDetailsFailed, err)
+//		}
+//
+//		return nil
+//	}
+//
+//	func (r *userRepo) BanUser(ctx context.Context, userID string) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		if userID == "" {
+//			return fmt.Errorf("%w: user ID is required", errs.ErrUserNotFound)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseUpdate, map[string]string{
+//			"table":       "Users",
+//			"assignments": "is_banned = TRUE",
+//			"conditions":  "id = $1 and role = 'user'",
+//		})
+//
+//		result, err := db.ExecContext(ctx, query, userID)
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrBanningUserFailed, err)
+//		}
+//
+//		rowsAffected, err := result.RowsAffected()
+//		if err != nil {
+//			return fmt.Errorf("error checking rows affected: %v", err)
+//		}
+//		if rowsAffected == 0 {
+//			return fmt.Errorf("%w: user with ID %s not found", errs.ErrUserNotFound, userID)
+//		}
+//
+//		return nil
+//	}
+//
+//	func (r *userRepo) UnbanUser(ctx context.Context, userID string) error {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		if userID == "" {
+//			return fmt.Errorf("%w: user ID is required", errs.ErrUserNotFound)
+//		}
+//
+//		query := queries.QueryBuilder(queries.BaseUpdate, map[string]string{
+//			"table":       "Users",
+//			"assignments": "is_banned = FALSE",
+//			"conditions":  "id = $1 and role = 'user'",
+//		})
+//
+//		result, err := db.ExecContext(ctx, query, userID)
+//		if err != nil {
+//			return fmt.Errorf("%w: %v", errs.ErrUnbanningUserFailed, err)
+//		}
+//
+//		rowsAffected, err := result.RowsAffected()
+//		if err != nil {
+//			return fmt.Errorf("error checking rows affected: %v", err)
+//		}
+//		if rowsAffected == 0 {
+//			return fmt.Errorf("%w: user with ID %s not found", errs.ErrUserNotFound, userID)
+//		}
+//
+//		return nil
+//	}
+//
+//	func (r *userRepo) CountActiveUsersInLast24Hours(ctx context.Context) (int, error) {
+//		db, err := r.getDBConnection()
+//		if err != nil {
+//			return 0, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//		}
+//
+//		now := time.Now().UTC()
+//		twentyFourHoursAgo := now.Add(-24 * time.Hour)
+//
+//		query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+//			"columns":    "COUNT(*)",
+//			"table":      "Users",
+//			"conditions": "last_seen >= $1",
+//		})
+//
+//		row := db.QueryRowContext(ctx, query, twentyFourHoursAgo)
+//
+//		var count int
+//		err = row.Scan(&count)
+//		if err != nil {
+//			return 0, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+//		}
+//
+//		return count, nil
+//	}
+//
+// //func (r *userRepo) IsEmailUnique(ctx context.Context, email string) (bool, error) {
+// //	db, err := r.getDBConnection()
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+// //	}
+// //
+// //	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+// //		"columns":    "COUNT(*)",
+// //		"table":      "Users",
+// //		"conditions": "email = $1",
+// //	})
+// //
+// //	row := db.QueryRowContext(ctx, query, email)
+// //
+// //	var count int
+// //	err = row.Scan(&count)
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+// //	}
+// //
+// //	return count == 0, nil
+// //}
+func (r *userRepo) IsEmailUnique(ctx context.Context, email string) (bool, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(config.TABLE_NAME),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: "users"},
+			"sk": &types.AttributeValueMemberS{Value: email},
+		},
+	}
+
+	db, err := r.getDBConnection()
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+	}
+
+	return len(result.Item) == 0, nil
+
+}
+
+// //func (r *userRepo) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
+// //	db, err := r.getDBConnection()
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+// //	}
+// //
+// //	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+// //		"columns":    "COUNT(*)",
+// //		"table":      "Users",
+// //		"conditions": "username = $1",
+// //	})
+// //
+// //	row := db.QueryRowContext(ctx, query, username)
+// //
+// //	var count int
+// //	err = row.Scan(&count)
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUserFailed, err)
+// //	}
+// //
+// //	return count == 0, nil
+// //
+// //}
+func (r *userRepo) IsUsernameUnique(ctx context.Context, username string) (bool, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(config.TABLE_NAME),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: "users"},
+			"sk": &types.AttributeValueMemberS{Value: username},
+		},
+	}
+
+	db, err := r.getDBConnection()
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+	}
+
+	return len(result.Item) == 0, nil
+
+}
+
+// //func (r *userRepo) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error) {
+// //	db, err := r.getDBConnection()
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+// //	}
+// //
+// //	query := queries.QueryBuilder(queries.BaseSelectWhere, map[string]string{
+// //		"columns":    "COUNT(*)",
+// //		"table":      "Users",
+// //		"conditions": "leetcode_id = $1",
+// //	})
+// //
+// //	row := db.QueryRowContext(ctx, query, LeetcodeID)
+// //
+// //	var count int
+// //	err = row.Scan(&count)
+// //	if err != nil {
+// //		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+// //	}
+// //
+// //	return count == 0, nil
+// //}
+func (r *userRepo) IsLeetcodeIDUnique(ctx context.Context, LeetcodeID string) (bool, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(config.TABLE_NAME),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: "users"},
+			"sk": &types.AttributeValueMemberS{Value: LeetcodeID},
+		},
+	}
+
+	db, err := r.getDBConnection()
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+	}
+
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errs.ErrFetchingUsersFailed, err)
+	}
+
+	return len(result.Item) == 0, nil
+
+}
+
+//
+//func (r *userRepo) UpdateUserPassword(ctx context.Context, email string, newPassword string) error {
+//	db, err := r.getDBConnection()
+//	if err != nil {
+//		return fmt.Errorf("%w: %v", errs.ErrDatabaseConnection, err)
+//	}
+//
+//	// Define query and arguments for updating the user's password
+//	query := "UPDATE users SET password = $1 WHERE email = $2"
+//	_, err = db.ExecContext(ctx, query, newPassword, email)
+//	if err != nil {
+//		return fmt.Errorf("%w: %v", errs.ErrDbError, err)
+//	}
+//
+//	return nil
+//}
